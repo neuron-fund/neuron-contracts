@@ -1,0 +1,23 @@
+pragma solidity ^0.7.3;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+interface INeuronPool is IERC20 {
+    function token() external view returns (address);
+
+    function claimInsurance() external; // NOTE: Only yDelegatedVault implements this
+
+    function getRatio() external view returns (uint256);
+
+    function depositAll() external;
+
+    function deposit(uint256) external;
+
+    function withdrawAll() external;
+
+    function withdraw(uint256) external;
+
+    function earn() external;
+
+    function decimals() external view returns (uint8);
+}
