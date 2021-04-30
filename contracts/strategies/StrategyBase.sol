@@ -291,7 +291,6 @@ abstract contract StrategyBase {
             path[2] = _to;
         }
 
-        IERC20(_from).approve(univ2Router2, _amount);
         IUniswapRouterV2(univ2Router2).swapExactTokensForTokens(
             _amount,
             0,

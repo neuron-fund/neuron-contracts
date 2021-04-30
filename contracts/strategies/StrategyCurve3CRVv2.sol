@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "../interfaces/INeuronPool.sol";
-import "../interfaces/curve.sol";
+import "../interfaces/ICurve.sol";
 import "../interfaces/IUniswapRouterV2.sol";
 import "../interfaces/IController.sol";
 
@@ -49,7 +49,9 @@ contract StrategyCurve3CRVv2 is StrategyCurveBase {
             _controller,
             _timelock
         )
-    {}
+    {
+        IERC20(crv).approve(univ2Router2, uint256(-1));
+    }
 
     // **** Views ****
 

@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "../interfaces/curve.sol";
+import "../interfaces/ICurve.sol";
 import "./StrategyBase.sol";
 
 // Base contract for Curve based staking contract interfaces

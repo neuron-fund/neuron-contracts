@@ -1,5 +1,15 @@
 pragma solidity ^0.7.3;
 
+interface ICurveFi {
+    function add_liquidity(
+        // stETH pool
+        uint256[2] calldata amounts,
+        uint256 min_mint_amount
+    ) external payable;
+
+    function balances(int128) external view returns (uint256);
+}
+
 interface ICurveFi_2 {
     function get_virtual_price() external view returns (uint256);
 
@@ -54,7 +64,6 @@ interface ICurveFi_4 {
     function add_liquidity(uint256[4] calldata amounts, uint256 min_mint_amount)
         external;
 
-    // stETH pool
     function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount)
         external
         payable;
