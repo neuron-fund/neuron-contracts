@@ -2,18 +2,11 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { Signer } from "ethers"
-import { IUniswapRouterV2 } from '../typechain/IUniswapRouterV2'
-import { Controller__factory, ICurveFi, ICurveFi3, IERC20, IStEth, NeuronPool, NeuronPool__factory, StrategyCurveSteCRV__factory } from '../typechain'
+import { Controller__factory, ICurveFi, IERC20, IStEth, NeuronPool__factory, StrategyCurveSteCRV__factory } from '../typechain'
 import { assert } from 'chai'
 
-const UniswapRouterV2Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
-const DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F'
-const ETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
-const THREE_CRV = '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490'
 const STE_CRV = '0x06325440D014e39736583c165C2963BA99fAf14E'
 
-const CURVE_3CRV_POOL = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
 // This contract works both as pool and token itself. 
 // Also this contract is Proxy contract. It's implementation is on '0x20dc62d5904633cc6a5e34bec87a048e80c92e97' address currently
 const LIDO_ST_ETH = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'

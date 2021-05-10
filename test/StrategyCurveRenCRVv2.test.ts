@@ -3,17 +3,15 @@ import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { Signer } from "ethers"
 import { IUniswapRouterV2 } from '../typechain/IUniswapRouterV2'
-import { Controller__factory, ICurveFi3, IERC20, NeuronPool, NeuronPool__factory, StrategyCurve3CRVv2__factory } from '../typechain'
+import { Controller__factory, ICurveFi, ICurveFi2, ICurveFi3, IERC20, IStEth, NeuronPool, NeuronPool__factory, StrategyCurveRenCRVv2__factory } from '../typechain'
 import { assert } from 'chai'
 
-const UniswapRouterV2Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
-const DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F'
-const ETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+const WBTC = '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
 const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
-const THREE_CRV = '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490'
+const REN_CRV = '0x49849C98ae39Fff122806C06791Fa73784FB3675'
 
-const CURVE_3CRV_POOL = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
-
+const CURVE_REN_CRV_POOL = '0x93054188d876f558f4a66B2EF1d97d16eDf0895B'
+const UniswapRouterV2Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
 
 const getToken = async (address: string, signer: Signer) => {
   return (await ethers.getContractAt('IERC20', address, signer)) as IERC20
@@ -25,37 +23,37 @@ describe('Token', function () {
   beforeEach(async function () {
     accounts = await ethers.getSigners()
 
-    const get3Crv = async (recipient: Signer) => {
+    const getRenCrv = async (recipient: Signer) => {
       const accAddress = await recipient.getAddress()
-      const dai = await getToken(DAI, recipient)
+      const wbtc = await getToken(WBTC, recipient)
       const ethBalanceBefore = ethers.utils.formatEther(await recipient.getBalance())
-      const daiBalanceBefore = ethers.utils.formatEther(await dai.balanceOf(accAddress))
+      const wbtcBalanceBefore = ethers.utils.formatEther(await wbtc.balanceOf(accAddress))
       console.log(`ethBalanceBefore`, ethBalanceBefore)
-      console.log(`daiBalanceBefore`, daiBalanceBefore)
+      console.log(`wbtcBalanceBefore`, wbtcBalanceBefore)
 
       const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UniswapRouterV2Address, recipient) as IUniswapRouterV2
 
       await uniswapRouter.swapExactETHForTokens(
         '0',
-        [WETH, DAI],
+        [WETH, WBTC],
         await recipient.getAddress(),
         Date.now() + 30000,
         {
           gasLimit: 4000000,
-          value: ethers.utils.parseEther("5"),
+          value: ethers.utils.parseEther("100"),
         },
       )
 
       const ethBalanceAfter = ethers.utils.formatEther((await recipient.getBalance()))
-      const daiBalanceAfter = await dai.balanceOf(accAddress)
+      const wbtcBalanceAfter = await wbtc.balanceOf(accAddress)
       console.log(`ethBalanceAfter`, ethBalanceAfter)
-      console.log(`daiBalanceAfter`, ethers.utils.formatEther(daiBalanceAfter))
-      const curve3CrvPool = await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient) as ICurveFi3
-      await dai.connect(recipient).approve(curve3CrvPool.address, daiBalanceAfter)
-      await curve3CrvPool.add_liquidity([daiBalanceAfter, 0, 0], 0)
-      const threeCrv = await getToken(THREE_CRV, recipient)
-      const threeCrvBalance = await threeCrv.balanceOf(accAddress)
-      console.log(`threeCrvBalance`, ethers.utils.formatEther(threeCrvBalance))
+      console.log(`wbtcBalanceAfter`, ethers.utils.formatEther(wbtcBalanceAfter))
+      const curveRenCrvPool = await ethers.getContractAt('ICurveFi_2', CURVE_REN_CRV_POOL, recipient) as ICurveFi2
+      await wbtc.connect(recipient).approve(curveRenCrvPool.address, wbtcBalanceAfter)
+      await curveRenCrvPool.add_liquidity([0, wbtcBalanceAfter], 0)
+      const renCrv = await getToken(REN_CRV, recipient)
+      const renCrvBalance = await renCrv.balanceOf(accAddress)
+      console.log(`renCrvBalance`, ethers.utils.formatEther(renCrvBalance))
     }
 
     const deployer = accounts[0]
@@ -76,7 +74,7 @@ describe('Token', function () {
       await treasury.getAddress()
     )
 
-    const Strategy = await ethers.getContractFactory('StrategyCurve3CRVv2') as StrategyCurve3CRVv2__factory
+    const Strategy = await ethers.getContractFactory('StrategyCurveRenCRVv2') as StrategyCurveRenCRVv2__factory
     const strategy = await Strategy.deploy(
       await governance.getAddress(),
       await strategist.getAddress(),
@@ -85,7 +83,7 @@ describe('Token', function () {
     )
 
     console.log('Assert strategy wants correct token')
-    assert(await strategy.want() === THREE_CRV)
+    assert(await strategy.want() === REN_CRV)
 
     const NeuronPool = await ethers.getContractFactory('NeuronPool') as NeuronPool__factory
     const neuronPool = await NeuronPool.deploy(
@@ -99,17 +97,18 @@ describe('Token', function () {
     await controller.approveStrategy(await strategy.want(), strategy.address)
     await controller.setStrategy(await strategy.want(), strategy.address)
 
-    await get3Crv(user)
+    await getRenCrv(user)
 
-    const threeCrv = await getToken(THREE_CRV, user)
-    const threeCrvUserBalanceInitial = await threeCrv.balanceOf(await user.getAddress())
-    console.log(`threeCrvUserBalanceInitial`, ethers.utils.formatEther(threeCrvUserBalanceInitial))
-    await threeCrv.connect(user).approve(neuronPool.address, threeCrvUserBalanceInitial)
+
+    const renCrv = await getToken(REN_CRV, user)
+    const renCrvUserBalanceInitial = await renCrv.balanceOf(await user.getAddress())
+    console.log(`renCrvUserBalanceInitial`, ethers.utils.formatEther(renCrvUserBalanceInitial))
+    await renCrv.connect(user).approve(neuronPool.address, renCrvUserBalanceInitial)
 
     console.log('Connect user to pool')
     const neuronPoolUserConnected = await neuronPool.connect(user)
     console.log('Depositing to pool')
-    await neuronPoolUserConnected.deposit(threeCrvUserBalanceInitial)
+    await neuronPoolUserConnected.deposit(renCrvUserBalanceInitial)
     console.log('Execute pools earn function')
     await neuronPool.earn()
 
@@ -122,26 +121,26 @@ describe('Token', function () {
     await strategy.harvest()
 
     // Withdraws back to pickleJar
-    const inPoolBefore = await threeCrv.balanceOf(neuronPool.address)
+    const inPoolBefore = await renCrv.balanceOf(neuronPool.address)
     console.log(`inPoolBefore`, ethers.utils.formatEther(inPoolBefore))
     console.log('Withdraw all from controller')
-    await controller.withdrawAll(threeCrv.address)
-    const inPoolAfter = await threeCrv.balanceOf(neuronPool.address)
+    await controller.withdrawAll(renCrv.address)
+    const inPoolAfter = await renCrv.balanceOf(neuronPool.address)
     console.log(`inPoolAfter`, ethers.utils.formatEther(inPoolAfter))
 
     assert(inPoolAfter.gt(inPoolBefore), 'Unsuccesfull withdraw from strategy to pool')
 
-    const threeCrvUserBalanceBefore = await threeCrv.balanceOf(await user.getAddress())
-    console.log(`threeCrvUserBalanceBefore`, ethers.utils.formatEther(threeCrvUserBalanceBefore))
+    const renCrvUserBalanceBefore = await renCrv.balanceOf(await user.getAddress())
+    console.log(`renCrvUserBalanceBefore`, ethers.utils.formatEther(renCrvUserBalanceBefore))
     console.log('Widthdraw from pool to user')
     await neuronPoolUserConnected.withdrawAll()
-    const threeCrvUserBalanceAfter = await threeCrv.balanceOf(await user.getAddress())
-    console.log(`threeCrvUserBalanceAfter`, ethers.utils.formatEther(threeCrvUserBalanceAfter))
+    const renCrvUserBalanceAfter = await renCrv.balanceOf(await user.getAddress())
+    console.log(`renCrvUserBalanceAfter`, ethers.utils.formatEther(renCrvUserBalanceAfter))
 
-    assert(threeCrvUserBalanceAfter.gt(threeCrvUserBalanceBefore), 'Unsuccesfull withdraw from pool to user')
+    assert(renCrvUserBalanceAfter.gt(renCrvUserBalanceBefore), 'Unsuccesfull withdraw from pool to user')
 
     // Gained some interest
-    assert(threeCrvUserBalanceAfter.gt(threeCrvUserBalanceInitial), 'User have not got any interest after deposit')
+    assert(renCrvUserBalanceAfter.gt(renCrvUserBalanceInitial), 'User have not got any interest after deposit')
   })
 
   it('should do something right', async function () {

@@ -2,7 +2,9 @@
 pragma solidity ^0.7.3;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../interfaces/INeuronPool.sol";
 import "../interfaces/ICurve.sol";
@@ -17,6 +19,7 @@ import "./StrategyCurveBase.sol";
 // Можно поискать по проекту адрес, чтобы увидеть где происходит деплой и как задается этот адрес.
 
 contract StrategyCurve3CRVv2 is StrategyCurveBase {
+    // TODO почему то using for не наследуется
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -39,7 +42,6 @@ contract StrategyCurve3CRVv2 is StrategyCurveBase {
         address _controller,
         address _timelock
     )
-        public
         StrategyCurveBase(
             three_pool,
             three_gauge,

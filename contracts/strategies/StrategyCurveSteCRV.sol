@@ -1,7 +1,9 @@
 pragma solidity ^0.7.3;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../interfaces/INeuronPool.sol";
 import "../interfaces/IStEth.sol";
@@ -44,7 +46,6 @@ contract StrategyCurveSteCRV is StrategyBase {
         address _controller,
         address _timelock
     )
-        public
         StrategyBase(
             address(steCRV),
             _governance,
@@ -53,6 +54,7 @@ contract StrategyCurveSteCRV is StrategyBase {
             _timelock
         )
     {
+        // TODO узнать а безопасно ли вообще так делать, апрувить со значением -1
         steCRV.approve(address(gauge), uint256(-1));
         stEth.approve(address(curve), uint256(-1));
         ldo.safeApprove(address(univ2Router2), uint256(-1));
