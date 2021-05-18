@@ -2,19 +2,10 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { Signer } from "ethers"
-import { Controller__factory, ICurveFi, IERC20, IStEth, NeuronPool__factory, StrategyCurveSteCRV__factory } from '../typechain'
+import { Controller__factory, ICurveFi, IERC20, IStEth, NeuronPool__factory, StrategyCurveSteCrv__factory } from '../typechain'
 import { assert } from 'chai'
-
-const STE_CRV = '0x06325440D014e39736583c165C2963BA99fAf14E'
-
-// This contract works both as pool and token itself. 
-// Also this contract is Proxy contract. It's implementation is on '0x20dc62d5904633cc6a5e34bec87a048e80c92e97' address currently
-const LIDO_ST_ETH = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
-const CURVE_STE_CRV_POOL = '0xDC24316b9AE028F1497c275EB9192a3Ea0f67022'
-
-const getToken = async (address: string, signer: Signer) => {
-  return (await ethers.getContractAt('IERC20', address, signer)) as IERC20
-}
+import { CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV } from '../constants/addresses'
+import { getSteCrv, getToken } from '../utils/getCurveTokens'
 
 describe('Token', function () {
   let accounts: Signer[]
@@ -22,35 +13,6 @@ describe('Token', function () {
   beforeEach(async function () {
     accounts = await ethers.getSigners()
 
-    const getSteCrv = async (recipient: Signer) => {
-      const accAddress = await recipient.getAddress()
-
-      const lidoStEth = await ethers.getContractAt('IStEth', LIDO_ST_ETH, recipient) as IStEth
-      const ethBalanceBefore = ethers.utils.formatEther(await recipient.getBalance())
-      console.log(`ethBalanceBefore`, ethBalanceBefore)
-      console.log('stEth balance Before', ethers.utils.formatEther(await lidoStEth.balanceOf(accAddress)))
-      console.log('Deposit ETH into lido stEth pool to get StEth token')
-      await lidoStEth.submit(accAddress, { value: ethers.utils.parseEther('100') })
-
-      const ethBalanceAfter = ethers.utils.formatEther(await recipient.getBalance())
-      const stEthBalanceAfter = await lidoStEth.balanceOf(accAddress)
-      console.log(`ethBalanceAfter`, ethBalanceAfter)
-      console.log('stEth balance after', ethers.utils.formatEther(stEthBalanceAfter))
-
-      console.log('Getting curve ste crv pool contract')
-      const curveSteCrvPool = await ethers.getContractAt('ICurveFi', CURVE_STE_CRV_POOL, recipient) as ICurveFi
-      console.log('Approve sending steCrv from user to curve pool')
-      await lidoStEth.connect(recipient).approve(curveSteCrvPool.address, stEthBalanceAfter)
-      console.log('Adding liquidity by sending ETH and StEth to curve pool')
-      // await curveSteCrvPool.add_liquidity([stEthBalanceAfter, stEthBalanceAfter], 0)
-      const amount = ethers.utils.parseEther('1')
-      console.log('Is enough balance', stEthBalanceAfter.gt(amount))
-      await curveSteCrvPool.add_liquidity([amount, amount], 0, { value: amount })
-      console.log('Geting STE_CRV token contract')
-      const steCrv = await getToken(STE_CRV, recipient)
-      const steCrvBalance = await steCrv.balanceOf(accAddress)
-      console.log(`steCrvBalance`, ethers.utils.formatEther(steCrvBalance))
-    }
 
     const deployer = accounts[0]
     const governance = deployer
@@ -70,7 +32,7 @@ describe('Token', function () {
       await treasury.getAddress()
     )
 
-    const Strategy = await ethers.getContractFactory('StrategyCurveSteCRV') as StrategyCurveSteCRV__factory
+    const Strategy = await ethers.getContractFactory('StrategyCurveSteCrv') as StrategyCurveSteCrv__factory
     const strategy = await Strategy.deploy(
       await governance.getAddress(),
       await strategist.getAddress(),

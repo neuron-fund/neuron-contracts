@@ -1,8 +1,15 @@
-# Before all
+## Before all
 `npm i`
 
-# Compile contracts 
+## Compile contracts 
 `npx harhat compile`
 
-# Test
+## Test
 `npx hardhat test`
+
+## Test deploy
+First terminal: 
+`npx hardhat node`
+
+ Second terminal: 
+`npx hardhat run --network localhost scripts/deploy.js`

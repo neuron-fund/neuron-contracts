@@ -2,7 +2,7 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer } from "ethers"
-import { Controller__factory, ICurveFi, IERC20, Instabrine, Instabrine__factory, IStEth, IUniswapRouterV2, NeuronPool__factory, StrategyCurveSteCRV__factory } from '../typechain'
+import { Controller__factory, ICurveFi, IERC20, Instabrine, Instabrine__factory, IStEth, IUniswapRouterV2, NeuronPool__factory, StrategyCurveSteCrv__factory } from '../typechain'
 import { assert } from 'chai'
 import { formatEther, parseEther } from '@ethersproject/units'
 

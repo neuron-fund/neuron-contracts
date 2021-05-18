@@ -3,20 +3,10 @@ import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { Signer } from "ethers"
 import { IUniswapRouterV2 } from '../typechain/IUniswapRouterV2'
-import { Controller__factory, ICurveFi3, IERC20, NeuronPool__factory, StrategyCurve3CRVv2__factory } from '../typechain'
+import { Controller__factory, ICurveFi3, IERC20, NeuronPool__factory, StrategyCurve3Crv, StrategyCurve3Crv__factory } from '../typechain'
 import { assert } from 'chai'
-
-const UniswapRouterV2Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
-const DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F'
-const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
-const THREE_CRV = '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490'
-
-const CURVE_3CRV_POOL = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
-
-
-const getToken = async (address: string, signer: Signer) => {
-  return (await ethers.getContractAt('IERC20', address, signer)) as IERC20
-}
+import { THREE_CRV } from '../constants/addresses'
+import { get3Crv, getToken } from '../utils/getCurveTokens'
 
 describe('Token', function () {
   let accounts: Signer[]
@@ -24,38 +14,6 @@ describe('Token', function () {
   beforeEach(async function () {
     accounts = await ethers.getSigners()
 
-    const get3Crv = async (recipient: Signer) => {
-      const accAddress = await recipient.getAddress()
-      const dai = await getToken(DAI, recipient)
-      const ethBalanceBefore = ethers.utils.formatEther(await recipient.getBalance())
-      const daiBalanceBefore = ethers.utils.formatEther(await dai.balanceOf(accAddress))
-      console.log(`ethBalanceBefore`, ethBalanceBefore)
-      console.log(`daiBalanceBefore`, daiBalanceBefore)
-
-      const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UniswapRouterV2Address, recipient) as IUniswapRouterV2
-
-      await uniswapRouter.swapExactETHForTokens(
-        '0',
-        [WETH, DAI],
-        await recipient.getAddress(),
-        Date.now() + 30000,
-        {
-          gasLimit: 4000000,
-          value: ethers.utils.parseEther("5"),
-        },
-      )
-
-      const ethBalanceAfter = ethers.utils.formatEther((await recipient.getBalance()))
-      const daiBalanceAfter = await dai.balanceOf(accAddress)
-      console.log(`ethBalanceAfter`, ethBalanceAfter)
-      console.log(`daiBalanceAfter`, ethers.utils.formatEther(daiBalanceAfter))
-      const curve3CrvPool = await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient) as ICurveFi3
-      await dai.connect(recipient).approve(curve3CrvPool.address, daiBalanceAfter)
-      await curve3CrvPool.add_liquidity([daiBalanceAfter, 0, 0], 0)
-      const threeCrv = await getToken(THREE_CRV, recipient)
-      const threeCrvBalance = await threeCrv.balanceOf(accAddress)
-      console.log(`threeCrvBalance`, ethers.utils.formatEther(threeCrvBalance))
-    }
 
     const deployer = accounts[0]
     const governance = deployer
@@ -75,7 +33,7 @@ describe('Token', function () {
       await treasury.getAddress()
     )
 
-    const Strategy = await ethers.getContractFactory('StrategyCurve3CRVv2') as StrategyCurve3CRVv2__factory
+    const Strategy = await ethers.getContractFactory('StrategyCurve3Crv') as StrategyCurve3Crv__factory
     const strategy = await Strategy.deploy(
       await governance.getAddress(),
       await strategist.getAddress(),

@@ -12,7 +12,7 @@ import "../interfaces/IController.sol";
 
 import "./StrategyCurveBase.sol";
 
-contract StrategyCurveRenCRVv2 is StrategyCurveBase {
+contract StrategyCurveRenCrv is StrategyCurveBase {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -65,7 +65,7 @@ contract StrategyCurveRenCRVv2 is StrategyCurveBase {
     }
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCurveRenCRVv2";
+        return "StrategyCurveRenCrv";
     }
 
     // **** State Mutations ****

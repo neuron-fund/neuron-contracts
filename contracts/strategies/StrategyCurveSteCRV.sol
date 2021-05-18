@@ -14,7 +14,7 @@ import "../interfaces/IController.sol";
 
 import "./StrategyBase.sol";
 
-contract StrategyCurveSteCRV is StrategyBase {
+contract StrategyCurveSteCrv is StrategyBase {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

@@ -18,7 +18,7 @@ import "./StrategyCurveBase.sol";
 // Адрес контракта этой стратегии 0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33
 // Можно поискать по проекту адрес, чтобы увидеть где происходит деплой и как задается этот адрес.
 
-contract StrategyCurve3CRVv2 is StrategyCurveBase {
+contract StrategyCurve3Crv is StrategyCurveBase {
     // TODO почему то using for не наследуется
     using SafeERC20 for IERC20;
     using Address for address;
@@ -83,7 +83,7 @@ contract StrategyCurve3CRVv2 is StrategyCurveBase {
     }
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCurve3CRVv2";
+        return "StrategyCurve3Crv";
     }
 
     // **** State Mutations ****
