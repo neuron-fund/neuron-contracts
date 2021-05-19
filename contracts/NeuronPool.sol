@@ -34,7 +34,7 @@ contract NeuronPool is ERC20 {
         ERC20(
             // TODO neuroned звучит убого
             string(abi.encodePacked("neuroned", ERC20(_token).name())),
-            string(abi.encodePacked("n", ERC20(_token).symbol()))
+            string(abi.encodePacked("neur", ERC20(_token).symbol()))
         )
     {
         _setupDecimals(ERC20(_token).decimals());
