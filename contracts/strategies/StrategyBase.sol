@@ -22,6 +22,7 @@ abstract contract StrategyBase {
     uint256 public performanceTreasuryFee = 2000;
     uint256 public constant performanceTreasuryMax = 10000;
 
+    // Сейчас у пикла это 7.5%
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
 
@@ -362,12 +363,14 @@ abstract contract StrategyBase {
 
         if (_want > 0) {
             // Treasury fees
+            // Отправляет в tresury токены стратегии. 20% (задается константой performanceTreasuryFee)  от средств на счете стратегии
             IERC20(want).safeTransfer(
                 IController(controller).treasury(),
                 _want.mul(performanceTreasuryFee).div(performanceTreasuryMax)
             );
 
             // Performance fee
+            // Отправляет в devfund токены стратегии. 7.5% сейчас у пикла (задается константой perfomanceDevFee) от средств на счете стратегии
             IERC20(want).safeTransfer(
                 IController(controller).devfund(),
                 _want.mul(performanceDevFee).div(performanceDevMax)
