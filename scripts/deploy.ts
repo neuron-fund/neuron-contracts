@@ -3,6 +3,8 @@ import "@nomiclabs/hardhat-ethers"
 import { ethers } from "hardhat"
 import { ContractFactory, Signer, Wallet } from "ethers"
 import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory } from '../typechain'
+import { writeFileSync } from 'node:fs'
+import path from 'node:path'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -26,10 +28,10 @@ async function main () {
   const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
   const NeuronPool = await ethers.getContractFactory('NeuronPool') as NeuronPool__factory
   // Strategies
-  const StrategyCurve3Crv = await ethers.getContractFactory('StrategyCurve3Crv') as StrategyCurve3Crv__factory
-  const StrategyCurveRenCrv = await ethers.getContractFactory('StrategyCurveRenCrv') as StrategyCurveRenCrv__factory
-  const StrategyCurveSteCrv = await ethers.getContractFactory('StrategyCurveSteCrv') as StrategyCurveSteCrv__factory
-  const StrategyFeiTribeLp = await ethers.getContractFactory('StrategyFeiTribeLp') as StrategyFeiTribeLp__factory
+  const Curve3Crv = await ethers.getContractFactory('StrategyCurve3Crv') as StrategyCurve3Crv__factory
+  const CurveRenCrv = await ethers.getContractFactory('StrategyCurveRenCrv') as StrategyCurveRenCrv__factory
+  const CurveSteCrv = await ethers.getContractFactory('StrategyCurveSteCrv') as StrategyCurveSteCrv__factory
+  const FeiTribeLp = await ethers.getContractFactory('StrategyFeiTribeLp') as StrategyFeiTribeLp__factory
 
   const neuronToken = await NeuronToken.deploy()
   // TODO определиться со значниями следующих констант, важно для токеномики
@@ -50,20 +52,44 @@ async function main () {
   })
 
   const strategies = {
-    StrategyCurve3Crv,
-    StrategyCurveRenCrv,
-    StrategyCurveSteCrv,
-    StrategyFeiTribeLp
+    Curve3Crv,
+    CurveRenCrv,
+    CurveSteCrv,
+    FeiTribeLp
   }
 
   console.log(`NeuronToken address: ${neuronToken.address}`)
   console.log(`Controller address: ${controller.address}`)
   console.log(`MasterChef address: ${masterChef.address}`)
 
-  await Promise.all(Object.entries(strategies).map(async ([strategyName, strategyFactory]) => {
-    const { neuronPoolAddress, strategyAddress} = await deployStrategy(strategyFactory)
+  const deployedStrategies = []
+  for (const [strategyName, strategyFactory] of Object.entries(strategies)) {
+    const { neuronPoolAddress, strategyAddress } = await deployStrategy(strategyFactory)
     console.log(`${strategyName}\n strategy address: ${strategyAddress} \n neuron pool address: ${neuronPoolAddress}\n\n`)
-  }))
+    const allocPoint = parseEther('10')
+    await masterChef.add(allocPoint, neuronPoolAddress, false)
+    deployedStrategies.push({ neuronPoolAddress, strategyAddress, strategyName })
+  }
+
+  await masterChef.massUpdatePools()
+
+  writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
+    export const NeuronTokenAddress = '${neuronToken.address}'
+    export const ControllerAddress = '${controller.address}'
+    export const MasterChefAddress = '${masterChef.address}'
+
+    export const Pools = {
+      ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName }, i) =>
+    `
+        ${strategyName}: {
+          strategyAddress: '${strategyAddress}',
+          poolAddress: '${neuronPoolAddress}',
+          poolIndex: ${i}
+        },
+
+      `).join('')}
+    }
+  `)
 
 }
 
