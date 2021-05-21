@@ -3,10 +3,10 @@ import "@nomiclabs/hardhat-ethers"
 import { Signer } from 'ethers'
 import { ethers } from "hardhat"
 import { DAI, UniswapRouterV2Address, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV } from '../constants/addresses'
-import { IUniswapRouterV2, ICurveFi3, IERC20, ICurveFi2, IStEth, ICurveFi } from '../typechain'
+import { IUniswapRouterV2, ICurveFi3, IERC20, ICurveFi2, IStEth, ICurveFi, ERC20 } from '../typechain'
 
 export const getToken = async (address: string, signer: Signer) => {
-  return (await ethers.getContractAt('IERC20', address, signer)) as IERC20
+  return (await ethers.getContractAt('ERC20', address, signer)) as ERC20
 }
 
 export const get3Crv = async (recipient: Signer) => {

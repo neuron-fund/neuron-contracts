@@ -14,6 +14,8 @@ interface IMasterchef {
 
     function deposit(uint256 _pid, uint256 _amount) external;
 
+    function depositFromPool(uint256 _pid, uint256 _amount, address userId) external;
+
     function dev(address _devaddr) external;
 
     function devFundDivRate() external view returns (uint256);
