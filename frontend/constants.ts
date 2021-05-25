@@ -1,37 +1,43 @@
 
-    export const NeuronTokenAddress = '0xF30f842F5844e4397dCab59cAAEAC3e825c803C6'
-    export const ControllerAddress = '0xF0DA9621BB82Df5fa179B61E51F8E97523b85555'
-    export const MasterChefAddress = '0xB409F1DF5c67e4b854737a94CF985Ad9d69Df012'
+    export const NeuronTokenAddress = '0x6A54c7C8bfF6Ce0380C7FD19aB2A764e860AD3BD'
+    export const ControllerAddress = '0xFfDb48703CEBEB4e120f1D9BF93a5C4b3f2Cf8bb'
+    export const MasterChefAddress = '0x3fD1DE9Af029BB3057f606334aD611790649F648'
 
     export const Pools = {
-      
+
         Curve3Crv: {
-          strategyAddress: '0xAeABc4078a607E2c8420414537aB41E0f80d972c',
-          poolAddress: '0x7b1B9d912Dd6F33FBccd290a9f3d02D0575ba863',
-          poolIndex: 0
+          strategyAddress: '0x7009D8b928FA7a44cE39E453D3fe9217A61E29F2',
+          poolAddress: '0x621fBEe6F3feCb12110137C50DE54BaC639df06A',
+          poolIndex: 0,
+          inputTokenAddress: '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490',
+          inputTokenSymbol: '3Crv'
         },
 
-      
+
         CurveRenCrv: {
-          strategyAddress: '0xB419F38aB1B5CBf301e0A2D711ceAda365573377',
-          poolAddress: '0x10B05d9CdB828516d6525F27DfF982C6094D2fc4',
-          poolIndex: 1
+          strategyAddress: '0x073FAcf9DDDC77ae7581FCACe76ce211D6A29994',
+          poolAddress: '0xca8d2968Aa4E305bc9aFB12Bf0805F74b63354FF',
+          poolIndex: 1,
+          inputTokenAddress: '0x49849C98ae39Fff122806C06791Fa73784FB3675',
+          inputTokenSymbol: 'crvRenWBTC'
         },
 
-      
+
         CurveSteCrv: {
-          strategyAddress: '0x2d79042F6089FD80973aF5658A56f8Ac32b458aA',
-          poolAddress: '0xB329ac56BD00c4dE39bAD468b21E8CfE48413a7b',
-          poolIndex: 2
+          strategyAddress: '0x105cDF66620ef655209226761b377029DfF93E58',
+          poolAddress: '0x2370D997183D0F5D4C7AC5b52bec36a34F118A68',
+          poolIndex: 2,
+          inputTokenAddress: '0x06325440D014e39736583c165C2963BA99fAf14E',
+          inputTokenSymbol: 'steCRV'
         },
 
-      
+
         FeiTribeLp: {
-          strategyAddress: '0x82dA305ce558b803Dd6a2f0A2a5886808F04cE4f',
-          poolAddress: '0x2Ed085f4449f31514c8e08c2296097E1a2FCBC40',
-          poolIndex: 3
+          strategyAddress: '0xf4C265CA0f8E7DDcDD317484b69dE07525Cfd72A',
+          poolAddress: '0x30870a2e00B2f540358ac1a3F323Df4ae54598B3',
+          poolIndex: 3,
+          inputTokenAddress: '0x9928e4046d7c6513326cCeA028cD3e7a91c7590A',
+          inputTokenSymbol: 'UNI-V2'
         },
-
-      
     }
   

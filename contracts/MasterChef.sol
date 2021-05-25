@@ -229,6 +229,30 @@ contract MasterChef is Ownable {
         emit Deposit(msg.sender, _pid, _amount);
     }
 
+    // Deposit LP tokens to MasterChef for PICKLE allocation.
+    function depositFromPool(uint256 _pid, uint256 _amount, address userId) public {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][userId];
+        // TODO check if its neccessary
+        // require(address(pool.lpToken) == msg.sender, "Sender is not required pool");
+        updatePool(_pid);
+        if (user.amount > 0) {
+            uint256 pending =
+                user.amount.mul(pool.accNeuronTokenPerShare).div(1e12).sub(
+                    user.rewardDebt
+                );
+            safeNeuronTokenTransfer(userId, pending);
+        }
+        pool.lpToken.safeTransferFrom(
+            address(msg.sender),
+            address(this),
+            _amount
+        );
+        user.amount = user.amount.add(_amount);
+        user.rewardDebt = user.amount.mul(pool.accNeuronTokenPerShare).div(1e12);
+        emit Deposit(userId, _pid, _amount);
+    }
+
     // Withdraw LP tokens from MasterChef.
     function withdraw(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];

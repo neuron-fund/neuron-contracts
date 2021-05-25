@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
+import "./interfaces/IMasterchef.sol";
 import "./interfaces/IController.sol";
 
 contract NeuronPool is ERC20 {
@@ -22,6 +23,7 @@ contract NeuronPool is ERC20 {
     address public governance;
     address public timelock;
     address public controller;
+    address public masterchef;
 
     constructor(
         // Токен который принимает контракт. Например для Jar который создает под стратегию 3poolCrv это будет токен 3Crv
@@ -29,7 +31,8 @@ contract NeuronPool is ERC20 {
         address _token,
         address _governance,
         address _timelock,
-        address _controller
+        address _controller,
+        address _masterchef
     )
         ERC20(
             // TODO neuroned звучит убого
@@ -42,6 +45,7 @@ contract NeuronPool is ERC20 {
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
+        masterchef = _masterchef;
     }
 
     // Баланс считается из баланса в банке и баланса токена этой банки в контроллере
@@ -114,6 +118,30 @@ contract NeuronPool is ERC20 {
         _mint(msg.sender, shares);
     }
 
+    // Это точка входа для пользователя, именно эта функция вызывается, когда мы нажимаем кнопку Deposit в интерфейсе
+    function depositAndFarm(uint256 _amount, uint256 farmPid) public {
+        // Баланс на счету банки + баланс в контроллере
+        uint256 _pool = balance();
+        uint256 _before = token.balanceOf(address(this));
+        token.safeTransferFrom(msg.sender, address(this), _amount);
+        uint256 _after = token.balanceOf(address(this));
+        _amount = _after.sub(_before); // Additional check for deflationary tokens Непонял что это и зачем
+        uint256 shares = 0;
+        // totalSupply - общее количество pТокена, токена который дается в обмен на депозит в пуле, например p3CRV для 3crv банки
+        if (totalSupply() == 0) {
+            // Количество токенов которое получит юзер в обмен на депозит. Первый юзер получает такое же кол-во, как депозит
+            shares = _amount;
+        } else {
+            // Для последующих юзеров формула: (tokens_stacked * exist_pTokens) / total_tokens_stacked. total_tokesn_stacked - не считая новых
+            shares = (_amount.mul(totalSupply())).div(_pool);
+        }
+
+        _mint(address(this), shares);
+        approve(masterchef, shares);
+        IERC20(address(this)).approve(masterchef, shares);
+        IMasterchef(masterchef).depositFromPool(farmPid, shares, msg.sender);
+    }
+
     function withdrawAll() external {
         withdraw(balanceOf(msg.sender));
     }
@@ -150,6 +178,10 @@ contract NeuronPool is ERC20 {
     }
 
     function getRatio() public view returns (uint256) {
-        return balance().mul(1e18).div(totalSupply());
+        uint256 currentTotalSupply = totalSupply();
+        if (currentTotalSupply == 0) {
+            return 0;
+        }
+        return balance().mul(1e18).div(currentTotalSupply);
     }
 }

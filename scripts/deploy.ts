@@ -5,6 +5,7 @@ import { ContractFactory, Signer, Wallet } from "ethers"
 import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory } from '../typechain'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
+import { getToken } from '../utils/getCurveTokens'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -48,6 +49,7 @@ async function main () {
     neuronPoolFactory: NeuronPool,
     governanceAddress,
     strategistAddress,
+    masterChefAddress: masterChef.address,
     timelockAddress
   })
 
@@ -64,11 +66,22 @@ async function main () {
 
   const deployedStrategies = []
   for (const [strategyName, strategyFactory] of Object.entries(strategies)) {
-    const { neuronPoolAddress, strategyAddress } = await deployStrategy(strategyFactory)
+    const { strategy, neuronPool } = await deployStrategy(strategyFactory)
+    const neuronPoolAddress = neuronPool.address
+    const strategyAddress = strategy.address
+    const inputTokenAddress = await neuronPool.token()
+    const inputToken = await getToken(inputTokenAddress, deployer)
+    const inputTokenSymbol = await inputToken.symbol()
     console.log(`${strategyName}\n strategy address: ${strategyAddress} \n neuron pool address: ${neuronPoolAddress}\n\n`)
     const allocPoint = parseEther('10')
     await masterChef.add(allocPoint, neuronPoolAddress, false)
-    deployedStrategies.push({ neuronPoolAddress, strategyAddress, strategyName })
+    deployedStrategies.push({
+      neuronPoolAddress,
+      strategyAddress,
+      strategyName,
+      inputTokenSymbol,
+      inputTokenAddress
+    })
   }
 
   await masterChef.massUpdatePools()
@@ -79,12 +92,14 @@ async function main () {
     export const MasterChefAddress = '${masterChef.address}'
 
     export const Pools = {
-      ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName }, i) =>
+      ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName, inputTokenSymbol, inputTokenAddress }, i) =>
     `
         ${strategyName}: {
           strategyAddress: '${strategyAddress}',
           poolAddress: '${neuronPoolAddress}',
-          poolIndex: ${i}
+          poolIndex: ${i},
+          inputTokenAddress: '${inputTokenAddress}',
+          inputTokenSymbol: '${inputTokenSymbol}'
         },
 
       `).join('')}
@@ -105,6 +120,7 @@ type DeployStrategyFactory = {
   neuronPoolFactory: NeuronPool__factory,
   governanceAddress: string
   strategistAddress: string
+  masterChefAddress: string
   timelockAddress: string
 }
 
@@ -113,12 +129,10 @@ function deployStrategyFactory ({
   neuronPoolFactory,
   governanceAddress,
   strategistAddress,
+  masterChefAddress,
   timelockAddress
 }: DeployStrategyFactory) {
-  return async <T extends ContractFactory> (strategyFactory: T): Promise<{
-    strategyAddress: string,
-    neuronPoolAddress: string,
-  }> => {
+  return async <T extends ContractFactory> (strategyFactory: T) => {
     const strategy = await strategyFactory.deploy(
       governanceAddress,
       strategistAddress,
@@ -129,15 +143,16 @@ function deployStrategyFactory ({
       await strategy.want(),
       governanceAddress,
       timelockAddress,
-      controller.address
+      controller.address,
+      masterChefAddress
     )
 
     await controller.setNPool(await strategy.want(), neuronPool.address)
     await controller.approveStrategy(await strategy.want(), strategy.address)
     await controller.setStrategy(await strategy.want(), strategy.address)
     return {
-      strategyAddress: strategy.address,
-      neuronPoolAddress: neuronPool.address
+      strategy,
+      neuronPool
     }
   }
 }
