@@ -138,6 +138,7 @@ contract NeuronPool is ERC20 {
 
         _mint(address(this), shares);
         approve(masterchef, shares);
+        IERC20(address(this)).approve(masterchef, shares);
         IMasterchef(masterchef).depositFromPool(farmPid, shares, msg.sender);
     }
 
@@ -177,6 +178,10 @@ contract NeuronPool is ERC20 {
     }
 
     function getRatio() public view returns (uint256) {
-        return balance().mul(1e18).div(totalSupply());
+        uint256 currentTotalSupply = totalSupply();
+        if (currentTotalSupply == 0) {
+            return 0;
+        }
+        return balance().mul(1e18).div(currentTotalSupply);
     }
 }

@@ -233,7 +233,8 @@ contract MasterChef is Ownable {
     function depositFromPool(uint256 _pid, uint256 _amount, address userId) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][userId];
-        require(address(pool.lpToken) == msg.sender, "Sender is not required pool");
+        // TODO check if its neccessary
+        // require(address(pool.lpToken) == msg.sender, "Sender is not required pool");
         updatePool(_pid);
         if (user.amount > 0) {
             uint256 pending =
