@@ -40,6 +40,7 @@ async function main () {
   const startBlock = 0
   const bonusEndBlock = 0
   const masterChef = await Masterchef.deploy(neuronToken.address, devAddress, neuronsPerBlock, startBlock, bonusEndBlock)
+  // TODO использовать deployed
   await neuronToken.transferOwnership(masterChef.address)
 
   const controller = await Controller.deploy(governanceAddress, strategistAddress, timelockAddress, devAddress, treasuryAddress)
