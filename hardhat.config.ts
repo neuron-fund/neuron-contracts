@@ -6,7 +6,7 @@ import "hardhat-deploy-ethers"
 import "hardhat-deploy"
 import "@nomiclabs/hardhat-web3"
 import 'hardhat-abi-exporter'
-import { generatePrivateKey } from './utils/wallet'
+import "@nomiclabs/hardhat-vyper";
 import { testPrivateKeys } from './utils/testPrivateKeys'
 
 const config: HardhatUserConfig = {
