@@ -5,7 +5,7 @@ import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 /**
  * @title   StableMath
  * @author  Stability Labs Pty. Ltd.
- * @notice  A library providing safe mathematical operations to multiply and
+ *   A library providing safe mathematical operations to multiply and
  *          divide with standardised precision.
  * @dev     Derives from OpenZeppelin's SafeMath lib and uses generic system
  *          wide variables for managing precision.
@@ -18,13 +18,6 @@ library StableMath {
      * where 1 * 10**18, or 1e18 represents a unit '1'
      */
     uint256 private constant FULL_SCALE = 1e18;
-
-    /**
-     * @notice Token Ratios are used when converting between units of bAsset, mAsset and MTA
-     * Reasoning: Takes into account token decimals, and difference in base unit (i.e. grams to Troy oz for gold)
-     * @dev bAsset ratio unit for use in exact calculations,
-     * where (1 bAsset unit * bAsset.ratio) / ratioScale == x mAsset unit
-     */
     uint256 private constant RATIO_SCALE = 1e8;
 
     /**
@@ -130,14 +123,6 @@ library StableMath {
     /***************************************
                   RATIO FUNCS
     ****************************************/
-
-    /**
-     * @dev Multiplies and truncates a token ratio, essentially flooring the result
-     *      i.e. How much mAsset is this bAsset worth?
-     * @param x     Left hand operand to multiplication (i.e Exact quantity)
-     * @param ratio bAsset ratio
-     * @return      Result after multiplying the two inputs and then dividing by the ratio scale
-     */
     function mulRatioTruncate(uint256 x, uint256 ratio)
         internal
         pure
@@ -167,15 +152,6 @@ library StableMath {
         // return 100..00.999e8 / 1e8 = 1e18
         return ceil.div(RATIO_SCALE);
     }
-
-    /**
-     * @dev Precisely divides two ratioed units, by first scaling the left hand operand
-     *      i.e. How much bAsset is this mAsset worth?
-     * @param x     Left hand operand in division
-     * @param ratio bAsset ratio
-     * @return      Result after multiplying the left operand by the scale, and
-     *              executing the division on the right hand input.
-     */
     function divRatioPrecisely(uint256 x, uint256 ratio)
         internal
         pure
