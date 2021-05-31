@@ -8,7 +8,7 @@ import { INexus } from "./INexus.sol";
  * @author  Stability Labs Pty. Ltd.
  * @dev     Subscribes to module updates from a given publisher by reading from its registry
  */
-contract Module is ModuleKeys {
+abstract contract Module is ModuleKeys {
 
     INexus public nexus;
 
@@ -16,7 +16,7 @@ contract Module is ModuleKeys {
      * @dev Initialises the Module by setting publisher addresses,
      *      and reading all available system module information
      */
-    constructor(address _nexus) internal {
+    constructor(address _nexus) {
         require(_nexus != address(0), "Nexus is zero address");
         nexus = INexus(_nexus);
     }

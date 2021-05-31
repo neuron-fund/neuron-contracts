@@ -1,8 +1,8 @@
 pragma solidity ^0.7.3;
 
-import {IBasicToken} from "./IBasicToken.sol";
+import {IBasicToken} from "./interfaces/IBasicToken.sol";
 
-import {IIncentivisedVotingLockup} from "./IIncentivisedVotingLockup.sol";
+import {IIncentivisedVotingLockup} from "./interfaces/IIncentivisedVotingLockup.sol";
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -12,9 +12,9 @@ import {
     SafeERC20,
     IERC20
 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import {SignedSafeMath128} from "./SignedSafeMath128.sol";
-import {StableMath, SafeMath} from "./StableMath.sol";
-import {Root} from "./Root.sol";
+import {SignedSafeMath128} from "./lib/SignedSafeMath128.sol";
+import {StableMath, SafeMath} from "./lib/StableMath.sol";
+import {Root} from "./lib/Root.sol";
 
 /**
  * @title  IncentivisedVotingLockup
@@ -33,7 +33,8 @@ import {Root} from "./Root.sol";
  *            5) Migration of points to v2 (used as multiplier in future) ***** (rewardsPaid)
  *            6) Closure of contract (expire)
  */
-contract IncentivisedVotingLockup is
+// originally named as IncentivisedVotingLockup 
+contract AxonToken is
     IIncentivisedVotingLockup,
     ReentrancyGuard,
     RewardsDistributionRecipient
@@ -58,6 +59,7 @@ contract IncentivisedVotingLockup is
     event RewardPaid(address indexed user, uint256 reward);
 
     /** Shared Globals */
+    // stakingToken - это NeuronToken
     IERC20 public stakingToken;
     uint256 private constant WEEK = 7 days;
     uint256 public constant MAXTIME = 365 days;
@@ -111,9 +113,8 @@ contract IncentivisedVotingLockup is
         address _stakingToken,
         string memory _name,
         string memory _symbol,
-        address _nexus,
         address _rewardsDistributor
-    ) public RewardsDistributionRecipient(_nexus, _rewardsDistributor) {
+    ) RewardsDistributionRecipient(_rewardsDistributor) {
         stakingToken = IERC20(_stakingToken);
         Point memory init =
             Point({
@@ -167,6 +168,7 @@ contract IncentivisedVotingLockup is
     function getLastUserPoint(address _addr)
         external
         view
+        override
         returns (
             int128 bias,
             int128 slope,
@@ -426,6 +428,7 @@ contract IncentivisedVotingLockup is
      */
     function createLock(uint256 _value, uint256 _unlockTime)
         external
+        override
         nonReentrant
         contractNotExpired
         updateReward(msg.sender)
@@ -464,6 +467,7 @@ contract IncentivisedVotingLockup is
      */
     function increaseLockAmount(uint256 _value)
         external
+        override
         nonReentrant
         contractNotExpired
         updateReward(msg.sender)
@@ -496,6 +500,7 @@ contract IncentivisedVotingLockup is
      */
     function increaseLockLength(uint256 _unlockTime)
         external
+        override
         nonReentrant
         contractNotExpired
         updateReward(msg.sender)
@@ -527,7 +532,7 @@ contract IncentivisedVotingLockup is
     /**
      * @dev Withdraws all the senders stake, providing lockup is over
      */
-    function withdraw() external {
+    function withdraw() external override {
         _withdraw(msg.sender);
     }
 
@@ -583,6 +588,7 @@ contract IncentivisedVotingLockup is
      */
     function eject(address _addr)
         external
+        override
         contractNotExpired
         lockupIsOver(_addr)
     {
@@ -598,7 +604,8 @@ contract IncentivisedVotingLockup is
      */
     function expireContract()
         external
-        onlyGovernor
+        override
+        // TODO добавить модификатор доступа, был onlyGovernor
         contractNotExpired
         updateReward(address(0))
     {
@@ -675,7 +682,7 @@ contract IncentivisedVotingLockup is
      * @param _owner User for which to return the balance
      * @return uint256 Balance of user
      */
-    function balanceOf(address _owner) public view returns (uint256) {
+    function balanceOf(address _owner) public view override returns (uint256) {
         uint256 epoch = userPointEpoch[_owner];
         if (epoch == 0) {
             return 0;
@@ -699,6 +706,7 @@ contract IncentivisedVotingLockup is
     function balanceOfAt(address _owner, uint256 _blockNumber)
         public
         view
+        override
         returns (uint256)
     {
         require(
@@ -798,7 +806,7 @@ contract IncentivisedVotingLockup is
      * @dev Calculates current total supply of votingWeight
      * @return totalSupply of voting token weight
      */
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view override returns (uint256) {
         uint256 epoch_ = globalEpoch;
         Point memory lastPoint = pointHistory[epoch_];
         return _supplyAt(lastPoint, block.timestamp);
@@ -809,7 +817,12 @@ contract IncentivisedVotingLockup is
      * @param _blockNumber Block number at which to calculate total supply
      * @return totalSupply of voting token weight at the given blockNumber
      */
-    function totalSupplyAt(uint256 _blockNumber) public view returns (uint256) {
+    function totalSupplyAt(uint256 _blockNumber)
+        public
+        view
+        override
+        returns (uint256)
+    {
         require(
             _blockNumber <= block.number,
             "Must pass block number in the past"
@@ -868,7 +881,7 @@ contract IncentivisedVotingLockup is
      * @dev Claims outstanding rewards for the sender.
      * First updates outstanding reward allocation and then transfers.
      */
-    function claimReward() public updateReward(msg.sender) {
+    function claimReward() public override updateReward(msg.sender) {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
@@ -916,7 +929,7 @@ contract IncentivisedVotingLockup is
     /**
      * @dev Gets the RewardsToken
      */
-    function getRewardToken() external view returns (IERC20) {
+    function getRewardToken() external view override returns (IERC20) {
         return stakingToken;
     }
 
@@ -960,7 +973,7 @@ contract IncentivisedVotingLockup is
      * @param _addr User address
      * @return Total reward amount earned
      */
-    function earned(address _addr) public view returns (uint256) {
+    function earned(address _addr) public view override returns (uint256) {
         // current rate per token - rate user previously received
         uint256 userRewardDelta =
             rewardPerToken().sub(userRewardPerTokenPaid[_addr]);
@@ -982,6 +995,7 @@ contract IncentivisedVotingLockup is
      */
     function notifyRewardAmount(uint256 _reward)
         external
+        override
         onlyRewardsDistributor
         contractNotExpired
         updateReward(address(0))

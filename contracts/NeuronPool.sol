@@ -5,8 +5,10 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-import "./interfaces/IMasterchef.sol";
 import "./interfaces/IController.sol";
+
+import {GaugeProxy} from "./GaugeProxy.sol";
+import {Gauge} from "./Gauge.sol";
 
 contract NeuronPool is ERC20 {
     using SafeERC20 for IERC20;
@@ -24,6 +26,7 @@ contract NeuronPool is ERC20 {
     address public timelock;
     address public controller;
     address public masterchef;
+    GaugeProxy public guageProxy;
 
     constructor(
         // Токен который принимает контракт. Например для Jar который создает под стратегию 3poolCrv это будет токен 3Crv
@@ -32,7 +35,8 @@ contract NeuronPool is ERC20 {
         address _governance,
         address _timelock,
         address _controller,
-        address _masterchef
+        address _masterchef,
+        address _gaugeProxy
     )
         ERC20(
             // TODO neuroned звучит убого
@@ -46,6 +50,7 @@ contract NeuronPool is ERC20 {
         timelock = _timelock;
         controller = _controller;
         masterchef = _masterchef;
+        gaugeProxy = GaugeProxy(_gaugeProxy);
     }
 
     // Баланс считается из баланса в банке и баланса токена этой банки в контроллере
@@ -119,7 +124,7 @@ contract NeuronPool is ERC20 {
     }
 
     // Это точка входа для пользователя, именно эта функция вызывается, когда мы нажимаем кнопку Deposit в интерфейсе
-    function depositAndFarm(uint256 _amount, uint256 farmPid) public {
+    function depositAndFarm(uint256 _amount) public {
         // Баланс на счету банки + баланс в контроллере
         uint256 _pool = balance();
         uint256 _before = token.balanceOf(address(this));
@@ -137,9 +142,9 @@ contract NeuronPool is ERC20 {
         }
 
         _mint(address(this), shares);
-        approve(masterchef, shares);
-        IERC20(address(this)).approve(masterchef, shares);
-        IMasterchef(masterchef).depositFromPool(farmPid, shares, msg.sender);
+        Gauge gauge = Gauge(gaugeProxy.getGauge(address(this)));
+        IERC20(address(this)).approve(address(gauge), shares);
+        gauge.depositFor(shares, msg.sender);
     }
 
     function withdrawAll() external {

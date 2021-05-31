@@ -1,8 +1,10 @@
 pragma solidity ^0.7.3;
 
-import { Module } from "./Module.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IRewardsDistributionRecipient } from "./IRewardsDistributionRecipient.sol";
+import {Module} from "./Module.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {
+    IRewardsDistributionRecipient
+} from "./IRewardsDistributionRecipient.sol";
 
 /**
  * @title  RewardsDistributionRecipient
@@ -11,20 +13,18 @@ import { IRewardsDistributionRecipient } from "./IRewardsDistributionRecipient.s
  * @notice RewardsDistributionRecipient gets notified of additional rewards by the rewardsDistributor
  * @dev    Changes: Addition of Module and abstract `getRewardToken` func + cosmetic
  */
-contract RewardsDistributionRecipient is IRewardsDistributionRecipient, Module {
+abstract contract RewardsDistributionRecipient is
+    IRewardsDistributionRecipient
+{
+    function notifyRewardAmount(uint256 reward) external virtual override;
 
-    // @abstract
-    function notifyRewardAmount(uint256 reward) external;
-    function getRewardToken() external view returns (IERC20);
+    function getRewardToken() external view virtual override returns (IERC20);
 
     // This address has the ability to distribute the rewards
     address public rewardsDistributor;
 
     /** @dev Recipient is a module, governed by mStable governance */
-    constructor(address _nexus, address _rewardsDistributor)
-        internal
-        Module(_nexus)
-    {
+    constructor(address _rewardsDistributor) {
         rewardsDistributor = _rewardsDistributor;
     }
 
@@ -32,7 +32,10 @@ contract RewardsDistributionRecipient is IRewardsDistributionRecipient, Module {
      * @dev Only the rewards distributor can notify about rewards
      */
     modifier onlyRewardsDistributor() {
-        require(msg.sender == rewardsDistributor, "Caller is not reward distributor");
+        require(
+            msg.sender == rewardsDistributor,
+            "Caller is not reward distributor"
+        );
         _;
     }
 
@@ -42,7 +45,7 @@ contract RewardsDistributionRecipient is IRewardsDistributionRecipient, Module {
      */
     function setRewardsDistribution(address _rewardsDistributor)
         external
-        onlyGovernor
+        // TODO добавить only owner или only governer модификатор
     {
         rewardsDistributor = _rewardsDistributor;
     }

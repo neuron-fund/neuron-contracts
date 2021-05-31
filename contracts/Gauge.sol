@@ -7,12 +7,14 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+import {Axon} from "./Axon.sol";
+
 contract Gauge is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     IERC20 public NEURON;
-    IERC20 public AXON;
+    Axon public AXON;
     address public TREASURY;
 
     IERC20 public immutable TOKEN;
@@ -48,7 +50,7 @@ contract Gauge is ReentrancyGuard {
         address _treasury
     ) {
         NEURON = IERC20(_neuron);
-        AXON = IERC20(_axon);
+        AXON = Axon(_axon);
         TREASURY = address(_treasury);
         TOKEN = IERC20(_token);
         DISTRIBUTION = msg.sender;

@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../interfaces/INeuronPool.sol";
 import "../interfaces/IStakingRewards.sol";
-import "../interfaces/IMasterchef.sol";
 import "../interfaces/IUniswapRouterV2.sol";
 import "../interfaces/IController.sol";
 
