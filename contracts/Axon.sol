@@ -2,7 +2,9 @@ pragma solidity ^0.7.3;
 
 import {IBasicToken} from "./interfaces/IBasicToken.sol";
 
-import {IIncentivisedVotingLockup} from "./interfaces/IIncentivisedVotingLockup.sol";
+import {
+    IIncentivisedVotingLockup
+} from "./interfaces/IIncentivisedVotingLockup.sol";
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -33,8 +35,7 @@ import {Root} from "./lib/Root.sol";
  *            5) Migration of points to v2 (used as multiplier in future) ***** (rewardsPaid)
  *            6) Closure of contract (expire)
  */
-// originally named as IncentivisedVotingLockup 
-contract AxonToken is
+contract Axon is
     IIncentivisedVotingLockup,
     ReentrancyGuard,
     RewardsDistributionRecipient
@@ -426,18 +427,26 @@ contract AxonToken is
      * @param _value Total units of StakingToken to lockup
      * @param _unlockTime Time at which the stake should unlock
      */
-    function createLock(uint256 _value, uint256 _unlockTime)
-        external
-        override
-        nonReentrant
-        contractNotExpired
-        updateReward(msg.sender)
-    {
+    function createLock(uint256 _value, uint256 _unlockTime) external override {
+        createLockFor(msg.sender, _value, _unlockTime);
+    }
+
+     /**
+     * @dev Creates a new lock for given address
+     * @param _addr Address to create lock for
+     * @param _value Total units of StakingToken to lockup
+     * @param _unlockTime Time at which the stake should unlock
+     */
+    function createLockFor(
+        address _addr,
+        uint256 _value,
+        uint256 _unlockTime
+    ) public nonReentrant contractNotExpired updateReward(_addr) {
         uint256 unlock_time = _floorToWeek(_unlockTime); // Locktime is rounded down to weeks
         LockedBalance memory locked_ =
             LockedBalance({
-                amount: locked[msg.sender].amount,
-                end: locked[msg.sender].end
+                amount: locked[_addr].amount,
+                end: locked[_addr].end
             });
 
         require(_value > 0, "Must stake non zero amount");
@@ -453,7 +462,7 @@ contract AxonToken is
         );
 
         _depositFor(
-            msg.sender,
+            _addr,
             _value,
             unlock_time,
             locked_,

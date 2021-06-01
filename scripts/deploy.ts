@@ -2,7 +2,7 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers } from "hardhat"
 import { ContractFactory, Signer, Wallet } from "ethers"
-import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory } from '../typechain'
+import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, Axon__factory } from '../typechain'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { getToken } from '../utils/getCurveTokens'
@@ -18,15 +18,19 @@ async function main () {
   const devAddress = devWallet.address
   const treasuryAddress = treasuryWallet.address
   const deployerAddress = await deployer.getAddress()
-  const governanceAddress = devAddress
+  const governanceAddress = deployerAddress
   const strategistAddress = deployerAddress
   const timelockAddress = deployerAddress
+  const rewardsDistributor = treasuryAddress
 
   // Contracts factories
   // Basic contracts
   const Controller = await ethers.getContractFactory('Controller', deployer) as Controller__factory
   const NeuronToken = await ethers.getContractFactory('NeuronToken', deployer) as NeuronToken__factory
   const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
+  const Gauge = await ethers.getContractFactory('Gauge', deployer) as Gauge__factory
+  const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
+  const Axon = await ethers.getContractFactory('Axon', deployer) as Axon__factory
   const NeuronPool = await ethers.getContractFactory('NeuronPool') as NeuronPool__factory
   // Strategies
   const Curve3Crv = await ethers.getContractFactory('StrategyCurve3Crv') as StrategyCurve3Crv__factory
@@ -34,14 +38,24 @@ async function main () {
   const CurveSteCrv = await ethers.getContractFactory('StrategyCurveSteCrv') as StrategyCurveSteCrv__factory
   const FeiTribeLp = await ethers.getContractFactory('StrategyFeiTribeLp') as StrategyFeiTribeLp__factory
 
-  const neuronToken = await NeuronToken.deploy()
   // TODO определиться со значниями следующих констант, важно для токеномики
   const neuronsPerBlock = parseEther('0.3')
   const startBlock = 0
   const bonusEndBlock = 0
-  const masterChef = await Masterchef.deploy(neuronToken.address, devAddress, neuronsPerBlock, startBlock, bonusEndBlock)
+
+  // TODO определиться с timelock
+  const neuronToken = await NeuronToken.deploy(governanceAddress)
+  await neuronToken.deployed()
+  const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, neuronsPerBlock, startBlock, bonusEndBlock)
+  await masterChef.deployed()
   // TODO использовать deployed
-  await neuronToken.transferOwnership(masterChef.address)
+  await neuronToken.addMinter(masterChef.address)
+  const axon = await Axon.deploy(neuronToken.address, 'Axon token', 'AXON', treasuryAddress)
+  await axon.deployed()
+  const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress)
+  await gaugesDistributor.deployed()
+  await masterChef.setDistributor(gaugesDistributor.address)
+
 
   const controller = await Controller.deploy(governanceAddress, strategistAddress, timelockAddress, devAddress, treasuryAddress)
 
@@ -51,7 +65,8 @@ async function main () {
     governanceAddress,
     strategistAddress,
     masterChefAddress: masterChef.address,
-    timelockAddress
+    timelockAddress,
+    gaugesDistributorAddress: gaugesDistributor.address
   })
 
   const strategies = {
@@ -74,8 +89,7 @@ async function main () {
     const inputToken = await getToken(inputTokenAddress, deployer)
     const inputTokenSymbol = await inputToken.symbol()
     console.log(`${strategyName}\n strategy address: ${strategyAddress} \n neuron pool address: ${neuronPoolAddress}\n\n`)
-    const allocPoint = parseEther('10')
-    await masterChef.add(allocPoint, neuronPoolAddress, false)
+    await gaugesDistributor.addGauge(neuronPoolAddress)
     deployedStrategies.push({
       neuronPoolAddress,
       strategyAddress,
@@ -85,27 +99,27 @@ async function main () {
     })
   }
 
-  await masterChef.massUpdatePools()
+  // await masterChef.massUpdatePools()
 
-  writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
-    export const NeuronTokenAddress = '${neuronToken.address}'
-    export const ControllerAddress = '${controller.address}'
-    export const MasterChefAddress = '${masterChef.address}'
+  // writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
+  //   export const NeuronTokenAddress = '${neuronToken.address}'
+  //   export const ControllerAddress = '${controller.address}'
+  //   export const MasterChefAddress = '${masterChef.address}'
 
-    export const Pools = {
-      ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName, inputTokenSymbol, inputTokenAddress }, i) =>
-    `
-        ${strategyName}: {
-          strategyAddress: '${strategyAddress}',
-          poolAddress: '${neuronPoolAddress}',
-          poolIndex: ${i},
-          inputTokenAddress: '${inputTokenAddress}',
-          inputTokenSymbol: '${inputTokenSymbol}'
-        },
+  //   export const Pools = {
+  //     ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName, inputTokenSymbol, inputTokenAddress }, i) =>
+  //   `
+  //       ${strategyName}: {
+  //         strategyAddress: '${strategyAddress}',
+  //         poolAddress: '${neuronPoolAddress}',
+  //         poolIndex: ${i},
+  //         inputTokenAddress: '${inputTokenAddress}',
+  //         inputTokenSymbol: '${inputTokenSymbol}'
+  //       },
 
-      `).join('')}
-    }
-  `)
+  //     `).join('')}
+  //   }
+  // `)
 
 }
 
@@ -123,6 +137,7 @@ type DeployStrategyFactory = {
   strategistAddress: string
   masterChefAddress: string
   timelockAddress: string
+  gaugesDistributorAddress: string
 }
 
 function deployStrategyFactory ({
@@ -131,7 +146,8 @@ function deployStrategyFactory ({
   governanceAddress,
   strategistAddress,
   masterChefAddress,
-  timelockAddress
+  timelockAddress,
+  gaugesDistributorAddress
 }: DeployStrategyFactory) {
   return async <T extends ContractFactory> (strategyFactory: T) => {
     const strategy = await strategyFactory.deploy(
@@ -145,7 +161,8 @@ function deployStrategyFactory ({
       governanceAddress,
       timelockAddress,
       controller.address,
-      masterChefAddress
+      masterChefAddress,
+      gaugesDistributorAddress
     )
 
     await controller.setNPool(await strategy.want(), neuronPool.address)

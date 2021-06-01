@@ -5,21 +5,24 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "./Gauge.sol";
-import "./ProtocolGovernance.sol";
-import "./MasterChef.sol";
 import "./NeuronToken.sol";
 
-contract GaugeProxy is ProtocolGovernance {
+interface IMinter {
+    function collect() external;
+}
+
+contract GaugesDistributor {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    MasterChef public immutable MASTER;
     IERC20 public immutable NEURON;
     IERC20 public immutable AXON;
-    address public immutable TREASURY;
+    address public treasury;
+    address public governance;
 
     uint256 public pid;
     uint256 public totalWeight;
+    IMinter public minter;
 
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
@@ -29,16 +32,27 @@ contract GaugeProxy is ProtocolGovernance {
     mapping(address => uint256) public usedWeights; // msg.sender => total voting weight of user
 
     constructor(
-        address _masterChef,
+        address _minter,
         address _neuronToken,
         address _axon,
-        address _treasury
-    ) public {
-        MASTER = MasterChef(_masterChef);
+        address _treasury,
+        address _governance
+    ) {
+        minter = IMinter(_minter);
         NEURON = NeuronToken(_neuronToken);
         AXON = IERC20(_axon);
-        TREASURY = _treasury;
-        governance = msg.sender;
+        treasury = _treasury;
+        governance = _governance;
+    }
+
+    function setMinter(address _minter) public {
+        require(msg.sender == governance, "!governance");
+        minter = IMinter(_minter);
+    }
+
+    function setTreasury(address _treasury) public {
+        require(msg.sender == governance, "!governance");
+        treasury = _treasury;
     }
 
     function tokens() external view returns (address[] memory) {
@@ -64,6 +78,7 @@ contract GaugeProxy is ProtocolGovernance {
             uint256 _votes = votes[_owner][_token];
 
             if (_votes > 0) {
+                // TODO totalWeight = 0 в начале, надо определиться делать его ранвым с самого начала или как
                 totalWeight = totalWeight.sub(_votes);
                 weights[_token] = weights[_token].sub(_votes);
 
@@ -138,14 +153,14 @@ contract GaugeProxy is ProtocolGovernance {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] == address(0x0), "exists");
         gauges[_token] = address(
-            new Gauge(_token, address(NEURON), address(AXON), address(TREASURY))
+            new Gauge(_token, address(NEURON), address(AXON), address(treasury))
         );
         _tokens.push(_token);
     }
 
-    // Fetches Pickle
+    // Fetches Neurons
     function collect() public {
-        MASTER.mintTokensForGauge();
+        minter.collect();
     }
 
     function length() external view returns (uint256) {
@@ -153,6 +168,7 @@ contract GaugeProxy is ProtocolGovernance {
     }
 
     // TODO данная функция вызывается раз в неделю ссудя по логам на etherscan
+    // возможно стоит защититься от фронтрана, и добавить проверку, что функцию может вызывать только определнный контракт - бот
     function distribute() external {
         collect();
         uint256 _balance = NEURON.balanceOf(address(this));

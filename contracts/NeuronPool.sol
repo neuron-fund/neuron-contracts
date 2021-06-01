@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./interfaces/IController.sol";
 
-import {GaugeProxy} from "./GaugeProxy.sol";
+import {GaugesDistributor} from "./GaugesDistributor.sol";
 import {Gauge} from "./Gauge.sol";
 
 contract NeuronPool is ERC20 {
@@ -26,7 +26,7 @@ contract NeuronPool is ERC20 {
     address public timelock;
     address public controller;
     address public masterchef;
-    GaugeProxy public guageProxy;
+    GaugesDistributor public gaugesDistributor;
 
     constructor(
         // Токен который принимает контракт. Например для Jar который создает под стратегию 3poolCrv это будет токен 3Crv
@@ -36,7 +36,7 @@ contract NeuronPool is ERC20 {
         address _timelock,
         address _controller,
         address _masterchef,
-        address _gaugeProxy
+        address _gaugesDistributor
     )
         ERC20(
             // TODO neuroned звучит убого
@@ -50,7 +50,7 @@ contract NeuronPool is ERC20 {
         timelock = _timelock;
         controller = _controller;
         masterchef = _masterchef;
-        gaugeProxy = GaugeProxy(_gaugeProxy);
+        gaugesDistributor = GaugesDistributor(_gaugesDistributor);
     }
 
     // Баланс считается из баланса в банке и баланса токена этой банки в контроллере
@@ -142,7 +142,7 @@ contract NeuronPool is ERC20 {
         }
 
         _mint(address(this), shares);
-        Gauge gauge = Gauge(gaugeProxy.getGauge(address(this)));
+        Gauge gauge = Gauge(gaugesDistributor.getGauge(address(this)));
         IERC20(address(this)).approve(address(gauge), shares);
         gauge.depositFor(shares, msg.sender);
     }

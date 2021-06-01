@@ -1,10 +1,9 @@
 pragma solidity ^0.7.3;
 
-import {Module} from "./Module.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
     IRewardsDistributionRecipient
-} from "./IRewardsDistributionRecipient.sol";
+} from "./interfaces/IRewardsDistributionRecipient.sol";
 
 /**
  * @title  RewardsDistributionRecipient
