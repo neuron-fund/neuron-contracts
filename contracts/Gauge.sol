@@ -13,8 +13,8 @@ contract Gauge is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public NEURON;
-    Axon public AXON;
+    IERC20 public immutable NEURON;
+    Axon public immutable AXON;
     address public TREASURY;
 
     IERC20 public immutable TOKEN;
@@ -42,6 +42,8 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) private _balances;
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint256) private _base;
+
+    // TODO treasury unused remove
 
     constructor(
         address _token,
