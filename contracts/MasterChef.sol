@@ -8,13 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./NeuronToken.sol";
 
-// MasterChef was the master of neuronToken. He now governs over PICKLES. He can make NeuronTokens and he is a fair guy.
-//
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once PICKLES is sufficiently
-// distributed and the community can show to govern itself.
-//
-// Have fun reading it. Hopefully it's bug-free. God bless.
 contract MasterChef is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -23,6 +16,7 @@ contract MasterChef is Ownable {
     NeuronToken public neuronToken;
     // Dev fund (2%, initially)
     uint256 public devFundDivRate = 50;
+    address public governance;
     // Dev address.
     address public devaddr;
     // Block number when bonus NEURON period ends.
@@ -32,12 +26,11 @@ contract MasterChef is Ownable {
     // Bonus muliplier for early nueron makers.
     uint256 public constant BONUS_MULTIPLIER = 10;
 
-
     // The block number when NEURON mining starts.
     uint256 public startBlock;
 
-    address public gaugeProxyAddress;
-    uint256 public guageProxyLastRewardBlock;
+    address public distributor;
+    uint256 public distributorLastRewardBlock;
 
     // Events
     event Recovered(address token, uint256 amount);
@@ -49,18 +42,33 @@ contract MasterChef is Ownable {
         uint256 amount
     );
 
+    modifier onlyGovernance() {
+        require(
+            governance == _msgSender(),
+            "Governance: caller is not the governance"
+        );
+        _;
+    }
+
     constructor(
         NeuronToken _neuronToken,
+        address _governance,
         address _devaddr,
         uint256 _neuronTokenPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) {
         neuronToken = _neuronToken;
+        governance = _governance;
         devaddr = _devaddr;
+
+        distributorLastRewardBlock = block.number > startBlock
+            ? block.number
+            : startBlock;
+
         neuronTokenPerBlock = _neuronTokenPerBlock;
-        bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
+        bonusEndBlock = _bonusEndBlock;
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -81,14 +89,15 @@ contract MasterChef is Ownable {
         }
     }
 
-    function mintTokensForGauge() public {
-        uint256 multiplier = getMultiplier(guageProxyLastRewardBlock, block.number);
-        guageProxyLastRewardBlock = block.number;
+    function collect() external {
+        require(msg.sender == distributor, "Only distributor can collect");
+        uint256 multiplier =
+            getMultiplier(distributorLastRewardBlock, block.number);
+        distributorLastRewardBlock = block.number;
         uint256 neuronTokenReward = multiplier.mul(neuronTokenPerBlock);
         neuronToken.mint(devaddr, neuronTokenReward.div(devFundDivRate));
-        neuronToken.mint(gaugeProxyAddress, neuronTokenReward);
+        neuronToken.mint(distributor, neuronTokenReward);
     }
-
 
     // Safe neuronToken transfer function, just in case if rounding error causes pool to not have enough PICKLEs.
     function safeNeuronTokenTransfer(address _to, uint256 _amount) internal {
@@ -101,7 +110,7 @@ contract MasterChef is Ownable {
     }
 
     // Update dev address by the previous dev.
-    function setDevAddr(address _devaddr) public {
+    function setDevAddr(address _devaddr) external {
         require(msg.sender == devaddr, "dev: wut?");
         devaddr = _devaddr;
     }
@@ -109,24 +118,30 @@ contract MasterChef is Ownable {
     // **** Additional functions separate from the original masterchef contract ****
 
     function setNeuronTokenPerBlock(uint256 _neuronTokenPerBlock)
-        public
-        onlyOwner
+        external
+        onlyGovernance
     {
         require(_neuronTokenPerBlock > 0, "!neuronTokenPerBlock-0");
 
         neuronTokenPerBlock = _neuronTokenPerBlock;
     }
 
-    function setBonusEndBlock(uint256 _bonusEndBlock) public onlyOwner {
+    function setBonusEndBlock(uint256 _bonusEndBlock) external onlyGovernance {
         bonusEndBlock = _bonusEndBlock;
     }
 
-    function setDevFundDivRate(uint256 _devFundDivRate) public onlyOwner {
+    function setDevFundDivRate(uint256 _devFundDivRate)
+        external
+        onlyGovernance
+    {
         require(_devFundDivRate > 0, "!devFundDivRate-0");
         devFundDivRate = _devFundDivRate;
     }
 
-    function setGaugeProxyAddress(address _gaugeProxyAddress) public onlyOwner {
-        gaugeProxyAddress = _gaugeProxyAddress;
+    function setDistributor(address _distributor) external onlyGovernance {
+        distributor = _distributor;
+        distributorLastRewardBlock = block.number > startBlock
+            ? block.number
+            : startBlock;
     }
 }

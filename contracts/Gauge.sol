@@ -3,20 +3,19 @@ pragma solidity ^0.7.3;
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
-import {Math} from "@openzeppelin/contracts/math/Math.sol";
-import {
-    SafeERC20,
-    IERC20
-} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+
+import {Axon} from "./Axon.sol";
 
 contract Gauge is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     IERC20 public immutable NEURON;
-    IERC20 public immutable AXON;
-    address public immutable TREASURY;
+    Axon public immutable AXON;
+    address public TREASURY;
 
     IERC20 public immutable TOKEN;
     address public immutable DISTRIBUTION;
@@ -44,6 +43,8 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint256) private _base;
 
+    // TODO treasury unused remove
+
     constructor(
         address _token,
         address _neuron,
@@ -51,8 +52,8 @@ contract Gauge is ReentrancyGuard {
         address _treasury
     ) {
         NEURON = IERC20(_neuron);
-        AXON = IERC20(_axon);
-        TREASURY = _treasury;
+        AXON = Axon(_axon);
+        TREASURY = address(_treasury);
         TOKEN = IERC20(_token);
         DISTRIBUTION = msg.sender;
     }
