@@ -1,3 +1,7 @@
+import { config as dontenvConfig } from 'dotenv'
+import dotenvExpand from 'dotenv-expand'
+const env = dontenvConfig()
+dotenvExpand(env)
 import { HardhatUserConfig, task } from "hardhat/config"
 import "@nomiclabs/hardhat-ethers"
 import "@nomiclabs/hardhat-waffle"
@@ -18,7 +22,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 1337,
       forking: {
-        url: 'https://eth-mainnet.alchemyapi.io/v2/-FMJeLvq1mkgM2d9qs0o5HgPtzB3ob_C',
+        url: process.env.ALCHEMY,
       },
       loggingEnabled: true,
       accounts: getHardhatAccounts(20)
