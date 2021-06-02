@@ -115,27 +115,31 @@ contract Gauge is ReentrancyGuard {
     }
 
     function depositAll() external {
-        _deposit(TOKEN.balanceOf(msg.sender), msg.sender);
+        _deposit(TOKEN.balanceOf(msg.sender), msg.sender, msg.sender);
     }
 
     function deposit(uint256 amount) external {
-        _deposit(amount, msg.sender);
+        _deposit(amount, msg.sender, msg.sender);
     }
 
     function depositFor(uint256 amount, address account) external {
-        _deposit(amount, account);
+        _deposit(amount, account, account);
     }
 
-    function _deposit(uint256 amount, address account)
+    function depositFromSenderFor(uint256 amount, address account) external {
+        _deposit(amount, msg.sender, account);
+    }
+
+    function _deposit(uint256 amount, address spender, address recipient)
         internal
         nonReentrant
-        updateReward(account)
+        updateReward(recipient)
     {
         require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
-        emit Staked(account, amount);
-        TOKEN.safeTransferFrom(account, address(this), amount);
+        _balances[recipient] = _balances[recipient].add(amount);
+        emit Staked(recipient, amount);
+        TOKEN.safeTransferFrom(spender, address(this), amount);
     }
 
     function withdrawAll() external {
