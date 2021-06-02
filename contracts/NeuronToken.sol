@@ -49,12 +49,4 @@ contract NeuronToken is ERC20, ERC20Burnable, AccessControl {
     function mint(address _to, uint256 _amount) public onlyRole(MINTER_ROLE) {
         _mint(_to, _amount);
     }
-
-    // TODO mintFor для аксона
-    function mintFor(address _who, uint256 _amount)
-        external
-        onlyRole(MINTER_ROLE)
-    {
-        _mint(_who, _amount);
-    }
 }
