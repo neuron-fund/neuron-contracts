@@ -144,7 +144,7 @@ contract NeuronPool is ERC20 {
         _mint(address(this), shares);
         Gauge gauge = Gauge(gaugesDistributor.getGauge(address(this)));
         IERC20(address(this)).approve(address(gauge), shares);
-        gauge.depositFor(shares, msg.sender);
+        gauge.depositFromSenderFor(shares, msg.sender);
     }
 
     function withdrawAll() external {
