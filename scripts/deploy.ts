@@ -1,6 +1,6 @@
 
 import "@nomiclabs/hardhat-ethers"
-import { ethers } from "hardhat"
+import { ethers, network } from "hardhat"
 import { ContractFactory, Signer, Wallet } from "ethers"
 import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, Axon__factory } from '../typechain'
 import { writeFileSync } from 'node:fs'
@@ -11,7 +11,7 @@ const { formatEther, parseEther, parseUnits } = ethers.utils
 
 async function main () {
   const accounts = await ethers.getSigners()
-  const deployer = accounts[0]
+  const deployer = accounts[5]
   const devWallet = await Wallet.createRandom()
   const treasuryWallet = await Wallet.createRandom()
 
@@ -28,15 +28,14 @@ async function main () {
   const Controller = await ethers.getContractFactory('Controller', deployer) as Controller__factory
   const NeuronToken = await ethers.getContractFactory('NeuronToken', deployer) as NeuronToken__factory
   const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
-  const Gauge = await ethers.getContractFactory('Gauge', deployer) as Gauge__factory
   const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
   const Axon = await ethers.getContractFactory('Axon', deployer) as Axon__factory
-  const NeuronPool = await ethers.getContractFactory('NeuronPool') as NeuronPool__factory
+  const NeuronPool = await ethers.getContractFactory('NeuronPool', deployer) as NeuronPool__factory
   // Strategies
-  const Curve3Crv = await ethers.getContractFactory('StrategyCurve3Crv') as StrategyCurve3Crv__factory
-  const CurveRenCrv = await ethers.getContractFactory('StrategyCurveRenCrv') as StrategyCurveRenCrv__factory
-  const CurveSteCrv = await ethers.getContractFactory('StrategyCurveSteCrv') as StrategyCurveSteCrv__factory
-  const FeiTribeLp = await ethers.getContractFactory('StrategyFeiTribeLp') as StrategyFeiTribeLp__factory
+  const Curve3Crv = await ethers.getContractFactory('StrategyCurve3Crv', deployer) as StrategyCurve3Crv__factory
+  const CurveRenCrv = await ethers.getContractFactory('StrategyCurveRenCrv', deployer) as StrategyCurveRenCrv__factory
+  const CurveSteCrv = await ethers.getContractFactory('StrategyCurveSteCrv', deployer) as StrategyCurveSteCrv__factory
+  const FeiTribeLp = await ethers.getContractFactory('StrategyFeiTribeLp', deployer) as StrategyFeiTribeLp__factory
 
   // TODO определиться со значниями следующих констант, важно для токеномики
   const neuronsPerBlock = parseEther('0.3')
@@ -50,6 +49,7 @@ async function main () {
   await masterChef.deployed()
   // TODO использовать deployed
   await neuronToken.addMinter(masterChef.address)
+  await neuronToken.addMinter(deployerAddress)
   const axon = await Axon.deploy(neuronToken.address, 'Axon token', 'AXON', treasuryAddress)
   await axon.deployed()
   const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress)
@@ -90,36 +90,45 @@ async function main () {
     const inputTokenSymbol = await inputToken.symbol()
     console.log(`${strategyName}\n strategy address: ${strategyAddress} \n neuron pool address: ${neuronPoolAddress}\n\n`)
     await gaugesDistributor.addGauge(neuronPoolAddress)
+    const gaugeAddress = await gaugesDistributor.getGauge(neuronPoolAddress)
     deployedStrategies.push({
       neuronPoolAddress,
       strategyAddress,
       strategyName,
+      gaugeAddress,
       inputTokenSymbol,
       inputTokenAddress
     })
   }
 
-  // await masterChef.massUpdatePools()
+  const premint = parseEther('100')
 
-  // writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
-  //   export const NeuronTokenAddress = '${neuronToken.address}'
-  //   export const ControllerAddress = '${controller.address}'
-  //   export const MasterChefAddress = '${masterChef.address}'
+  await neuronToken.mint(deployerAddress, premint)
+  await neuronToken.approve(axon.address, premint)
+  await axon.createLock(premint, Math.ceil(Date.now() / 1000) + 60 * 60 * 24 * 7)
+  await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, 25, 25, 25])
+  console.log('AXON TOTAL SUPPLY', await axon.totalSupply())
 
-  //   export const Pools = {
-  //     ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName, inputTokenSymbol, inputTokenAddress }, i) =>
-  //   `
-  //       ${strategyName}: {
-  //         strategyAddress: '${strategyAddress}',
-  //         poolAddress: '${neuronPoolAddress}',
-  //         poolIndex: ${i},
-  //         inputTokenAddress: '${inputTokenAddress}',
-  //         inputTokenSymbol: '${inputTokenSymbol}'
-  //       },
+  writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
+    export const NeuronTokenAddress = '${neuronToken.address}'
+    export const ControllerAddress = '${controller.address}'
+    export const MasterChefAddress = '${masterChef.address}'
+    export const GaugeDistributorAddress = '${gaugesDistributor.address}'
 
-  //     `).join('')}
-  //   }
-  // `)
+    export const Pools = {
+      ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName, inputTokenSymbol, inputTokenAddress, gaugeAddress }) =>
+    `
+        ${strategyName}: {
+          strategyAddress: '${strategyAddress}',
+          poolAddress: '${neuronPoolAddress}',
+          gaugeAddress: '${gaugeAddress}',
+          inputTokenAddress: '${inputTokenAddress}',
+          inputTokenSymbol: '${inputTokenSymbol}',
+        },
+
+      `).join('')}
+    }
+  `)
 
 }
 
