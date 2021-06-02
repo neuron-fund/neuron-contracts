@@ -437,6 +437,7 @@ contract Axon is
      * @param _value Total units of StakingToken to lockup
      * @param _unlockTime Time at which the stake should unlock
      */
+    //  TODO аналог этой функции который тратит пиклы с msg.sender а записывает в книгу другого юзера
     function createLockFor(
         address _addr,
         uint256 _value,
