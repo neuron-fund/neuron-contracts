@@ -132,6 +132,7 @@ contract Axon is
         name = _name;
         symbol = _symbol;
 
+// TODO мб нужно обновлять данную переменную
         END = block.timestamp.add(MAXTIME);
     }
 
@@ -932,6 +933,7 @@ contract Axon is
         // get lockup length (end - point.ts)
         uint256 lockupLength = _endTime.sub(_startTime);
         // s = amount * sqrt(length)
+        // TODO убрать корень от времени лока
         uint256 s = uint256(_slope.mul(10000)).mul(Root.sqrt(lockupLength));
         return s;
     }

@@ -108,7 +108,7 @@ contract MasterChef is Ownable {
             neuronToken.transfer(_to, _amount);
         }
     }
-
+    // TODO добавить вывод одной кнопкой из гейджа
     // Update dev address by the previous dev.
     function setDevAddr(address _devaddr) external {
         require(msg.sender == devaddr, "dev: wut?");
