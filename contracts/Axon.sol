@@ -92,6 +92,7 @@ contract Axon is
 
     // Per user storage updated per stake/deposit/withdrawal
     mapping(address => uint256) public userRewardPerTokenPaid;
+    // Peding tokens. Сколько еще 
     mapping(address => uint256) public rewards;
     mapping(address => uint256) public rewardsPaid;
 
@@ -132,7 +133,7 @@ contract Axon is
         name = _name;
         symbol = _symbol;
 
-// TODO мб нужно обновлять данную переменную
+        // TODO мб нужно обновлять данную переменную
         END = block.timestamp.add(MAXTIME);
     }
 
@@ -210,7 +211,9 @@ contract Axon is
             // Calculate slopes and biases
             // Kept at zero when they have to
             if (_oldLocked.end > block.timestamp && _oldLocked.amount > 0) {
+                // slope - это отношение локнутого кол-ва к максимальному времени лока. Это как бы диффернциал дилла для данного лока
                 userOldPoint.slope = _oldLocked.amount.div(int128(MAXTIME));
+                // bias - это кол-во диллов уже, мы умножаем дифференциал на разницу времени
                 userOldPoint.bias = userOldPoint.slope.mul(
                     int128(_oldLocked.end.sub(block.timestamp))
                 );
@@ -267,7 +270,7 @@ contract Axon is
                     newSlopeDelta = slopeChanges[_newLocked.end];
                 }
             }
-        }
+        } 
 
         Point memory lastPoint =
             Point({bias: 0, slope: 0, ts: block.timestamp, blk: block.number});
@@ -432,7 +435,7 @@ contract Axon is
         createLockFor(msg.sender, _value, _unlockTime);
     }
 
-     /**
+    /**
      * @dev Creates a new lock for given address
      * @param _addr Address to create lock for
      * @param _value Total units of StakingToken to lockup
@@ -872,6 +875,7 @@ contract Axon is
     ****************************************/
 
     /** @dev Updates the reward for a given address, before executing function */
+    // Обновляет глобальные переменные newReardPerToken, userRewardPerTokenPaid[_account], rewards[_accont]
     modifier updateReward(address _account) {
         // Setting of global vars
         uint256 newRewardPerToken = rewardPerToken();
@@ -881,6 +885,7 @@ contract Axon is
             lastUpdateTime = lastTimeRewardApplicable();
             // Setting of personal vars based on new globals
             if (_account != address(0)) {
+                // Pending neurons - награда которую юзер не получил еще
                 rewards[_account] = earned(_account);
                 userRewardPerTokenPaid[_account] = newRewardPerToken;
             }
