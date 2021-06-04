@@ -105,9 +105,19 @@ async function main () {
 
   await neuronToken.mint(deployerAddress, premint)
   await neuronToken.approve(axon.address, premint)
-  await axon.createLock(premint, Math.ceil(Date.now() / 1000) + 60 * 60 * 24 * 7)
+  const oneYearSeconds = 60 * 60 * 24 * 365
+  await axon.createLock(premint, Math.ceil(Date.now() / 1000) + oneYearSeconds)
   await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, 25, 25, 25])
   console.log('AXON TOTAL SUPPLY', await axon.totalSupply())
+
+  // Time travel one week for distribution of rewards to gauges
+  const oneWeekInSeconds = 60 * 60 * 24 * 7
+  await network.provider.send('evm_increaseTime', [oneWeekInSeconds])
+  await network.provider.send('evm_mine')
+
+  // TODO определиться как мы делаем вначале
+  await gaugesDistributor.distribute()
+
 
   writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
     export const NeuronTokenAddress = '${neuronToken.address}'
