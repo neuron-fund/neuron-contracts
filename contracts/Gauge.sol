@@ -90,10 +90,10 @@ contract Gauge is ReentrancyGuard {
         uint256 axonMultiplier = 0;
         uint256 axonTotalSupply = AXON.totalSupply();
         if (axonTotalSupply != 0) {
-            axonMultiplier = AXON.balanceOf(account)).div(AXON.totalSupply())
+            axonMultiplier = AXON.balanceOf(account).div(AXON.totalSupply());
         }
         uint256 _adjusted =
-            (_totalSupply.mul(axonMultiplier)
+            (_totalSupply.mul(axonMultiplier))
                 .mul(60)
                 .div(100);
         return Math.min(_derived.add(_adjusted), _balance);
