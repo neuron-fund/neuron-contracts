@@ -87,8 +87,13 @@ contract Gauge is ReentrancyGuard {
     function derivedBalance(address account) public view returns (uint256) {
         uint256 _balance = _balances[account];
         uint256 _derived = _balance.mul(40).div(100);
+        uint256 axonMultiplier = 0;
+        uint256 axonTotalSupply = AXON.totalSupply();
+        if (axonTotalSupply != 0) {
+            axonMultiplier = AXON.balanceOf(account)).div(AXON.totalSupply())
+        }
         uint256 _adjusted =
-            (_totalSupply.mul(AXON.balanceOf(account)).div(AXON.totalSupply()))
+            (_totalSupply.mul(axonMultiplier)
                 .mul(60)
                 .div(100);
         return Math.min(_derived.add(_adjusted), _balance);
@@ -130,11 +135,11 @@ contract Gauge is ReentrancyGuard {
         _deposit(amount, msg.sender, account);
     }
 
-    function _deposit(uint256 amount, address spender, address recipient)
-        internal
-        nonReentrant
-        updateReward(recipient)
-    {
+    function _deposit(
+        uint256 amount,
+        address spender,
+        address recipient
+    ) internal nonReentrant updateReward(recipient) {
         require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
         _balances[recipient] = _balances[recipient].add(amount);
@@ -205,6 +210,7 @@ contract Gauge is ReentrancyGuard {
         emit RewardAdded(reward);
     }
 
+    // TODO гейджы должны быть заполнены хоть чем на период первого стейка юзеров, rewardPerTokenStored был какой то
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
