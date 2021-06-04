@@ -159,7 +159,7 @@ contract GaugesDistributor {
     }
 
     // Fetches Neurons
-    function collect() public {
+    function collect() internal {
         minter.collect();
     }
 
