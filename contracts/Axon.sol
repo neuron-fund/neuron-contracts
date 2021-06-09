@@ -270,7 +270,7 @@ contract Axon is
                     newSlopeDelta = slopeChanges[_newLocked.end];
                 }
             }
-        } 
+        }
 
         Point memory lastPoint =
             Point({bias: 0, slope: 0, ts: block.timestamp, blk: block.number});
@@ -892,6 +892,7 @@ contract Axon is
         }
         _;
     }
+    // TODO юзать на фронте exit  а не withdraw
 
     /**
      * @dev Claims outstanding rewards for the sender.
