@@ -2,7 +2,7 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { ContractFactory, Signer, Wallet } from "ethers"
-import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, Axon__factory } from '../typechain'
+import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, Axon__factory, AxonVyper__factory, FeeDistributor, FeeDistributor__factory } from '../typechain'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { getToken } from '../utils/getCurveTokens'
@@ -37,6 +37,12 @@ async function main () {
   const CurveSteCrv = await ethers.getContractFactory('StrategyCurveSteCrv', deployer) as StrategyCurveSteCrv__factory
   const FeiTribeLp = await ethers.getContractFactory('StrategyFeiTribeLp', deployer) as StrategyFeiTribeLp__factory
 
+  const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
+  const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
+
+  console.log('START DEPLOY')
+
+  // TODO сделать аксон и fee-distributor заменяемым
   // TODO определиться со значниями следующих констант, важно для токеномики
   const neuronsPerBlock = parseEther('0.3')
   const startBlock = 0
@@ -50,8 +56,16 @@ async function main () {
   // TODO использовать deployed
   await neuronToken.addMinter(masterChef.address)
   await neuronToken.addMinter(deployerAddress)
-  const axon = await Axon.deploy(neuronToken.address, 'Axon token', 'AXON', treasuryAddress)
+
+  // const axon = await Axon.deploy(neuronToken.address, 'Axon token', 'AXON', treasuryAddress)
+  // await axon.deployed()
+  const axon = await AxonVyper.deploy(neuronToken.address, 'Axon token', 'AXON', '1.0')
   await axon.deployed()
+  console.log('AXON DEPLOYED')
+
+  const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
+  const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
+
   const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress)
   await gaugesDistributor.deployed()
   await masterChef.setDistributor(gaugesDistributor.address)
@@ -102,13 +116,19 @@ async function main () {
   }
 
   const premint = parseEther('100')
+  const oneYearSeconds = 60 * 60 * 24 * 365
+  const premintUnlockTime = Math.ceil(Date.now() / 1000) + oneYearSeconds
 
   await neuronToken.mint(deployerAddress, premint)
+
   await neuronToken.approve(axon.address, premint)
-  const oneYearSeconds = 60 * 60 * 24 * 365
-  await axon.createLock(premint, Math.ceil(Date.now() / 1000) + oneYearSeconds)
+  await axon.create_lock(premint, premintUnlockTime, {
+    gasLimit: 4000000
+  })
+  // await axon.createLock(premint, Math.ceil(Date.now() / 1000) + oneYearSeconds)
+
   await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, 25, 25, 25])
-  console.log('AXON TOTAL SUPPLY', await axon.totalSupply())
+  console.log('AXON TOTAL SUPPLY', formatEther(await axon['totalSupply()']()))
 
   // Time travel one week for distribution of rewards to gauges
   const oneWeekInSeconds = 60 * 60 * 24 * 7
@@ -118,12 +138,13 @@ async function main () {
   // TODO определиться как мы делаем вначале
   await gaugesDistributor.distribute()
 
-
   writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
     export const NeuronTokenAddress = '${neuronToken.address}'
     export const ControllerAddress = '${controller.address}'
     export const MasterChefAddress = '${masterChef.address}'
     export const GaugeDistributorAddress = '${gaugesDistributor.address}'
+    export const AxonAddress = '${axon.address}'
+    export const FeeDistributorAddress = '${feeDistributor.address}'
 
     export const Pools = {
       ${deployedStrategies.map(({ neuronPoolAddress, strategyAddress, strategyName, inputTokenSymbol, inputTokenAddress, gaugeAddress }) =>
@@ -140,6 +161,33 @@ async function main () {
     }
   `)
 
+
+  // TEST REWARDS DISTRIBUTION FOR AXON HOLDERS
+
+  const holder = deployerAddress
+
+  console.log('HOLDER NEURON BALANCE, before all', formatEther(await neuronToken.balanceOf(holder)))
+  console.log('HOLDER AXON BALANCE, before all', formatEther(await axon['balanceOf(address)'](holder)))
+
+  await neuronToken.mint(feeDistributor.address, premint)
+  await feeDistributor.checkpoint_token()
+  console.log('FEEDISTRIBUTOR NEURON BALANCE', formatEther(await feeDistributor.token_last_balance()))
+
+  const getHolderClaimable = async () => formatEther(await feeDistributor.callStatic['claim(address)'](holder))
+  console.log('HOLDER CLAIMABLE, after deposit to distributor', await getHolderClaimable())
+
+  await network.provider.send('evm_increaseTime', [oneWeekInSeconds])
+  await network.provider.send('evm_mine')
+  await feeDistributor.checkpoint_token()
+
+  console.log('HOLDER CLAIMABLE, after week', await getHolderClaimable())
+
+  await feeDistributor['claim()']()
+
+  console.log('HOLDER NEURON BALANCE, after claim', formatEther(await neuronToken['balanceOf(address)'](holder)))
+
+  await neuronToken.mint(feeDistributor.address, premint)
+  await feeDistributor.checkpoint_token()
 }
 
 main()

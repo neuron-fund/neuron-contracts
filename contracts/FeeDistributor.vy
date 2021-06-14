@@ -70,10 +70,15 @@ is_killed: public(bool)
 
 @external
 def __init__(
+    # Axon
     _voting_escrow: address,
+    # block.timestamp
     _start_time: uint256,
+    # Neuron token
     _token: address,
+    # можно msg.sender
     _admin: address,
+    # можно msg.sender
     _emergency_return: address
 ):
     """
@@ -187,7 +192,8 @@ def ve_for_at(_user: address, _timestamp: uint256) -> uint256:
     max_user_epoch: uint256 = VotingEscrow(ve).user_point_epoch(_user)
     epoch: uint256 = self._find_timestamp_user_epoch(ve, _user, _timestamp, max_user_epoch)
     pt: Point = VotingEscrow(ve).user_point_history(_user, epoch)
-    return convert(max(pt.bias - pt.slope * convert(_timestamp - pt.ts, int128), 0), uint256)
+    zeroInt128: int128 = 0
+    return convert(max(pt.bias - pt.slope * convert(_timestamp - pt.ts, int128), zeroInt128), uint256)
 
 
 @internal
@@ -196,6 +202,7 @@ def _checkpoint_total_supply():
     t: uint256 = self.time_cursor
     rounded_timestamp: uint256 = block.timestamp / WEEK * WEEK
     VotingEscrow(ve).checkpoint()
+    zeroInt128: int128 = 0
 
     for i in range(20):
         if t > rounded_timestamp:
@@ -208,7 +215,8 @@ def _checkpoint_total_supply():
                 # If the point is at 0 epoch, it can actually be earlier than the first deposit
                 # Then make dt 0
                 dt = convert(t - pt.ts, int128)
-            self.ve_supply[t] = convert(max(pt.bias - pt.slope * dt, 0), uint256)
+
+            self.ve_supply[t] = convert(max(pt.bias - pt.slope * dt, zeroInt128), uint256)
         t += WEEK
 
     self.time_cursor = t
@@ -277,7 +285,8 @@ def _claim(addr: address, ve: address, _last_token_time: uint256) -> uint256:
             # Calc
             # + i * 2 is for rounding errors
             dt: int128 = convert(week_cursor - old_user_point.ts, int128)
-            balance_of: uint256 = convert(max(old_user_point.bias - dt * old_user_point.slope, 0), uint256)
+            zeroInt128: int128 = 0 
+            balance_of: uint256 = convert(max(old_user_point.bias - dt * old_user_point.slope, zeroInt128), uint256)
             if balance_of == 0 and user_epoch > max_user_epoch:
                 break
             if balance_of > 0:
@@ -285,7 +294,8 @@ def _claim(addr: address, ve: address, _last_token_time: uint256) -> uint256:
 
             week_cursor += WEEK
 
-    user_epoch = min(max_user_epoch, user_epoch - 1)
+    oneInt128: uint256 = 1
+    user_epoch = min(max_user_epoch, user_epoch - oneInt128)
     self.user_epoch_of[addr] = user_epoch
     self.time_cursor_of[addr] = week_cursor
 

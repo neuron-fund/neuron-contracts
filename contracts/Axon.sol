@@ -92,7 +92,7 @@ contract Axon is
 
     // Per user storage updated per stake/deposit/withdrawal
     mapping(address => uint256) public userRewardPerTokenPaid;
-    // Peding tokens. Сколько еще 
+    // Peding tokens. Сколько еще
     mapping(address => uint256) public rewards;
     mapping(address => uint256) public rewardsPaid;
 
@@ -892,7 +892,8 @@ contract Axon is
         }
         _;
     }
-    // TODO юзать на фронте exit  а не withdraw
+
+    // TODO юзать на фронте exit  а не
 
     /**
      * @dev Claims outstanding rewards for the sender.
