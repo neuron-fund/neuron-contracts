@@ -6,6 +6,7 @@ import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { getToken } from '../utils/getCurveTokens'
+import { DAY, waitWeek } from '../utils/time'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -28,7 +29,7 @@ async function main () {
 
   const axon = await AxonVyper.deploy(neuronToken.address, 'Axon token', 'AXON', '1.0')
   await axon.deployed()
-  
+
   const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
   const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
   await feeDistributor.deployed()
@@ -38,11 +39,10 @@ async function main () {
 
 
   const premint = parseEther('100')
-  const oneYearSeconds = 60 * 60 * 24 * 365
+  const oneYearSeconds = DAY * 365
   const premintUnlockTime = Math.ceil(Date.now() / 1000) + oneYearSeconds
 
   await neuronToken.mint(deployerAddress, premint)
-
   await neuronToken.approve(axon.address, premint)
   await axon.create_lock(premint, premintUnlockTime, {
     gasLimit: 4000000
@@ -50,32 +50,33 @@ async function main () {
 
   console.log('AXON TOTAL SUPPLY', formatEther(await axon['totalSupply()']()))
 
-  // Time travel one week for distribution of rewards to gauges
-  const oneWeekInSeconds = 60 * 60 * 24 * 7
-  await network.provider.send('evm_increaseTime', [oneWeekInSeconds])
-  await network.provider.send('evm_mine')
-
-  const holder = deployerAddress
-
-  console.log('HOLDER NEURON BALANCE, before all', formatEther(await neuronToken.balanceOf(holder)))
-  console.log('HOLDER AXON BALANCE, before all', formatEther(await axon['balanceOf(address)'](holder)))
-
   await neuronToken.mint(feeDistributor.address, premint)
   await feeDistributor.checkpoint_token()
-  console.log('FEEDISTRIBUTOR NEURON BALANCE', formatEther(await feeDistributor.token_last_balance()))
 
-  const getHolderClaimable = async () => formatEther(await feeDistributor.callStatic['claim(address)'](holder))
-  console.log('HOLDER CLAIMABLE, after deposit to distributor', await getHolderClaimable())
-
-  await network.provider.send('evm_increaseTime', [oneWeekInSeconds])
-  await network.provider.send('evm_mine')
-  await feeDistributor.checkpoint_token()
-
-  console.log('HOLDER CLAIMABLE, after week', await getHolderClaimable())
-
+  await waitWeek(network.provider)
+  // await neuronToken.mint(feeDistributor.address, premint)
+  // await feeDistributor.checkpoint_token()
+  
   await feeDistributor['claim()']()
+  await waitWeek(network.provider)
+  
+  // console.log('HOLDER NEURON BALANCE, after claim', formatEther(await neuronToken['balanceOf(address)'](holder)))
 
-  console.log('HOLDER NEURON BALANCE, after claim', formatEther(await neuronToken['balanceOf(address)'](holder)))
+  // await neuronToken.mint(feeDistributor.address, premint)
+  // await feeDistributor.checkpoint_token()
+
+
+  const testAcc = accounts[0]
+  const testAccNeur = await neuronToken.connect(testAcc)
+  await neuronToken.mint(testAcc.address, premint)
+  await testAccNeur.approve(axon.address, premint)
+  const testAccAxon = await axon.connect(testAcc)
+  await testAccAxon.create_lock(
+    parseEther('100'), Math.ceil((Date.now() / 1000 + oneYearSeconds / 12)), {
+      gasLimit: 12450000
+    })
+  console.log('AXON TOTAL SUPPLY', formatEther(await axon['totalSupply()']()))
+  console.log('TEST ACC AXON balance', formatEther(await axon['balanceOf(address)'](testAcc.address)))
 }
 
 main()

@@ -19,7 +19,7 @@ async function main () {
 
 
   const gaugesDistributor = await ethers.getContractAt('GaugesDistributor', GaugeDistributorAddress, deployer) as GaugesDistributor
-  await gaugesDistributor.collect()
+  await gaugesDistributor.distribute()
 }
 
 main()
