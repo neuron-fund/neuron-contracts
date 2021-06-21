@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+// TODO fix axon import everywhere and use interface since we use vyper contract
 import {Axon} from "./Axon.sol";
 
 contract Gauge is ReentrancyGuard {
@@ -92,10 +93,7 @@ contract Gauge is ReentrancyGuard {
         if (axonTotalSupply != 0) {
             axonMultiplier = AXON.balanceOf(account).div(AXON.totalSupply());
         }
-        uint256 _adjusted =
-            (_totalSupply.mul(axonMultiplier))
-                .mul(60)
-                .div(100);
+        uint256 _adjusted = (_totalSupply.mul(axonMultiplier)).mul(60).div(100);
         return Math.min(_derived.add(_adjusted), _balance);
     }
 
