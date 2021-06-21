@@ -10,7 +10,7 @@ import "hardhat-deploy-ethers"
 import "hardhat-deploy"
 import "@nomiclabs/hardhat-web3"
 import 'hardhat-abi-exporter'
-import "@nomiclabs/hardhat-vyper";
+import "@nomiclabs/hardhat-vyper"
 import { testPrivateKeys } from './utils/testPrivateKeys'
 
 const config: HardhatUserConfig = {
