@@ -362,14 +362,14 @@ abstract contract StrategyBase {
 
         if (_want > 0) {
             // Treasury fees
-            // Отправляет в tresury токены стратегии. 20% (задается константой performanceTreasuryFee)  от средств на счете стратегии
+            // Sending strategy's tokens to treasury. Currently @ 20% (set by performanceTreasuryFee constant) of strategy's assets
             IERC20(want).safeTransfer(
                 IController(controller).treasury(),
                 _want.mul(performanceTreasuryFee).div(performanceTreasuryMax)
             );
 
             // Performance fee
-            // Отправляет в devfund токены стратегии. 7.5% сейчас у пикла (задается константой perfomanceDevFee) от средств на счете стратегии
+            // Sending strategy's tokens to devfund. Currently @ 7.5% (set by perfomanceDevFee constant) of strategy's assets
             IERC20(want).safeTransfer(
                 IController(controller).devfund(),
                 _want.mul(performanceDevFee).div(performanceDevMax)

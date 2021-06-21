@@ -136,7 +136,7 @@ interface ICurveZap {
     ) external;
 }
 
-// Это интерфейс взаимо
+// Interface to manage Crv strategies' interactions
 interface ICurveGauge {
     function deposit(uint256 _value) external;
 

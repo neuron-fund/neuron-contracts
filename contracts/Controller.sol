@@ -114,9 +114,9 @@ contract Controller {
         approvedNPoolConverters[_converter] = false;
     }
 
-    // Вызывается перед тем как добавить стратегию в контроллер,  включает-выключает стратегию, не очень понятно зачем этот лишний шаг.
-    // Возможно потому что в солидити нельзя из массива (массива стратегий в данном случае), поэтому нужен дополнительный массив какие стратегии включены-выключены
-    // Вызывается при деплое
+    // Called before adding strategy to controller, turns the strategy 'on-off'
+    // We're in need of an additional array for strategies' on-off states (are we?)
+    // Called when deploying
     function approveStrategy(address _token, address _strategy) public {
         require(msg.sender == timelock, "!timelock");
         approvedStrategies[_token][_strategy] = true;

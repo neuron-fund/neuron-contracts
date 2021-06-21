@@ -619,7 +619,7 @@ contract Axon is
     function expireContract()
         external
         override
-        // TODO добавить модификатор доступа, был onlyGovernor
+        // TODO add access modificator, was set to onlyGovernor before
         contractNotExpired
         updateReward(address(0))
     {
