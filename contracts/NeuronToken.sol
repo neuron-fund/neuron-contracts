@@ -11,7 +11,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-// TODO роли заменяются вот этим https://docs.openzeppelin.com/contracts/4.x/access-control
+// TODO update roles to => https://docs.openzeppelin.com/contracts/4.x/access-control
 // SPDX-License-Identifier: ISC
 
 contract NeuronToken is ERC20, ERC20Burnable, AccessControl {

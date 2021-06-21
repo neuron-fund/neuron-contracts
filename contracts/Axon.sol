@@ -60,7 +60,7 @@ contract Axon is
     event RewardPaid(address indexed user, uint256 reward);
 
     /** Shared Globals */
-    // stakingToken - это NeuronToken
+    // stakingToken = NeuronToken
     IERC20 public stakingToken;
     uint256 private constant WEEK = 7 days;
     uint256 public constant MAXTIME = 365 days;
@@ -92,7 +92,7 @@ contract Axon is
 
     // Per user storage updated per stake/deposit/withdrawal
     mapping(address => uint256) public userRewardPerTokenPaid;
-    // Peding tokens. Сколько еще
+    // Pending tokens (for payout (?))
     mapping(address => uint256) public rewards;
     mapping(address => uint256) public rewardsPaid;
 
@@ -133,7 +133,7 @@ contract Axon is
         name = _name;
         symbol = _symbol;
 
-        // TODO мб нужно обновлять данную переменную
+        // TODO Will possibly need to be updated each __ min/hrs/days
         END = block.timestamp.add(MAXTIME);
     }
 
@@ -211,9 +211,9 @@ contract Axon is
             // Calculate slopes and biases
             // Kept at zero when they have to
             if (_oldLocked.end > block.timestamp && _oldLocked.amount > 0) {
-                // slope - это отношение локнутого кол-ва к максимальному времени лока. Это как бы диффернциал дилла для данного лока
+                // slope - lockedQuantity/maxLockedTime => essentially being an AXON differential for the lock
                 userOldPoint.slope = _oldLocked.amount.div(int128(MAXTIME));
-                // bias - это кол-во диллов уже, мы умножаем дифференциал на разницу времени
+                // bias - AXON quantity => multiplying our differential by a time delta
                 userOldPoint.bias = userOldPoint.slope.mul(
                     int128(_oldLocked.end.sub(block.timestamp))
                 );
@@ -313,7 +313,7 @@ contract Axon is
             if (lastPoint.bias < 0) {
                 lastPoint.bias = 0;
             }
-            // This cannot happen - just in case
+            // This cannot/should not happen - just in case
             if (lastPoint.slope < 0) {
                 lastPoint.slope = 0;
             }
@@ -323,7 +323,7 @@ contract Axon is
                 blockSlope.mulTruncate(iterativeTime.sub(initialLastPoint.ts))
             );
 
-            // when epoch is incremented, we either push here or after slopes updated below
+            // When epoch is incremented, we either push here or after slopes updated below
             epoch = epoch.add(1);
             if (iterativeTime == block.timestamp) {
                 lastPoint.blk = block.number;
@@ -441,7 +441,7 @@ contract Axon is
      * @param _value Total units of StakingToken to lockup
      * @param _unlockTime Time at which the stake should unlock
      */
-    //  TODO аналог этой функции который тратит пиклы с msg.sender а записывает в книгу другого юзера
+    //  TODO an alternative function for spending msg.sender's NEURs and writing down to other user's book (?)
     function createLockFor(
         address _addr,
         uint256 _value,
@@ -875,7 +875,7 @@ contract Axon is
     ****************************************/
 
     /** @dev Updates the reward for a given address, before executing function */
-    // Обновляет глобальные переменные newReardPerToken, userRewardPerTokenPaid[_account], rewards[_accont]
+    // Updates global variables newReardPerToken, userRewardPerTokenPaid[_account], rewards[_accont]
     modifier updateReward(address _account) {
         // Setting of global vars
         uint256 newRewardPerToken = rewardPerToken();
@@ -885,7 +885,7 @@ contract Axon is
             lastUpdateTime = lastTimeRewardApplicable();
             // Setting of personal vars based on new globals
             if (_account != address(0)) {
-                // Pending neurons - награда которую юзер не получил еще
+                // Pending neurons - reward not yet paid to the user
                 rewards[_account] = earned(_account);
                 userRewardPerTokenPaid[_account] = newRewardPerToken;
             }
@@ -893,7 +893,7 @@ contract Axon is
         _;
     }
 
-    // TODO юзать на фронте exit  а не
+    // TODO Should use Exit on front
 
     /**
      * @dev Claims outstanding rewards for the sender.
@@ -940,7 +940,7 @@ contract Axon is
         // get lockup length (end - point.ts)
         uint256 lockupLength = _endTime.sub(_startTime);
         // s = amount * sqrt(length)
-        // TODO убрать корень от времени лока
+        // TODO remove square root of lockup period
         uint256 s = uint256(_slope.mul(10000)).mul(Root.sqrt(lockupLength));
         return s;
     }

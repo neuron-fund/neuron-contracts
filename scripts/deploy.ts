@@ -32,6 +32,7 @@ async function main () {
   const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
   const Axon = await ethers.getContractFactory('Axon', deployer) as Axon__factory
   const NeuronPool = await ethers.getContractFactory('NeuronPool', deployer) as NeuronPool__factory
+  
   // Strategies
   const Curve3Crv = await ethers.getContractFactory('StrategyCurve3Crv', deployer) as StrategyCurve3Crv__factory
   const CurveRenCrv = await ethers.getContractFactory('StrategyCurveRenCrv', deployer) as StrategyCurveRenCrv__factory
@@ -43,18 +44,17 @@ async function main () {
 
   console.log('START DEPLOY')
 
-  // TODO сделать аксон и fee-distributor заменяемым
-  // TODO определиться со значниями следующих констант, важно для токеномики
+  // TODO make AXON and fee-distributor changeable
   const neuronsPerBlock = parseEther('0.3')
   const startBlock = 0
   const bonusEndBlock = 0
 
-  // TODO определиться с timelock
+  // TODO decide on timelock
   const neuronToken = await NeuronToken.deploy(governanceAddress)
   await neuronToken.deployed()
   const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, neuronsPerBlock, startBlock, bonusEndBlock)
   await masterChef.deployed()
-  // TODO использовать deployed
+  // TODO use deployed
   await neuronToken.addMinter(masterChef.address)
   await neuronToken.addMinter(deployerAddress)
 
@@ -136,7 +136,6 @@ async function main () {
   // Time travel one week for distribution of rewards to gauges
   await waitWeek(network.provider)
 
-  // TODO определиться как мы делаем вначале
   await gaugesDistributor.distribute()
 
   writeFileSync(path.resolve(__dirname, '../frontend/constants.ts'), `
@@ -170,7 +169,7 @@ async function main () {
   console.log('HOLDER NEURON BALANCE, before all', formatEther(await neuronToken.balanceOf(holder)))
   console.log('HOLDER AXON BALANCE, before all', formatEther(await axon['balanceOf(address)'](holder)))
 
-  // Положили на счет feeDistributor нейроны и вызвали чекпойнт, чтобы он изменил свое состояние по их распределению
+  // Depositing NEURs => feeDistributor, then calling a checkpoint to change state after distribution
   await neuronToken.mint(feeDistributor.address, premint)
   await feeDistributor.checkpoint_token()
 

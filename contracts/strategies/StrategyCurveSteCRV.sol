@@ -23,14 +23,14 @@ contract StrategyCurveSteCrv is StrategyBase {
     IStEth public stEth = IStEth(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84); // lido stEth
     IERC20 public steCRV = IERC20(0x06325440D014e39736583c165C2963BA99fAf14E); // ETH-stETH curve lp
 
-    // curve dao
+    // Curve DAO
     ICurveGauge public gauge =
         ICurveGauge(0x182B723a58739a9c974cFDB385ceaDb237453c28); // stEthGauge
     ICurveFi public curve =
         ICurveFi(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022); // stEthSwap
     address public mintr = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0;
 
-    // tokens we're farming
+    // Tokens we're farming
     IERC20 public constant crv =
         IERC20(0xD533a949740bb3306d119CC777fa900bA034cd52);
     IERC20 public constant ldo =
@@ -54,14 +54,14 @@ contract StrategyCurveSteCrv is StrategyBase {
             _timelock
         )
     {
-        // TODO узнать а безопасно ли вообще так делать, апрувить со значением -1
+        // TODO Consult if approving with -1 is safe
         steCRV.approve(address(gauge), uint256(-1));
         stEth.approve(address(curve), uint256(-1));
         ldo.safeApprove(address(univ2Router2), uint256(-1));
         crv.approve(address(univ2Router2), uint256(-1));
     }
 
-    // swap for eth
+    // Swap for ETH
     receive() external payable {}
 
     // **** Getters ****
@@ -131,7 +131,7 @@ contract StrategyCurveSteCrv is StrategyBase {
     }
 
     function harvest() public override onlyBenevolent {
-        // TODO продумать защиту от frontrun. Возможно разрешить только кипер боту вызывать функцию харвест
+        // TODO develop a frontrunning protection - maybe by only letting the keeper bot call the harvest?
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun / sandwiched
         // But ETH is a dark forest, and I wanna see how this plays out

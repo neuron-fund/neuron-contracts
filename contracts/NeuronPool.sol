@@ -15,8 +15,8 @@ contract NeuronPool is ERC20 {
     using Address for address;
     using SafeMath for uint256;
 
-    // Токен который принимает контракт. Например для Jar который создает под стратегию 3poolCrv это будет токен 3Crv
-    // В стратегиях эта переменная обычно называется want или _want
+    // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool
+    // Usually want/_want in strategies
     IERC20 public token;
 
     uint256 public min = 9500;
@@ -29,8 +29,8 @@ contract NeuronPool is ERC20 {
     GaugesDistributor public gaugesDistributor;
 
     constructor(
-        // Токен который принимает контракт. Например для Jar который создает под стратегию 3poolCrv это будет токен 3Crv
-        // В стратегиях эта переменная обычно называется want или _want
+        // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool
+        // Usually want/_want in strategies
         address _token,
         address _governance,
         address _timelock,
@@ -39,7 +39,6 @@ contract NeuronPool is ERC20 {
         address _gaugesDistributor
     )
         ERC20(
-            // TODO neuroned звучит убого
             string(abi.encodePacked("neuroned", ERC20(_token).name())),
             string(abi.encodePacked("neur", ERC20(_token).symbol()))
         )
@@ -53,7 +52,7 @@ contract NeuronPool is ERC20 {
         gaugesDistributor = GaugesDistributor(_gaugesDistributor);
     }
 
-    // Баланс считается из баланса в банке и баланса токена этой банки в контроллере
+    // Balance = pool's balance + pool's token controller contract balance
     function balance() public view returns (uint256) {
         return
             token.balanceOf(address(this)).add(
@@ -82,17 +81,15 @@ contract NeuronPool is ERC20 {
         controller = _controller;
     }
 
-    // Возввращает кол-во токенов, которые можно положить в пул
-    // небольшое кол-во сохраняется, чтобы быстро и дешево делать небольшие выводы с пула.
-    // Как лучше считать это небольшое кол-во - ?
+    // Returns tokens available for deposit into the pool
     // Custom logic in here for how much the jars allows to be borrowed
-    // Sets minimum required on-hand to keep small withdrawals cheap
+    // TODO Sets minimum required on-hand to keep small withdrawals cheap
     function available() public view returns (uint256) {
         return token.balanceOf(address(this)).mul(min).div(max);
     }
 
-    // Здесь и происходит депозит токена в пул. Когда вызывается эта функция?
-    // В тестах она вызывается вручную.
+    // Depositing tokens into pool
+    // Usually called manually in tests
     function earn() public {
         uint256 _bal = available();
         token.safeTransfer(controller, _bal);
@@ -103,41 +100,40 @@ contract NeuronPool is ERC20 {
         deposit(token.balanceOf(msg.sender));
     }
 
-    // Это точка входа для пользователя, именно эта функция вызывается, когда мы нажимаем кнопку Deposit в интерфейсе
+    // User's entry point; called on pressing Deposit in Neuron's UI
     function deposit(uint256 _amount) public {
-        // Баланс на счету банки + баланс в контроллере
+        // Pool's + controller balances
         uint256 _pool = balance();
         uint256 _before = token.balanceOf(address(this));
         token.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _after = token.balanceOf(address(this));
-        _amount = _after.sub(_before); // Additional check for deflationary tokens Непонял что это и зачем
+        _amount = _after.sub(_before); // Additional check for deflationary tokens
         uint256 shares = 0;
-        // totalSupply - общее количество pТокена, токена который дается в обмен на депозит в пуле, например p3CRV для 3crv банки
+        // totalSupply - total supply of pToken, given in exchange for depositing to a pool, eg p3CRV for 3Crv
         if (totalSupply() == 0) {
-            // Количество токенов которое получит юзер в обмен на депозит. Первый юзер получает такое же кол-во, как депозит
+            // Tokens user will get in exchange for deposit. First user receives tokens equal to deposit.
             shares = _amount;
         } else {
-            // Для последующих юзеров формула: (tokens_stacked * exist_pTokens) / total_tokens_stacked. total_tokesn_stacked - не считая новых
+            // For subsequent users: (tokens_stacked * exist_pTokens) / total_tokens_stacked. total_tokesn_stacked - not considering first users
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
     }
 
-    // Это точка входа для пользователя, именно эта функция вызывается, когда мы нажимаем кнопку Deposit в интерфейсе
     function depositAndFarm(uint256 _amount) public {
-        // Баланс на счету банки + баланс в контроллере
+        // Pool's + controller balances
         uint256 _pool = balance();
         uint256 _before = token.balanceOf(address(this));
         token.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _after = token.balanceOf(address(this));
         _amount = _after.sub(_before); // Additional check for deflationary tokens Непонял что это и зачем
         uint256 shares = 0;
-        // totalSupply - общее количество pТокена, токена который дается в обмен на депозит в пуле, например p3CRV для 3crv банки
+        // totalSupply - total supply of pToken, given in exchange for depositing to a pool, eg p3CRV for 3Crv
         if (totalSupply() == 0) {
-            // Количество токенов которое получит юзер в обмен на депозит. Первый юзер получает такое же кол-во, как депозит
+            // Tokens user will get in exchange for deposit. First user receives tokens equal to deposit.
             shares = _amount;
         } else {
-            // Для последующих юзеров формула: (tokens_stacked * exist_pTokens) / total_tokens_stacked. total_tokesn_stacked - не считая новых
+            // For subsequent users: (tokens_stacked * exist_pTokens) / total_tokens_stacked. total_tokesn_stacked - not considering first users
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
 
@@ -160,15 +156,13 @@ contract NeuronPool is ERC20 {
 
     // No rebalance implementation for lower fees and faster swaps
     function withdraw(uint256 _shares) public {
-        // _shares - просто кол-во токенов которые юзер хочет вывести
-        // Считается ли в totalSupply соженные токены?
+        // _shares - tokens user wants to withdraw
         uint256 r = (balance().mul(_shares)).div(totalSupply());
-        // Сжигает часть или все pCrv (для примера) токены юзера?
         _burn(msg.sender, _shares);
 
         // Check balance
         uint256 b = token.balanceOf(address(this));
-        // Если на балансе банки не хватает токенов - выводим из контроллера
+        // If pool balance's not enough, we're withdrawing the controller's tokens
         if (b < r) {
             uint256 _withdraw = r.sub(b);
             IController(controller).withdraw(address(token), _withdraw);

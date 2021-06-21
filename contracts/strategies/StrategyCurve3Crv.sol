@@ -13,27 +13,27 @@ import "../interfaces/IController.sol";
 
 import "./StrategyCurveBase.sol";
 
-// Для каждой стратегии сначала создается PickleJar. Потом деплоится контракт стратегии.
+// nPool first created for any strategy => then strategy contract is deployed
 
-// Адрес контракта этой стратегии 0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33
-// Можно поискать по проекту адрес, чтобы увидеть где происходит деплой и как задается этот адрес.
+// This strategy's contract 0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33
+// For addnl info have a search with the aforementioned address - helps finding the ins and outs
 
 contract StrategyCurve3Crv is StrategyCurveBase {
-    // TODO почему то using for не наследуется
+    // TODO using for inheritance
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
 
     // Curve stuff
-    // Пул в который пойдет депозит. В данном случае 3CRV пул, он принимает на вход DAI + USDC + USDT
+    // Pool to deposit to. In this case it's 3CRV, accepting DAI + USDC + USDT
     address public three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
-    // Gauge пула, не совсем понял что это, но все взаимодействия происходят через этот адрес, через интерфейс ICurveGauge
+    // Pool's Gauge - interactions are mediated through ICurveGauge interface @ this address
     address public three_gauge = 0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A;
 
-    // Это адресс контракта самого токена Curve 3Crv, в данном случае.
+    // Curve 3Crv token contract address.
     // https://etherscan.io/address/0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490
-    // Etherscan пишет, что контракт отвечает за два токена 3Crv и USDC
-    // В эту стратегию изначальный депозит делается именно этим токеном.
+    // Etherscan states this contract manages 3Crv and USDC
+    // The starting deposit is made with this token ^^^
     address public three_crv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 
     constructor(
@@ -87,7 +87,7 @@ contract StrategyCurve3Crv is StrategyCurveBase {
     }
 
     // **** State Mutations ****
-    // Функция, которая достает награду из пула, переводит в стейблкоины и закидывает обратно в пул.
+    // Function to harvest pool rewards, convert to stablecoins and reinvest to pool
     function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
@@ -98,15 +98,15 @@ contract StrategyCurve3Crv is StrategyCurveBase {
         // stablecoin we want to convert to
         (address to, uint256 toIndex) = getMostPremium();
 
-        // Collects crv tokens
+        // Collects Crv tokens
         // Don't bother voting in v1
-        // Создает CRV токены и переводит на адрес стратегии??
+        // Creates CRV and transfers to strategy's address (?)
         ICurveMintr(mintr).mint(gauge);
         uint256 _crv = IERC20(crv).balanceOf(address(this));
         if (_crv > 0) {
             // x% is sent back to the rewards holder
             // to be used to lock up in as veCRV in a future date
-            // Часть токенов сохраняется в "копилке" в контроллере. Сколько именно стоит оставлять - не совсем понятно
+            // Some tokens are accumulated in "treasury" and controller. The % is always subject to discussion.
             uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
             if (_keepCRV > 0) {
                 IERC20(crv).safeTransfer(
@@ -115,7 +115,7 @@ contract StrategyCurve3Crv is StrategyCurveBase {
                 );
             }
             _crv = _crv.sub(_keepCRV);
-            // Конвертирует CRV токены в стейблкоин
+            // Converts CRV to stablecoins
             _swapUniswap(crv, to, _crv);
         }
 
@@ -123,12 +123,12 @@ contract StrategyCurve3Crv is StrategyCurveBase {
         // to get back want (scrv)
         uint256 _to = IERC20(to).balanceOf(address(this));
         if (_to > 0) {
-            // Не совсем понял, зачем нужна эта функция safeApprove
+
             IERC20(to).safeApprove(curve, 0);
             IERC20(to).safeApprove(curve, _to);
             uint256[3] memory liquidity;
             liquidity[toIndex] = _to;
-            // Закидываем стейблкоин обратно в curve
+            // Transferring stablecoins back to Curve
             ICurveFi_3(curve).add_liquidity(liquidity, 0);
         }
 

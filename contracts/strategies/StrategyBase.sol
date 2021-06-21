@@ -21,7 +21,7 @@ abstract contract StrategyBase {
     uint256 public performanceTreasuryFee = 2000;
     uint256 public constant performanceTreasuryMax = 10000;
 
-    // Сейчас у пикла это 7.5%
+    // Pickle has it set @ 7.5%
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
 
@@ -35,7 +35,7 @@ abstract contract StrategyBase {
     uint256 public constant withdrawalDevFundMax = 100000;
 
     // Tokens
-    // Токен который контракт принимает на вход
+    // Input token accepted by the contract
     address public want;
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
@@ -52,7 +52,7 @@ abstract contract StrategyBase {
     mapping(address => bool) public harvesters;
 
     constructor(
-        // Токен который контракт принимает на вход
+        // Input token accepted by the contract
         address _want,
         address _governance,
         address _strategist,

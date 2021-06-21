@@ -15,8 +15,8 @@ import "./interfaces/IOneSplitAudit.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IConverter.sol";
 
-// Данный контракт деплоится 1 раз (в отличчии от тех же nPools, которые создаются под каждую стратегию свои).
-// А потом уже со временем в него добавляются новые nPool через функцию setNPool
+// Deployed once (in contrast with nPools - those are created individually for each strategy).
+// Then new nPools are added via setNPool function
 contract Controller {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -35,7 +35,7 @@ contract Controller {
     uint256 public convenienceFee = 100;
     uint256 public constant convenienceFeeMax = 100000;
 
-    // TODO перименовать nPools
+    // TODO rename nPools
     mapping(address => address) public nPools;
     mapping(address => address) public strategies;
     mapping(address => mapping(address => address)) public converters;
@@ -122,7 +122,7 @@ contract Controller {
         approvedStrategies[_token][_strategy] = true;
     }
 
-    // Выключает стратегию
+    // Turns off/revokes strategy
     function revokeStrategy(address _token, address _strategy) public {
         require(msg.sender == governance, "!governance");
         require(
@@ -137,7 +137,7 @@ contract Controller {
         convenienceFee = _convenienceFee;
     }
 
-    // Добавляет стратегию или апдтейтит существующую
+    // Adding or updating a strategy
     function setStrategy(address _token, address _strategy) public {
         require(
             msg.sender == strategist || msg.sender == governance,
@@ -153,22 +153,22 @@ contract Controller {
     }
 
 
-    // Здесь и происходит депозит токена в пул
+    // Depositing token to a pool
     function earn(address _token, uint256 _amount) public {
         address _strategy = strategies[_token];
-        // Токен который необходим для работы стратегии
+        // Token needed for strategy
         address _want = IStrategy(_strategy).want();
         if (_want != _token) {
-            // Если мы пытаемся положить не тот токен, который требуется пулу - конвертируем
+            // Convert if token other than wanted deposited
             address converter = converters[_token][_want];
             IERC20(_token).safeTransfer(converter, _amount);
             _amount = IConverter(converter).convert(_strategy);
             IERC20(_want).safeTransfer(_strategy, _amount);
         } else {
-            // Переводим токен на адрес стратегии
+            // Transferring to the strategy address
             IERC20(_token).safeTransfer(_strategy, _amount);
         }
-        // Вызываем метод deposit у стратегии.
+        // Calling deposit @ strategy
         IStrategy(_strategy).deposit();
     }
 
@@ -218,7 +218,7 @@ contract Controller {
         );
     }
 
-    // TODO непонятно когда вызывается фукнция, возможно она вообще не нужна
+    // TODO decide if function needed
     // Only allows to withdraw non-core strategy tokens ~ this is over and above normal yield
     function yearn(
         address _strategy,
@@ -267,22 +267,21 @@ contract Controller {
     }
 
     // Function to swap between nPools
-    // TODO когда это вызывать?
-    // Похоже вызывается когда хочешь сделать новую версию NPool - стратегии
-    // TODO Не могу понять, как создается новая NPool, если токен для этой стратегии уже существует
-    // Также функция нужна, потому что в процессе работы NPool в нее попадают не только те токены которые ей необходимы, но и всякие другие, и данная функция позвляет перевести их в другую банку
-    // Пример транзакции этой функции https://etherscan.io/tx/0xc6f15e55f8520bc22a0bb9ac15b6f3fd80a0295e5c40b0e255eb7f3be34733f2
-    // https://etherscan.io/txs?a=0x6847259b2B3A4c17e7c43C54409810aF48bA5210&ps=100&p=3 - список транзакций реалнього контроллера пикл, видно, что эта функция вызывается довольно часто
-    // В последнее время вызывается довольно не часто, последний раз 140 дней назад
-    // похоже именно эта функция позволила сделать атаку на пикл и украсть токены https://twitter.com/n2ckchong/status/1330244058669850624?lang=en 
-    // Если просто погуглить название функции вылезет много статей объясняющих как произошел хак, например https://halborn.com/category/explained-hacks/
+    // Seems to be called when a new version of NPool is created
+    // TODO Created despite NPool token already existing (?)
+    // With NPool functioning, unwanted tokens are sometimes landing here; this function helps transfer them to another pool
+    // A transaction example https://etherscan.io/tx/0xc6f15e55f8520bc22a0bb9ac15b6f3fd80a0295e5c40b0e255eb7f3be34733f2
+    // https://etherscan.io/txs?a=0x6847259b2B3A4c17e7c43C54409810aF48bA5210&ps=100&p=3 - Pickle's transaction calls
+    // Last called ~140 days ago
+    // Seems to be the culprit of recent Pickle's attack https://twitter.com/n2ckchong/status/1330244058669850624?lang=en 
+    // Googling the function returns some hack explanations https://halborn.com/category/explained-hacks/
     // >The problem with this function is that it doesn’t check the validity of the nPools presented to it 
     function swapExactNPoolForNPool(
         address _fromNPool, // From which NPool
         address _toNPool, // To which NPool
         uint256 _fromNPoolAmount, // How much nPool tokens to swap
         uint256 _toNPoolMinAmount, // How much nPool tokens you'd like at a minimum
-        address payable[] calldata _targets, // targets - адреса контрактов конвертеров
+        address payable[] calldata _targets, // targets - converters' contract addresses
         bytes[] calldata _data
     ) external returns (uint256) {
         require(_targets.length == _data.length, "!length");
@@ -371,7 +370,7 @@ contract Controller {
     {
         require(_target != address(0), "!target");
 
-        // call contract in current context
+        // Call contract in current context
         assembly {
             let succeeded := delegatecall(
                 sub(gas(), 5000),

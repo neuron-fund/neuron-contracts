@@ -12,7 +12,7 @@ contract MasterChef is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    // The NEURON TOKEN!
+    // The NEURON TOKEN
     NeuronToken public neuronToken;
     // Dev fund (2%, initially)
     uint256 public devFundDivRate = 50;
@@ -99,7 +99,7 @@ contract MasterChef is Ownable {
         neuronToken.mint(distributor, neuronTokenReward);
     }
 
-    // Safe neuronToken transfer function, just in case if rounding error causes pool to not have enough PICKLEs.
+    // Safe neuronToken transfer function, just in case if rounding error causes pool to not have enough NEURs.
     function safeNeuronTokenTransfer(address _to, uint256 _amount) internal {
         uint256 neuronTokenBalance = neuronToken.balanceOf(address(this));
         if (_amount > neuronTokenBalance) {
@@ -108,7 +108,8 @@ contract MasterChef is Ownable {
             neuronToken.transfer(_to, _amount);
         }
     }
-    // TODO добавить вывод одной кнопкой из гейджа
+    // TODO one-click gauge withdrawal
+    
     // Update dev address by the previous dev.
     function setDevAddr(address _devaddr) external {
         require(msg.sender == devaddr, "dev: wut?");

@@ -45,12 +45,12 @@ contract StrategyCurveRenCrv is StrategyCurveBase {
     // **** Views ****
 
     function getMostPremium() public view override returns (address, uint256) {
-        // Both 8 decimals, so doesn't matter
+        // Both 8 decimals
         uint256[] memory balances = new uint256[](3);
         balances[0] = ICurveFi_2(curve).balances(0); // RENBTC
         balances[1] = ICurveFi_2(curve).balances(1); // WBTC
 
-        // renbtc
+        // renBTC
         if (balances[0] < balances[1]) {
             return (renbtc, 0);
         }

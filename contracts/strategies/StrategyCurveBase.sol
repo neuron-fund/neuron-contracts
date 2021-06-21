@@ -16,10 +16,10 @@ abstract contract StrategyCurveBase is StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
-    // curve dao
-    // Gauge пула, не совсем понял что это, но все взаимодействия происходят через этот адрес, через интерфейс ICurveGauge
+    // Curve DAO
+    // Pool's gauge => all the interactions are held through this address, ICurveGauge interface
     address public gauge;
-    // Адрес пула - конракта от Curve куда будут депозитнуты средства
+    // Curve's contract address => depositing here
     address public curve;
     address public mintr = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0;
 
@@ -41,10 +41,10 @@ abstract contract StrategyCurveBase is StrategyBase {
     uint256 public keepCRVMax = 10000;
 
     constructor(
-        // Адрес пула - контракта от Curve куда будут депозитнуты средства
+        // Curve's contract address => depositing here
         address _curve,
         address _gauge,
-        // Токен который контракт принимает на вход
+        // Token accepted by the contract
         address _want,
         address _governance,
         address _strategist,
@@ -77,7 +77,7 @@ abstract contract StrategyCurveBase is StrategyBase {
     // **** State Mutation functions ****
 
     function deposit() public override {
-        // Проверям сколько на нашем контракте стратегии баланс токена, который он принимает на вход
+        // Checking our contract's wanted/accepted token balance
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
             IERC20(want).safeApprove(gauge, 0);

@@ -44,7 +44,7 @@ abstract contract RewardsDistributionRecipient is
      */
     function setRewardsDistribution(address _rewardsDistributor)
         external
-        // TODO добавить only owner или only governer модификатор
+        // TODO add 'only owner' or 'only governer' modifier
     {
         rewardsDistributor = _rewardsDistributor;
     }

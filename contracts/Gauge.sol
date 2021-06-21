@@ -43,7 +43,7 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint256) private _base;
 
-    // TODO treasury unused remove
+    // TODO remove unused treasury
 
     constructor(
         address _token,
@@ -210,7 +210,7 @@ contract Gauge is ReentrancyGuard {
         emit RewardAdded(reward);
     }
 
-    // TODO гейджы должны быть заполнены хоть чем на период первого стейка юзеров, rewardPerTokenStored был какой то
+    // TODO gauges shouldn't be empty at the moment of first users staking. Set rewardPerTokenStored
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();

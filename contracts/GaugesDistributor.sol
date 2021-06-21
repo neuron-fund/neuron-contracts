@@ -78,7 +78,7 @@ contract GaugesDistributor {
             uint256 _votes = votes[_owner][_token];
 
             if (_votes > 0) {
-                // TODO totalWeight = 0 в начале, надо определиться делать его ранвым с самого начала или как
+                // TODO totalWeight = 0 at the start, надо определиться делать его ранвым с самого начала или как
                 totalWeight = totalWeight.sub(_votes);
                 weights[_token] = weights[_token].sub(_votes);
 
@@ -90,7 +90,7 @@ contract GaugesDistributor {
     }
 
     // Adjusts _owner's votes according to latest _owner's AXON balance
-    // TODO функция вызывается ботом как я понял
+    // TODO bot-called function
     function poke(address _owner) public {
         address[] memory _tokenVote = tokenVote[_owner];
         uint256 _tokenCnt = _tokenVote.length;
@@ -167,8 +167,7 @@ contract GaugesDistributor {
         return _tokens.length;
     }
 
-    // TODO данная функция вызывается раз в неделю ссудя по логам на etherscan
-    // возможно стоит защититься от фронтрана, и добавить проверку, что функцию может вызывать только определнный контракт - бот
+    // TODO once-per-week call, check caller (Neuron bot contract) for frontrunning protection
     function distribute() external {
         collect();
         uint256 _balance = NEURON.balanceOf(address(this));

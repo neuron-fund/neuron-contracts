@@ -8,8 +8,7 @@ import "./interfaces/IUniswapRouterV2.sol";
 import "./interfaces/ICurve.sol";
 import "./interfaces/INeuronPool.sol";
 
-// Converts Primitive tokens to Pickle Jar Tokens
-// TODO переименовать
+// Converts Primitive tokens to Neuron Pool Tokens
 contract Instabrine {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -87,7 +86,7 @@ contract Instabrine {
     }
 
     // **** Curve **** //
-    // Stupid non-standard API
+    // Basic non-standard API
 
     function primitiveToCurvePickleJar_2(
         address curve,
@@ -164,7 +163,7 @@ contract Instabrine {
         return _curveLpToPickleJarAndRefund(curveLp, pickleJar);
     }
 
-    // **** PickleJar **** //
+    // **** NeuronPool **** //
 
     function curvePickleJarToPrimitive_1(
         address pickleJar,
