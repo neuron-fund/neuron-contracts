@@ -126,7 +126,7 @@ contract NeuronPool is ERC20 {
         uint256 _before = token.balanceOf(address(this));
         token.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _after = token.balanceOf(address(this));
-        _amount = _after.sub(_before); // Additional check for deflationary tokens Непонял что это и зачем
+        _amount = _after.sub(_before); // Additional check for deflationary tokens
         uint256 shares = 0;
         // totalSupply - total supply of pToken, given in exchange for depositing to a pool, eg p3CRV for 3Crv
         if (totalSupply() == 0) {
