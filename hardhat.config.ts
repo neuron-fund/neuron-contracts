@@ -2,16 +2,18 @@ import { config as dontenvConfig } from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
 const env = dontenvConfig()
 dotenvExpand(env)
-import { HardhatUserConfig, task } from "hardhat/config"
+
+import { HardhatUserConfig } from "hardhat/config"
 import "@nomiclabs/hardhat-ethers"
 import "@nomiclabs/hardhat-waffle"
-import "@typechain/hardhat"
+import "@nomiclabs/hardhat-vyper"
 import "hardhat-deploy-ethers"
 import "hardhat-deploy"
 import "@nomiclabs/hardhat-web3"
 import 'hardhat-abi-exporter'
-import "@nomiclabs/hardhat-vyper"
 import { testPrivateKeys } from './utils/testPrivateKeys'
+import "@typechain/hardhat"
+
 
 const config: HardhatUserConfig = {
   solidity: '0.7.3',

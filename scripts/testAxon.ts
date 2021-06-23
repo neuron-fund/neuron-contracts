@@ -6,7 +6,7 @@ import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { getToken } from '../utils/getCurveTokens'
-import { DAY, waitWeek } from '../utils/time'
+import { DAY, waitNDays, waitWeek } from '../utils/time'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -48,23 +48,21 @@ async function main () {
     gasLimit: 4000000
   })
 
-  console.log('AXON TOTAL SUPPLY', formatEther(await axon['totalSupply()']()))
-
+  await feeDistributor.toggle_allow_checkpoint_token()
   await neuronToken.mint(feeDistributor.address, premint)
+  // TODO это нужно вызывать после распределения награды
   await feeDistributor.checkpoint_token()
 
-  await waitWeek(network.provider)
+  await waitNDays(4, network.provider)
   // await neuronToken.mint(feeDistributor.address, premint)
-  // await feeDistributor.checkpoint_token()
-  
-  await feeDistributor['claim()']()
-  await waitWeek(network.provider)
-  
-  // console.log('HOLDER NEURON BALANCE, after claim', formatEther(await neuronToken['balanceOf(address)'](holder)))
 
-  // await neuronToken.mint(feeDistributor.address, premint)
-  // await feeDistributor.checkpoint_token()
+  // await feeDistributor['claim()']()
+  // TODO важно вызывать эту функцию раз в неделю, если никто не вызывал claim. В feeDistributor хранится инфа о кол-ве аксонов и эта функция ее вычисляет
+  await feeDistributor.checkpoint_total_supply()
 
+  // await waitWeek(network.provider)
+
+  await waitNDays(2, network.provider)
 
   const testAcc = accounts[0]
   const testAccNeur = await neuronToken.connect(testAcc)
@@ -72,9 +70,11 @@ async function main () {
   await testAccNeur.approve(axon.address, premint)
   const testAccAxon = await axon.connect(testAcc)
   await testAccAxon.create_lock(
-    parseEther('100'), Math.ceil((Date.now() / 1000 + oneYearSeconds / 12)), {
-      gasLimit: 12450000
-    })
+    parseEther('10'),
+    Math.ceil((Date.now() / 1000 + DAY * 15)), {
+    gasLimit: 12450000
+  })
+  await feeDistributor.callStatic["claim(address)"](testAcc.address)
   console.log('AXON TOTAL SUPPLY', formatEther(await axon['totalSupply()']()))
   console.log('TEST ACC AXON balance', formatEther(await axon['balanceOf(address)'](testAcc.address)))
 }
@@ -85,3 +85,4 @@ main()
     console.error(error)
     process.exit(1)
   })
+

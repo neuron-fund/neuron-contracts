@@ -2,7 +2,7 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { ContractFactory, providers, Signer, Wallet } from "ethers"
-import { get3Crv, getRenCrv, getSteCrv } from '../utils/getCurveTokens'
+import { get3Crv, getFeiTribe, getRenCrv, getSteCrv } from '../utils/getCurveTokens'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -16,6 +16,7 @@ async function main () {
   await get3Crv(wallet)
   await getRenCrv(wallet)
   await getSteCrv(wallet)
+  await getFeiTribe(wallet)
 }
 
 main()

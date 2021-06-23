@@ -1,8 +1,9 @@
 
 import "@nomiclabs/hardhat-ethers"
 import { Signer } from 'ethers'
+import { formatEther } from 'ethers/lib/utils'
 import { ethers } from "hardhat"
-import { DAI, UniswapRouterV2Address, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV } from '../constants/addresses'
+import { DAI, UniswapRouterV2Address, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, FEI, TRIBE, UNI_FEI_TRIBE } from '../constants/addresses'
 import { IUniswapRouterV2, ICurveFi3, IERC20, ICurveFi2, IStEth, ICurveFi, ERC20 } from '../typechain'
 
 export const getToken = async (address: string, signer: Signer) => {
@@ -83,4 +84,59 @@ export const getSteCrv = async (recipient: Signer) => {
   await curveSteCrvPool.add_liquidity([amount, amount], 0, { value: amount })
   const steCrv = await getToken(STE_CRV, recipient)
   const steCrvBalance = await steCrv.balanceOf(accAddress)
+}
+
+export const getFeiTribe = async (recipient: Signer) => {
+  const accAddress = await recipient.getAddress()
+  const fei = await getToken(FEI, recipient)
+  const tribe = await getToken(TRIBE, recipient)
+  const ethBalanceBefore = formatEther(await recipient.getBalance())
+  const feiBalanceBefore = formatEther(await fei.balanceOf(accAddress))
+  const tribeBalanceBefore = formatEther(await tribe.balanceOf(accAddress))
+
+  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UniswapRouterV2Address, recipient) as IUniswapRouterV2
+  const getFeiPath = [WETH, FEI]
+  const getTribePath = [WETH, FEI, TRIBE]
+  const tokensAmount = ethers.utils.parseEther("1000")
+  await uniswapRouter.swapETHForExactTokens(
+    tokensAmount,
+    getFeiPath,
+    await recipient.getAddress(),
+    Date.now() + 60,
+    {
+      value: tokensAmount,
+    },
+  )
+  await uniswapRouter.swapETHForExactTokens(
+    tokensAmount,
+    getTribePath,
+    await recipient.getAddress(),
+    Date.now() + 60,
+    {
+      value: tokensAmount,
+    },
+  )
+
+  const ethBalanceAfter = formatEther(await recipient.getBalance())
+  const feiBalanceAfter = await fei.balanceOf(accAddress)
+  const tribeBalanceAfter = await tribe.balanceOf(accAddress)
+
+  await fei.approve(UniswapRouterV2Address, 0)
+  await fei.approve(UniswapRouterV2Address, feiBalanceAfter)
+  await tribe.approve(UniswapRouterV2Address, 0)
+  await tribe.approve(UniswapRouterV2Address, tribeBalanceAfter)
+
+  await uniswapRouter.addLiquidity(
+    FEI,
+    TRIBE,
+    feiBalanceAfter,
+    tribeBalanceAfter,
+    0,
+    0,
+    accAddress,
+    Date.now() + 30000,
+  )
+
+  const uniFeiTribe = await getToken(UNI_FEI_TRIBE, recipient)
+  const uniFeiTribeBalance = await uniFeiTribe.balanceOf(accAddress)
 }

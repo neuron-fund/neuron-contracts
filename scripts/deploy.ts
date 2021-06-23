@@ -3,10 +3,10 @@ import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { ContractFactory, Signer, Wallet } from "ethers"
 import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, Axon__factory, AxonVyper__factory, FeeDistributor, FeeDistributor__factory } from '../typechain'
-import { writeFileSync } from 'node:fs'
-import path from 'node:path'
+import { writeFileSync } from 'fs'
+import path from 'path'
 import { getToken } from '../utils/getCurveTokens'
-import { waitWeek } from '../utils/time'
+import { DAY, waitNDays, waitWeek } from '../utils/time'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -128,13 +128,20 @@ async function main () {
   await axon.create_lock(premint, premintUnlockTime, {
     gasLimit: 4000000
   })
-  // await axon.createLock(premint, Math.ceil(Date.now() / 1000) + oneYearSeconds)
+
+  await feeDistributor.toggle_allow_checkpoint_token()
+  // Положили на счет feeDistributor нейроны и вызвали чекпойнт, чтобы он изменил свое состояние по их распределению
+  await neuronToken.mint(feeDistributor.address, premint)
+  await feeDistributor.checkpoint_token()
 
   await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, 25, 25, 25])
-  console.log('AXON TOTAL SUPPLY', formatEther(await axon['totalSupply()']()))
-
   // Time travel one week for distribution of rewards to gauges
-  await waitWeek(network.provider)
+  await waitNDays(4, network.provider)
+  await feeDistributor.checkpoint_total_supply({
+    gasLimit: 12450000
+  })
+
+  await waitNDays(3, network.provider)
 
   await gaugesDistributor.distribute()
 
@@ -160,44 +167,6 @@ async function main () {
       `).join('')}
     }
   `)
-
-
-  // TEST REWARDS DISTRIBUTION FOR AXON HOLDERS
-
-  const holder = deployerAddress
-
-  console.log('HOLDER NEURON BALANCE, before all', formatEther(await neuronToken.balanceOf(holder)))
-  console.log('HOLDER AXON BALANCE, before all', formatEther(await axon['balanceOf(address)'](holder)))
-
-  // Depositing NEURs => feeDistributor, then calling a checkpoint to change state after distribution
-  await neuronToken.mint(feeDistributor.address, premint)
-  await feeDistributor.checkpoint_token()
-
-  console.log('FEEDISTRIBUTOR NEURON BALANCE', formatEther(await feeDistributor.token_last_balance()))
-
-  const getHolderClaimable = async () => formatEther(await feeDistributor.callStatic['claim(address)'](holder))
-  console.log('HOLDER CLAIMABLE, after deposit to distributor', await getHolderClaimable())
-
-  await waitWeek(network.provider)
-  await neuronToken.mint(feeDistributor.address, premint)
-  await feeDistributor.checkpoint_token()
-
-  console.log('HOLDER CLAIMABLE, after week', await getHolderClaimable())
-
-  await feeDistributor['claim()']()
-
-  console.log('HOLDER NEURON BALANCE, after claim', formatEther(await neuronToken['balanceOf(address)'](holder)))
-
-  await neuronToken.mint(feeDistributor.address, premint)
-  await feeDistributor.checkpoint_token()
-
-
-  const testAcc = accounts[0]
-  await neuronToken.connect(testAcc).approve(axon.address, parseEther('100'))
-  await axon.create_lock(parseEther('100'), Math.ceil((Date.now() / 1000) + (oneYearSeconds / 6)), {
-    gasLimit: 4000000
-  })
-  console.log('TEST ACC AXON balance', formatEther(await axon['balanceOf(address)'](testAcc.address)))
 }
 
 main()
