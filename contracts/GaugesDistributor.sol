@@ -19,6 +19,7 @@ contract GaugesDistributor {
     IERC20 public immutable AXON;
     address public treasury;
     address public governance;
+    address public admin;
 
     uint256 public pid;
     uint256 public totalWeight;
@@ -36,13 +37,15 @@ contract GaugesDistributor {
         address _neuronToken,
         address _axon,
         address _treasury,
-        address _governance
+        address _governance,
+        address _admin
     ) {
         minter = IMinter(_minter);
         NEURON = NeuronToken(_neuronToken);
         AXON = IERC20(_axon);
         treasury = _treasury;
         governance = _governance;
+        admin = _admin;
     }
 
     function setMinter(address _minter) public {
@@ -78,7 +81,7 @@ contract GaugesDistributor {
             uint256 _votes = votes[_owner][_token];
 
             if (_votes > 0) {
-                // TODO totalWeight = 0 at the start, надо определиться делать его ранвым с самого начала или как
+                // BEFORE_DEPLOY totalWeight = 0, после преминта надо проголосовать, перед деплоем в паблик, иначе гейджы работать не будут
                 totalWeight = totalWeight.sub(_votes);
                 weights[_token] = weights[_token].sub(_votes);
 
@@ -89,8 +92,8 @@ contract GaugesDistributor {
         delete tokenVote[_owner];
     }
 
+    // TODO У пикла не вызывалась почти никогда. Получается веса не вычисляются снова, если юзер перестал быть холдером аксона.
     // Adjusts _owner's votes according to latest _owner's AXON balance
-    // TODO bot-called function
     function poke(address _owner) public {
         address[] memory _tokenVote = tokenVote[_owner];
         uint256 _tokenCnt = _tokenVote.length;
@@ -112,7 +115,6 @@ contract GaugesDistributor {
         address[] memory _tokenVote,
         uint256[] memory _weights
     ) internal {
-        // _weights[i] = percentage * 100
         _reset(_owner);
         uint256 _tokenCnt = _tokenVote.length;
         uint256 _weight = AXON.balanceOf(_owner);
@@ -167,8 +169,12 @@ contract GaugesDistributor {
         return _tokens.length;
     }
 
-    // TODO once-per-week call, check caller (Neuron bot contract) for frontrunning protection
+    // BEFORE_DEPLOY once-per-week call
     function distribute() external {
+        require(
+            msg.sender == admin || msg.sender == governance,
+            "Distribute function can only be executed by admin or governance"
+        );        
         collect();
         uint256 _balance = NEURON.balanceOf(address(this));
         if (_balance > 0 && totalWeight > 0) {
@@ -184,5 +190,14 @@ contract GaugesDistributor {
                 }
             }
         }
+    }
+
+    function setAdmin(address _admin) external {
+        require(
+            msg.sender == admin || msg.sender == governance,
+            "Only governance or admin can set admin"
+        );
+
+        admin = _admin;
     }
 }

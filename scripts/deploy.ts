@@ -54,7 +54,7 @@ async function main () {
   await neuronToken.deployed()
   const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, neuronsPerBlock, startBlock, bonusEndBlock)
   await masterChef.deployed()
-  // TODO use deployed
+  // BEFORE_DEPLOY use deployed
   await neuronToken.addMinter(masterChef.address)
   await neuronToken.addMinter(deployerAddress)
 
@@ -66,14 +66,14 @@ async function main () {
 
   const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
   const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
-
+  await feeDistributor.deployed()
   const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress)
   await gaugesDistributor.deployed()
   await masterChef.setDistributor(gaugesDistributor.address)
 
 
   const controller = await Controller.deploy(governanceAddress, strategistAddress, timelockAddress, devAddress, treasuryAddress)
-
+  controller.deployed()
   const deployStrategy = deployStrategyFactory({
     controller,
     neuronPoolFactory: NeuronPool,
@@ -202,6 +202,7 @@ function deployStrategyFactory ({
       controller.address,
       timelockAddress
     ) as StrategyBase
+    await strategy.deployed()
     const neuronPool = await neuronPoolFactory.deploy(
       await strategy.want(),
       governanceAddress,
@@ -210,6 +211,7 @@ function deployStrategyFactory ({
       masterChefAddress,
       gaugesDistributorAddress
     )
+    await strategy.deployed()
 
     await controller.setNPool(await strategy.want(), neuronPool.address)
     await controller.approveStrategy(await strategy.want(), strategy.address)

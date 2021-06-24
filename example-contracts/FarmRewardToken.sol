@@ -13,7 +13,6 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
-// TODO роли заменяются вот этим https://docs.openzeppelin.com/contracts/4.x/access-control
 import {Roles} from '@openzeppelin/contracts/access/Roles.sol';
 import {MinterRole} from '@openzeppelin/contracts/access/roles/MinterRole.sol';
 

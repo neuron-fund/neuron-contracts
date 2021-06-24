@@ -7,16 +7,14 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-// TODO fix axon import everywhere and use interface since we use vyper contract
-import {Axon} from "./Axon.sol";
+import {IAxon} from "./interfaces/IAxon.sol";
 
 contract Gauge is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     IERC20 public immutable NEURON;
-    Axon public immutable AXON;
-    address public TREASURY;
+    IAxon public immutable AXON;
 
     IERC20 public immutable TOKEN;
     address public immutable DISTRIBUTION;
@@ -44,8 +42,6 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint256) private _base;
 
-    // TODO remove unused treasury
-
     constructor(
         address _token,
         address _neuron,
@@ -53,8 +49,7 @@ contract Gauge is ReentrancyGuard {
         address _treasury
     ) {
         NEURON = IERC20(_neuron);
-        AXON = Axon(_axon);
-        TREASURY = address(_treasury);
+        AXON = IAxon(_axon);
         TOKEN = IERC20(_token);
         DISTRIBUTION = msg.sender;
     }
@@ -208,7 +203,7 @@ contract Gauge is ReentrancyGuard {
         emit RewardAdded(reward);
     }
 
-    // TODO gauges shouldn't be empty at the moment of first users staking. Set rewardPerTokenStored
+    // BEFORE_DEPLOY gauges shouldn't be empty at the moment of first users staking. Set rewardPerTokenStored
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();

@@ -54,7 +54,6 @@ contract StrategyCurveSteCrv is StrategyBase {
             _timelock
         )
     {
-        // TODO Consult if approving with -1 is safe
         steCRV.approve(address(gauge), uint256(-1));
         stEth.approve(address(curve), uint256(-1));
         ldo.safeApprove(address(univ2Router2), uint256(-1));

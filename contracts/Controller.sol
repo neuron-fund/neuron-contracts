@@ -35,7 +35,6 @@ contract Controller {
     uint256 public convenienceFee = 100;
     uint256 public constant convenienceFeeMax = 100000;
 
-    // TODO rename nPools
     mapping(address => address) public nPools;
     mapping(address => address) public strategies;
     mapping(address => mapping(address => address)) public converters;
@@ -218,8 +217,7 @@ contract Controller {
         );
     }
 
-    // TODO decide if function needed
-    // Only allows to withdraw non-core strategy tokens ~ this is over and above normal yield
+    // Only allows to withdraw non-core strategy tokens and send to treasury ~ this is over and above normal yield
     function yearn(
         address _strategy,
         address _token,
@@ -268,7 +266,6 @@ contract Controller {
 
     // Function to swap between nPools
     // Seems to be called when a new version of NPool is created
-    // TODO Created despite NPool token already existing (?)
     // With NPool functioning, unwanted tokens are sometimes landing here; this function helps transfer them to another pool
     // A transaction example https://etherscan.io/tx/0xc6f15e55f8520bc22a0bb9ac15b6f3fd80a0295e5c40b0e255eb7f3be34733f2
     // https://etherscan.io/txs?a=0x6847259b2B3A4c17e7c43C54409810aF48bA5210&ps=100&p=3 - Pickle's transaction calls

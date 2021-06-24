@@ -19,7 +19,6 @@ import "./StrategyCurveBase.sol";
 // For addnl info have a search with the aforementioned address - helps finding the ins and outs
 
 contract StrategyCurve3Crv is StrategyCurveBase {
-    // TODO using for inheritance
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

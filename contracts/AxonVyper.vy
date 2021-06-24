@@ -96,8 +96,6 @@ user_point_history: public(HashMap[address, Point[1000000000]])  # user -> Point
 user_point_epoch: public(HashMap[address, uint256])
 slope_changes: public(HashMap[uint256, int128])  # time -> signed slope change
 
-# Aragon's view methods for compatibility
-controller: public(address)
 transfersEnabled: public(bool)
 
 name: public(String[64])
@@ -121,15 +119,13 @@ def __init__(token_addr: address, _name: String[64], _symbol: String[32], _versi
     @param token_addr `ERC20CRV` token address
     @param _name Token name
     @param _symbol Token symbol
-    @param _version Contract version - required for Aragon compatibility
+    @param _version Contract version - required
     """
     self.admin = msg.sender
     # NEURON TOKEN
     self.token = token_addr
     self.point_history[0].blk = block.number
     self.point_history[0].ts = block.timestamp
-    # TODO никак не используется
-    self.controller = msg.sender
     self.transfersEnabled = True
 
     _decimals: uint256 = ERC20(token_addr).decimals()
@@ -138,8 +134,6 @@ def __init__(token_addr: address, _name: String[64], _symbol: String[32], _versi
 
     self.name = _name
     self.symbol = _symbol
-    # TODO никак не используется
-    self.version = _version
 
 
 @external
@@ -528,7 +522,7 @@ def find_block_epoch(_block: uint256, max_epoch: uint256) -> uint256:
 def balanceOf(addr: address, _t: uint256 = block.timestamp) -> uint256:
     """
     @notice Get the current voting power for `msg.sender`
-    @dev Adheres to the ERC20 `balanceOf` interface for Aragon compatibility
+    @dev Adheres to the ERC20 `balanceOf` interface
     @param addr User wallet address
     @param _t Epoch time to return voting power at
     @return User voting power
@@ -629,7 +623,7 @@ def supply_at(point: Point, t: uint256) -> uint256:
 def totalSupply(t: uint256 = block.timestamp) -> uint256:
     """
     @notice Calculate total voting power
-    @dev Adheres to the ERC20 `totalSupply` interface for Aragon compatibility
+    @dev Adheres to the ERC20 `totalSupply` interface
     @return Total voting power
     """
     _epoch: uint256 = self.epoch
@@ -661,14 +655,3 @@ def totalSupplyAt(_block: uint256) -> uint256:
     # Now dt contains info on how far are we beyond point
 
     return self.supply_at(point, point.ts + dt)
-
-
-# Dummy methods for compatibility with Aragon
-
-@external
-def changeController(_newController: address):
-    """
-    @dev Dummy method required for Aragon compatibility
-    """
-    assert msg.sender == self.controller
-    self.controller = _newController

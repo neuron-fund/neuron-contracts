@@ -41,6 +41,7 @@ describe('Instabrine', function () {
     accounts = await ethers.getSigners()
     const Instabrine = await ethers.getContractFactory('Instabrine') as Instabrine__factory
     instabrine = await Instabrine.deploy()
+    instabrine.deployed()
   })
 
 

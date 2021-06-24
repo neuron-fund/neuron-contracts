@@ -82,8 +82,7 @@ contract NeuronPool is ERC20 {
     }
 
     // Returns tokens available for deposit into the pool
-    // Custom logic in here for how much the jars allows to be borrowed
-    // TODO Sets minimum required on-hand to keep small withdrawals cheap
+    // Custom logic in here for how much the pools allows to be borrowed
     function available() public view returns (uint256) {
         return token.balanceOf(address(this)).mul(min).div(max);
     }
