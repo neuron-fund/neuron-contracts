@@ -1,0 +1,6 @@
+{
+  "solidity.compileUsingRemoteVersion": "v0.7.3+commit.9bfce1f6",
+  "solidity.enableLocalNodeCompiler": false,
+  "solidity.compileUsingLocalVersion": "null",
+  "solidity.enabledAsYouTypeCompilationErrorCheck": true,
+}
