@@ -2,11 +2,13 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { ContractFactory, Signer, Wallet } from "ethers"
-import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, Axon__factory, AxonVyper__factory, FeeDistributor, FeeDistributor__factory } from '../typechain'
+import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, AxonVyper__factory, FeeDistributor, FeeDistributor__factory } from '../typechain'
 import { writeFileSync } from 'fs'
 import path from 'path'
-import { getToken } from '../utils/getCurveTokens'
+import { get3Crv, getToken } from '../utils/getCurveTokens'
 import { DAY, waitNDays, waitWeek } from '../utils/time'
+import { THREE_CRV } from '../constants/addresses'
+import { JsonFragment, JsonFragmentType } from '@ethersproject/abi'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -30,9 +32,8 @@ async function main () {
   const NeuronToken = await ethers.getContractFactory('NeuronToken', deployer) as NeuronToken__factory
   const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
   const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
-  const Axon = await ethers.getContractFactory('Axon', deployer) as Axon__factory
   const NeuronPool = await ethers.getContractFactory('NeuronPool', deployer) as NeuronPool__factory
-  
+
   // Strategies
   const Curve3Crv = await ethers.getContractFactory('StrategyCurve3Crv', deployer) as StrategyCurve3Crv__factory
   const CurveRenCrv = await ethers.getContractFactory('StrategyCurveRenCrv', deployer) as StrategyCurveRenCrv__factory
@@ -67,7 +68,7 @@ async function main () {
   const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
   const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
   await feeDistributor.deployed()
-  const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress)
+  const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress, governanceAddress)
   await gaugesDistributor.deployed()
   await masterChef.setDistributor(gaugesDistributor.address)
 
@@ -86,16 +87,16 @@ async function main () {
 
   const strategies = {
     Curve3Crv,
-    CurveRenCrv,
-    CurveSteCrv,
-    FeiTribeLp
+    // CurveRenCrv,
+    // CurveSteCrv,
+    // FeiTribeLp
   }
 
   console.log(`NeuronToken address: ${neuronToken.address}`)
   console.log(`Controller address: ${controller.address}`)
   console.log(`MasterChef address: ${masterChef.address}`)
 
-  const deployedStrategies = []
+  const deployedStrategies: DeployedStrategy[] = []
   for (const [strategyName, strategyFactory] of Object.entries(strategies)) {
     const { strategy, neuronPool } = await deployStrategy(strategyFactory)
     const neuronPoolAddress = neuronPool.address
@@ -134,7 +135,7 @@ async function main () {
   await neuronToken.mint(feeDistributor.address, premint)
   await feeDistributor.checkpoint_token()
 
-  await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, 25, 25, 25])
+  await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, /* 25, 25, 25 */])
   // Time travel one week for distribution of rewards to gauges
   await waitNDays(4, network.provider)
   await feeDistributor.checkpoint_total_supply({
@@ -167,6 +168,22 @@ async function main () {
       `).join('')}
     }
   `)
+
+  const user = accounts[0]
+  await get3Crv(user)
+  const crv3StratInfo = deployedStrategies.find(x => x.strategyName === 'Curve3Crv')
+  const crv3Pool = NeuronPool__factory.connect(crv3StratInfo.neuronPoolAddress, user)
+  const threeCrv = await getToken(THREE_CRV, user)
+  const getThreeCrvBalance = () => threeCrv.balanceOf(user.address)
+  console.log('USER BALANCE BEFORE', formatEther(await getThreeCrvBalance()))
+
+  await threeCrv.approve(crv3Pool.address, await getThreeCrvBalance())
+  await crv3Pool.depositAndFarm(await getThreeCrvBalance())
+  console.log('GAUGE BALANCE AFTER DEPOSIT', formatEther(await crv3Pool.balanceOf(crv3StratInfo.gaugeAddress)))
+  await waitNDays(3, network.provider)
+  console.log('USER BALANCE DEPOSITED', formatEther(await getThreeCrvBalance()))
+  await crv3Pool.withdrawAllRightFromFarm()
+  console.log('USER BALANCE AFTER', formatEther(await getThreeCrvBalance()))
 }
 
 main()
@@ -184,6 +201,15 @@ type DeployStrategyFactory = {
   masterChefAddress: string
   timelockAddress: string
   gaugesDistributorAddress: string
+}
+
+type DeployedStrategy = {
+  neuronPoolAddress: string
+  strategyAddress: string
+  strategyName: string
+  gaugeAddress: string
+  inputTokenSymbol: string
+  inputTokenAddress: string
 }
 
 function deployStrategyFactory ({

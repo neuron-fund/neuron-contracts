@@ -136,14 +136,17 @@ contract NeuronPool is ERC20 {
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
 
-        _mint(address(this), shares);
         Gauge gauge = Gauge(gaugesDistributor.getGauge(address(this)));
-        IERC20(address(this)).approve(address(gauge), shares);
-        gauge.depositFromSenderFor(shares, msg.sender);
+        _mint(address(gauge), shares);
+        gauge.depositStateUpdateByPool(msg.sender, shares);
     }
 
     function withdrawAll() external {
-        withdraw(balanceOf(msg.sender));
+        withdrawFor(msg.sender, balanceOf(msg.sender), msg.sender);
+    }
+
+    function withdraw(uint256 _shares) external {
+        withdrawFor(msg.sender, _shares, msg.sender);
     }
 
     // Used to swap any borrowed reserve over the debt limit to liquidate to 'token'
@@ -154,10 +157,14 @@ contract NeuronPool is ERC20 {
     }
 
     // No rebalance implementation for lower fees and faster swaps
-    function withdraw(uint256 _shares) public {
+    function withdrawFor(
+        address holder,
+        uint256 _shares,
+        address burnFrom
+    ) internal {
         // _shares - tokens user wants to withdraw
         uint256 r = (balance().mul(_shares)).div(totalSupply());
-        _burn(msg.sender, _shares);
+        _burn(burnFrom, _shares);
 
         // Check balance
         uint256 b = token.balanceOf(address(this));
@@ -172,7 +179,13 @@ contract NeuronPool is ERC20 {
             }
         }
 
-        token.safeTransfer(msg.sender, r);
+        token.safeTransfer(holder, r);
+    }
+
+    function withdrawAllRightFromFarm() external {
+        Gauge gauge = Gauge(gaugesDistributor.getGauge(address(this)));
+        uint256 shares = gauge.withdrawAllStateUpdateByPool(msg.sender);
+        withdrawFor(msg.sender, shares, address(gauge));
     }
 
     function getRatio() public view returns (uint256) {

@@ -7,10 +7,9 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-
 import "./interfaces/IController.sol";
 import "./interfaces/INeuronPool.sol";
-import "./interfaces/INeuronPoolConverter.sol"; 
+import "./interfaces/INeuronPoolConverter.sol";
 import "./interfaces/IOneSplitAudit.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IConverter.sol";
@@ -50,7 +49,7 @@ contract Controller {
         address _timelock,
         address _devfund,
         address _treasury
-    ) public {
+    ) {
         governance = _governance;
         strategist = _strategist;
         timelock = _timelock;
@@ -151,7 +150,6 @@ contract Controller {
         strategies[_token] = _strategy;
     }
 
-
     // Depositing token to a pool
     function earn(address _token, uint256 _amount) public {
         address _strategy = strategies[_token];
@@ -240,7 +238,7 @@ contract Controller {
             IERC20(_token).safeApprove(onesplit, 0);
             IERC20(_token).safeApprove(onesplit, _amount);
             (_expected, _distribution) = IOneSplitAudit(onesplit)
-                .getExpectedReturn(_token, _want, _amount, parts, 0);
+            .getExpectedReturn(_token, _want, _amount, parts, 0);
             IOneSplitAudit(onesplit).swap(
                 _token,
                 _want,
@@ -270,9 +268,9 @@ contract Controller {
     // A transaction example https://etherscan.io/tx/0xc6f15e55f8520bc22a0bb9ac15b6f3fd80a0295e5c40b0e255eb7f3be34733f2
     // https://etherscan.io/txs?a=0x6847259b2B3A4c17e7c43C54409810aF48bA5210&ps=100&p=3 - Pickle's transaction calls
     // Last called ~140 days ago
-    // Seems to be the culprit of recent Pickle's attack https://twitter.com/n2ckchong/status/1330244058669850624?lang=en 
+    // Seems to be the culprit of recent Pickle's attack https://twitter.com/n2ckchong/status/1330244058669850624?lang=en
     // Googling the function returns some hack explanations https://halborn.com/category/explained-hacks/
-    // >The problem with this function is that it doesn’t check the validity of the nPools presented to it 
+    // >The problem with this function is that it doesn’t check the validity of the nPools presented to it
     function swapExactNPoolForNPool(
         address _fromNPool, // From which NPool
         address _toNPool, // To which NPool
@@ -301,17 +299,17 @@ contract Controller {
 
         // Calculate how much underlying
         // is the amount of pTokens worth
-        uint256 _fromNPoolUnderlyingAmount =
-            _fromNPoolAmount.mul(INeuronPool(_fromNPool).getRatio()).div(
-                10**uint256(INeuronPool(_fromNPool).decimals())
-            );
+        uint256 _fromNPoolUnderlyingAmount = _fromNPoolAmount
+        .mul(INeuronPool(_fromNPool).getRatio())
+        .div(10**uint256(INeuronPool(_fromNPool).decimals()));
 
         // Call 'withdrawForSwap' on NPool's current strategy if NPool
         // doesn't have enough initial capital.
         // This has moves the funds from the strategy to the NPool's
         // 'earnable' amount. Enabling 'free' withdrawals
-        uint256 _fromNPoolAvailUnderlying =
-            IERC20(_fromNPoolToken).balanceOf(_fromNPool);
+        uint256 _fromNPoolAvailUnderlying = IERC20(_fromNPoolToken).balanceOf(
+            _fromNPool
+        );
         if (_fromNPoolAvailUnderlying < _fromNPoolUnderlyingAmount) {
             IStrategy(strategies[_fromNPoolToken]).withdrawForSwap(
                 _fromNPoolUnderlyingAmount.sub(_fromNPoolAvailUnderlying)
@@ -326,13 +324,18 @@ contract Controller {
         INeuronPool(_fromNPool).withdraw(_fromNPoolAmount);
 
         // Calculate fee
-        uint256 _fromUnderlyingBalance =
-            IERC20(_fromNPoolToken).balanceOf(address(this));
-        uint256 _convenienceFee =
-            _fromUnderlyingBalance.mul(convenienceFee).div(convenienceFeeMax);
+        uint256 _fromUnderlyingBalance = IERC20(_fromNPoolToken).balanceOf(
+            address(this)
+        );
+        uint256 _convenienceFee = _fromUnderlyingBalance
+        .mul(convenienceFee)
+        .div(convenienceFeeMax);
 
         if (_convenienceFee > 1) {
-            IERC20(_fromNPoolToken).safeTransfer(devfund, _convenienceFee.div(2));
+            IERC20(_fromNPoolToken).safeTransfer(
+                devfund,
+                _convenienceFee.div(2)
+            );
             IERC20(_fromNPoolToken).safeTransfer(
                 treasury,
                 _convenienceFee.div(2)
@@ -388,10 +391,10 @@ contract Controller {
             returndatacopy(add(response, 0x20), 0, size)
 
             switch iszero(succeeded)
-                case 1 {
-                    // throw if delegatecall failed
-                    revert(add(response, 0x20), size)
-                }
+            case 1 {
+                // throw if delegatecall failed
+                revert(add(response, 0x20), size)
+            }
         }
     }
 }

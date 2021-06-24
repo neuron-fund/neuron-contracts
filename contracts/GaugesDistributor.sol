@@ -155,7 +155,7 @@ contract GaugesDistributor {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] == address(0x0), "exists");
         gauges[_token] = address(
-            new Gauge(_token, address(NEURON), address(AXON), address(treasury))
+            new Gauge(_token, address(NEURON), address(AXON))
         );
         _tokens.push(_token);
     }

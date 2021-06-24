@@ -1,8 +1,6 @@
 pragma solidity ^0.7.3;
 
-import {
-    ReentrancyGuard
-} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -45,8 +43,7 @@ contract Gauge is ReentrancyGuard {
     constructor(
         address _token,
         address _neuron,
-        address _axon,
-        address _treasury
+        address _axon
     ) {
         NEURON = IERC20(_neuron);
         AXON = IAxon(_axon);
@@ -128,15 +125,30 @@ contract Gauge is ReentrancyGuard {
         _deposit(amount, msg.sender, account);
     }
 
+    function depositStateUpdate(address holder, uint256 amount)
+        internal
+        updateReward(holder)
+    {
+        require(amount > 0, "Cannot stake 0");
+        _totalSupply = _totalSupply.add(amount);
+        _balances[holder] = _balances[holder].add(amount);
+        emit Staked(holder, amount);
+    }
+
+    function depositStateUpdateByPool(address holder, uint256 amount) external {
+        require(
+            msg.sender == address(TOKEN),
+            "State update without transfer can only be called by pool"
+        );
+        depositStateUpdate(holder, amount);
+    }
+
     function _deposit(
         uint256 amount,
         address spender,
         address recipient
-    ) internal nonReentrant updateReward(recipient) {
-        require(amount > 0, "Cannot stake 0");
-        _totalSupply = _totalSupply.add(amount);
-        _balances[recipient] = _balances[recipient].add(amount);
-        emit Staked(recipient, amount);
+    ) internal nonReentrant {
+        depositStateUpdate(recipient, amount);
         TOKEN.safeTransferFrom(spender, address(this), amount);
     }
 
@@ -151,13 +163,31 @@ contract Gauge is ReentrancyGuard {
     function _withdraw(uint256 amount)
         internal
         nonReentrant
-        updateReward(msg.sender)
     {
+        withdrawStateUpdate(msg.sender, amount);
+        TOKEN.safeTransfer(msg.sender, amount);
+    }
+
+    function withdrawStateUpdate(address holder, uint256 amount) internal updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply = _totalSupply.sub(amount);
-        _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        TOKEN.safeTransfer(msg.sender, amount);
-        emit Withdrawn(msg.sender, amount);
+        _balances[holder] = _balances[holder].sub(amount);
+        emit Withdrawn(holder, amount);
+    }
+
+    // We use this function when withdraw right from pool. No transfer because after that we burn this amount from contract.
+    function withdrawAllStateUpdateByPool(address holder)
+        external
+        nonReentrant
+        returns (uint256)
+    {
+        require(
+            msg.sender == address(TOKEN),
+            "Only corresponding pool can withdraw tokens for someone"
+        );
+        uint256 amount = _balances[holder];
+        withdrawStateUpdate(holder, amount);
+        return amount;
     }
 
     function getReward() public nonReentrant updateReward(msg.sender) {
