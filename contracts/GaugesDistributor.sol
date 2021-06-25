@@ -1,11 +1,10 @@
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "./Gauge.sol";
-import "./NeuronToken.sol";
 
 interface IMinter {
     function collect() external;
@@ -41,7 +40,7 @@ contract GaugesDistributor {
         address _admin
     ) {
         minter = IMinter(_minter);
-        NEURON = NeuronToken(_neuronToken);
+        NEURON = IERC20(_neuronToken);
         AXON = IERC20(_axon);
         treasury = _treasury;
         governance = _governance;
@@ -128,8 +127,9 @@ contract GaugesDistributor {
         for (uint256 i = 0; i < _tokenCnt; i++) {
             address _token = _tokenVote[i];
             address _gauge = gauges[_token];
-            uint256 _tokenWeight =
-                _weights[i].mul(_weight).div(_totalVoteWeight);
+            uint256 _tokenWeight = _weights[i].mul(_weight).div(
+                _totalVoteWeight
+            );
 
             if (_gauge != address(0x0)) {
                 _usedWeight = _usedWeight.add(_tokenWeight);
@@ -174,15 +174,16 @@ contract GaugesDistributor {
         require(
             msg.sender == admin || msg.sender == governance,
             "Distribute function can only be executed by admin or governance"
-        );        
+        );
         collect();
         uint256 _balance = NEURON.balanceOf(address(this));
         if (_balance > 0 && totalWeight > 0) {
             for (uint256 i = 0; i < _tokens.length; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint256 _reward =
-                    _balance.mul(weights[_token]).div(totalWeight);
+                uint256 _reward = _balance.mul(weights[_token]).div(
+                    totalWeight
+                );
                 if (_reward > 0) {
                     NEURON.safeApprove(_gauge, 0);
                     NEURON.safeApprove(_gauge, _reward);

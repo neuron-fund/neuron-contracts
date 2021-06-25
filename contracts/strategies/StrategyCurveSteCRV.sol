@@ -1,8 +1,8 @@
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../interfaces/INeuronPool.sol";
@@ -54,10 +54,10 @@ contract StrategyCurveSteCrv is StrategyBase {
             _timelock
         )
     {
-        steCRV.approve(address(gauge), uint256(-1));
-        stEth.approve(address(curve), uint256(-1));
-        ldo.safeApprove(address(univ2Router2), uint256(-1));
-        crv.approve(address(univ2Router2), uint256(-1));
+        steCRV.approve(address(gauge), type(uint256).max);
+        stEth.approve(address(curve), type(uint256).max);
+        ldo.safeApprove(address(univ2Router2), type(uint256).max);
+        crv.approve(address(univ2Router2), type(uint256).max);
     }
 
     // Swap for ETH

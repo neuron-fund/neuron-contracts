@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
 import "./StrategyStakingRewardsBase.sol";
 
@@ -40,8 +40,8 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
         tribe_fei_path[0] = tribe;
         tribe_fei_path[1] = fei;
 
-        IERC20(fei).approve(univ2Router2, uint256(-1));
-        IERC20(tribe).approve(univ2Router2, uint256(-1));
+        IERC20(fei).approve(univ2Router2, type(uint256).max);
+        IERC20(tribe).approve(univ2Router2, type(uint256).max);
     }
 
     // **** Setters ****

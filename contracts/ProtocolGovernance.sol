@@ -1,4 +1,4 @@
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
 contract ProtocolGovernance {
     /// @notice governance address for the governance contract

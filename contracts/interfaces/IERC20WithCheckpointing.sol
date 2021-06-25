@@ -1,4 +1,4 @@
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
 // From https://github.com/aragonone/voting-connectors
 abstract contract IERC20WithCheckpointing {

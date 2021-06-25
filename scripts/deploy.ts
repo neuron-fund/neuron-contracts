@@ -1,4 +1,3 @@
-
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { ContractFactory, Signer, Wallet } from "ethers"
@@ -55,9 +54,11 @@ async function main () {
   await neuronToken.deployed()
   const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, neuronsPerBlock, startBlock, bonusEndBlock)
   await masterChef.deployed()
-  // BEFORE_DEPLOY use deployed
-  await neuronToken.addMinter(masterChef.address)
-  await neuronToken.addMinter(deployerAddress)
+  // BEFORE_DEPLOY use "deployed()"
+  await neuronToken.setMinter(masterChef.address)
+  await neuronToken.applyMinter()
+  await neuronToken.setMinter(deployerAddress)
+  await neuronToken.applyMinter()
 
   // const axon = await Axon.deploy(neuronToken.address, 'Axon token', 'AXON', treasuryAddress)
   // await axon.deployed()
@@ -87,9 +88,9 @@ async function main () {
 
   const strategies = {
     Curve3Crv,
-    // CurveRenCrv,
-    // CurveSteCrv,
-    // FeiTribeLp
+    CurveRenCrv,
+    CurveSteCrv,
+    FeiTribeLp
   }
 
   console.log(`NeuronToken address: ${neuronToken.address}`)
@@ -135,7 +136,7 @@ async function main () {
   await neuronToken.mint(feeDistributor.address, premint)
   await feeDistributor.checkpoint_token()
 
-  await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, /* 25, 25, 25 */])
+  await gaugesDistributor.vote(deployedStrategies.map(x => x.neuronPoolAddress), [25, 25, 25, 25])
   // Time travel one week for distribution of rewards to gauges
   await waitNDays(4, network.provider)
   await feeDistributor.checkpoint_total_supply({
@@ -169,6 +170,7 @@ async function main () {
     }
   `)
 
+  // Test pools one click deposit/withdraw
   const user = accounts[0]
   await get3Crv(user)
   const crv3StratInfo = deployedStrategies.find(x => x.strategyName === 'Curve3Crv')

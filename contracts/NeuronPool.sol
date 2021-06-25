@@ -1,8 +1,8 @@
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./interfaces/IController.sol";
@@ -21,6 +21,8 @@ contract NeuronPool is ERC20 {
 
     uint256 public min = 9500;
     uint256 public constant max = 10000;
+
+    uint8 public immutable _decimals;
 
     address public governance;
     address public timelock;
@@ -43,13 +45,17 @@ contract NeuronPool is ERC20 {
             string(abi.encodePacked("neur", ERC20(_token).symbol()))
         )
     {
-        _setupDecimals(ERC20(_token).decimals());
+        _decimals = ERC20(_token).decimals();
         token = IERC20(_token);
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
         masterchef = _masterchef;
         gaugesDistributor = GaugesDistributor(_gaugesDistributor);
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return _decimals;
     }
 
     // Balance = pool's balance + pool's token controller contract balance

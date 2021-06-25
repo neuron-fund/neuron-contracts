@@ -3,7 +3,7 @@
 // FARM Token
 // https://etherscan.io/address/0xa0246c9032bc3a600820415ae600c6388619a14d#code
 
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
 import {Context} from '@openzeppelin/contracts/GSN/Context.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
@@ -11,8 +11,8 @@ import {ERC20Capped} from '@openzeppelin/contracts/token/ERC20/ERC20Capped.sol';
 import {ERC20Mintable} from '@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
-import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {SafeMath} from '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import {Roles} from '@openzeppelin/contracts/access/Roles.sol';
 import {MinterRole} from '@openzeppelin/contracts/access/roles/MinterRole.sol';
 

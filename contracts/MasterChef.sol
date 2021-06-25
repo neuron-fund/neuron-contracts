@@ -1,19 +1,19 @@
-pragma solidity ^0.7.3;
+pragma solidity 0.8.2;
 
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./NeuronToken.sol";
+import {AnyswapV5ERC20} from "./lib/AnyswapV5ERC20.sol";
 
 contract MasterChef is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     // The NEURON TOKEN
-    NeuronToken public neuronToken;
+    AnyswapV5ERC20 public neuronToken;
     // Dev fund (2%, initially)
     uint256 public devFundDivRate = 50;
     address public governance;
@@ -51,14 +51,14 @@ contract MasterChef is Ownable {
     }
 
     constructor(
-        NeuronToken _neuronToken,
+        address _neuronToken,
         address _governance,
         address _devaddr,
         uint256 _neuronTokenPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) {
-        neuronToken = _neuronToken;
+        neuronToken = AnyswapV5ERC20(_neuronToken);
         governance = _governance;
         devaddr = _devaddr;
 
@@ -91,8 +91,10 @@ contract MasterChef is Ownable {
 
     function collect() external {
         require(msg.sender == distributor, "Only distributor can collect");
-        uint256 multiplier =
-            getMultiplier(distributorLastRewardBlock, block.number);
+        uint256 multiplier = getMultiplier(
+            distributorLastRewardBlock,
+            block.number
+        );
         distributorLastRewardBlock = block.number;
         uint256 neuronTokenReward = multiplier.mul(neuronTokenPerBlock);
         neuronToken.mint(devaddr, neuronTokenReward.div(devFundDivRate));
@@ -108,8 +110,9 @@ contract MasterChef is Ownable {
             neuronToken.transfer(_to, _amount);
         }
     }
+
     // TODO one-click gauge withdrawal
-    
+
     // Update dev address by the previous dev.
     function setDevAddr(address _devaddr) external {
         require(msg.sender == devaddr, "dev: wut?");
