@@ -30,6 +30,9 @@ const config: HardhatUserConfig = {
       accounts: getHardhatAccounts(20)
     }
   },
+  vyper: {
+    version: '0.2.12'
+  },
   mocha: {
     timeout: 300000
   }

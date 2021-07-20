@@ -60,8 +60,6 @@ async function main () {
   await neuronToken.setMinter(deployerAddress)
   await neuronToken.applyMinter()
 
-  // const axon = await Axon.deploy(neuronToken.address, 'Axon token', 'AXON', treasuryAddress)
-  // await axon.deployed()
   const axon = await AxonVyper.deploy(neuronToken.address, 'Axon token', 'AXON', '1.0')
   await axon.deployed()
   console.log('AXON DEPLOYED')
