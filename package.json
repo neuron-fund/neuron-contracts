@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "npx hardhat node --hostname 0.0.0.0",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "node npm-postinstall/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -38,6 +39,7 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.1.0",
     "dotenv": "^10.0.0",
-    "dotenv-expand": "^5.1.0"
+    "dotenv-expand": "^5.1.0",
+    "replace-in-file": "^6.2.0"
   }
 }
