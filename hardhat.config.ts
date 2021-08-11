@@ -28,6 +28,12 @@ const config: HardhatUserConfig = {
       },
       loggingEnabled: true,
       accounts: getHardhatAccounts(20)
+    },
+    localhost: {
+      chainId: 1337,
+      url: 'http://localhost:8545',
+      loggingEnabled: true,
+      accounts: getHardhatAccounts(20)
     }
   },
   vyper: {
