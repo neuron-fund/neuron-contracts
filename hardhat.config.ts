@@ -31,9 +31,9 @@ const config: HardhatUserConfig = {
     },
     localhost: {
       chainId: 1337,
-      url: 'http://localhost:8545',
+      url: 'http://127.0.0.1:8545',
       loggingEnabled: true,
-      accounts: getHardhatAccounts(20)
+      accounts: getHardhatAccounts(20).map(x => x.privateKey)
     }
   },
   vyper: {
