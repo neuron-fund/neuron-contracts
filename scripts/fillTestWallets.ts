@@ -8,8 +8,7 @@ const { formatEther, parseEther, parseUnits } = ethers.utils
 
 async function main () {
   const privateKey = '0x27f64677f87074404da76c1dd2530c3491322d13a19b8195f1a6b2af3b0e633f'
-  const provider = providers.getDefaultProvider('http://127.0.0.1:8545/')
-  const wallet = new ethers.Wallet(privateKey, provider)
+  const [wallet] = await ethers.getSigners()
 
   console.log("Address: " + formatEther(await wallet.getBalance()))
 
