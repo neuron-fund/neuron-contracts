@@ -29,10 +29,8 @@ const config: HardhatUserConfig = {
       loggingEnabled: true,
       accounts: getHardhatAccounts(20)
     },
-    localhost: {
-      chainId: 1337,
-      url: 'http://127.0.0.1:8545',
-      loggingEnabled: true,
+    testnet: {
+      url: 'https://neurontestnet.xyz/',
       accounts: getHardhatAccounts(20).map(x => x.privateKey)
     }
   },
