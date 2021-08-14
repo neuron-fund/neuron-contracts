@@ -111,8 +111,6 @@ contract MasterChef is Ownable {
         }
     }
 
-    // TODO one-click gauge withdrawal
-
     // Update dev address by the previous dev.
     function setDevAddr(address _devaddr) external {
         require(msg.sender == devaddr, "dev: wut?");
