@@ -143,6 +143,32 @@ contract GaugesDistributor {
         usedWeights[_owner] = _usedWeight;
     }
 
+    function setWeights(
+        address[] memory _tokensToVote,
+        uint256[] memory _weights
+    ) external {
+        require(
+            msg.sender == admin || msg.sender == governance,
+            "Set weights function can only be executed by admin or governance"
+        );
+
+        require(_tokensToVote.length == _weights.length, "Number Tokens to vote should be the same as weights number");
+
+        uint256 _tokensCnt = _tokensToVote.length;
+        totalWeight = 0;
+        for (uint256 i = 0; i < _tokensCnt; i++) {
+            address _token = _tokensToVote[i];
+            address _gauge = gauges[_token];
+            uint256 _tokenWeight = _weights[i];
+
+            if (_gauge != address(0x0)) {
+                totalWeight = totalWeight.add(_tokenWeight);
+                weights[_token] = _tokenWeight;
+            }
+        }
+
+    }
+
     // Vote with AXON on a gauge
     function vote(address[] calldata _tokenVote, uint256[] calldata _weights)
         external
