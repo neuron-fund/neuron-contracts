@@ -1,13 +1,12 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
-import { ContractFactory, Signer, Wallet } from "ethers"
-import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, AxonVyper__factory, FeeDistributor, FeeDistributor__factory } from '../typechain'
+import { ContractFactory, Wallet } from "ethers"
+import { Controller, Controller__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, GaugesDistributor__factory, AxonVyper__factory, FeeDistributor__factory, StrategyAlcxSushiEthAlcxLp__factory } from '../typechain'
 import { writeFileSync } from 'fs'
 import path from 'path'
 import { get3Crv, getToken } from '../utils/getCurveTokens'
-import { DAY, waitNDays, waitWeek } from '../utils/time'
+import { waitNDays } from '../utils/time'
 import { THREE_CRV } from '../constants/addresses'
-import { JsonFragment, JsonFragmentType } from '@ethersproject/abi'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
@@ -38,6 +37,7 @@ async function main () {
   const CurveRenCrv = await ethers.getContractFactory('StrategyCurveRenCrv', deployer) as StrategyCurveRenCrv__factory
   const CurveSteCrv = await ethers.getContractFactory('StrategyCurveSteCrv', deployer) as StrategyCurveSteCrv__factory
   const FeiTribeLp = await ethers.getContractFactory('StrategyFeiTribeLp', deployer) as StrategyFeiTribeLp__factory
+  const StrategyAlcxSushiEthAlcxLp = await ethers.getContractFactory('StrategyAlcxSushiEthAlcxLp', deployer) as StrategyAlcxSushiEthAlcxLp__factory
 
   const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
   const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
@@ -52,9 +52,8 @@ async function main () {
   // TODO decide on timelock
   const neuronToken = await NeuronToken.deploy(governanceAddress)
   await neuronToken.deployed()
-  const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, neuronsPerBlock, startBlock, bonusEndBlock)
+  const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, treasuryAddress, neuronsPerBlock, startBlock, bonusEndBlock)
   await masterChef.deployed()
-  // BEFORE_DEPLOY use "deployed()"
   await neuronToken.setMinter(masterChef.address)
   await neuronToken.applyMinter()
   await neuronToken.setMinter(deployerAddress)
@@ -88,7 +87,8 @@ async function main () {
     Curve3Crv,
     CurveRenCrv,
     CurveSteCrv,
-    FeiTribeLp
+    FeiTribeLp,
+    StrategyAlcxSushiEthAlcxLp
   }
 
   console.log(`NeuronToken address: ${neuronToken.address}`)
@@ -237,7 +237,7 @@ function deployStrategyFactory ({
       masterChefAddress,
       gaugesDistributorAddress
     )
-    await strategy.deployed()
+    await neuronPool.deployed()
 
     await controller.setNPool(await strategy.want(), neuronPool.address)
     await controller.approveStrategy(await strategy.want(), strategy.address)
