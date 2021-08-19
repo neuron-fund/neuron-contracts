@@ -14,11 +14,14 @@ contract MasterChef is Ownable {
 
     // The NEURON TOKEN
     AnyswapV5ERC20 public neuronToken;
-    // Dev fund (2%, initially)
-    uint256 public devFundDivRate = 50;
+    // Dev fund (20%, initially)
+    uint256 public devFundPercentage = 20;
+    // Treasury (20%, initially)
+    uint256 public treasuryPercentage = 10;
     address public governance;
     // Dev address.
     address public devaddr;
+    address public treasuryAddress;
     // Block number when bonus NEURON period ends.
     uint256 public bonusEndBlock;
     // NEURON tokens created per block.
@@ -54,6 +57,7 @@ contract MasterChef is Ownable {
         address _neuronToken,
         address _governance,
         address _devaddr,
+        address _treasuryAddress,
         uint256 _neuronTokenPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
@@ -61,6 +65,7 @@ contract MasterChef is Ownable {
         neuronToken = AnyswapV5ERC20(_neuronToken);
         governance = _governance;
         devaddr = _devaddr;
+        treasuryAddress = _treasuryAddress;
 
         distributorLastRewardBlock = block.number > startBlock
             ? block.number
@@ -97,7 +102,8 @@ contract MasterChef is Ownable {
         );
         distributorLastRewardBlock = block.number;
         uint256 neuronTokenReward = multiplier.mul(neuronTokenPerBlock);
-        neuronToken.mint(devaddr, neuronTokenReward.div(devFundDivRate));
+        neuronToken.mint(devaddr, neuronTokenReward.div(100).mul(devFundPercentage));
+        neuronToken.mint(treasuryAddress, neuronTokenReward.div(100).mul(treasuryPercentage));
         neuronToken.mint(distributor, neuronTokenReward);
     }
 
@@ -132,12 +138,20 @@ contract MasterChef is Ownable {
         bonusEndBlock = _bonusEndBlock;
     }
 
-    function setDevFundDivRate(uint256 _devFundDivRate)
+    function setDevFundPercentage(uint256 _devFundPercentage)
         external
         onlyGovernance
     {
-        require(_devFundDivRate > 0, "!devFundDivRate-0");
-        devFundDivRate = _devFundDivRate;
+        require(_devFundPercentage > 0, "!devFundPercentage-0");
+        devFundPercentage = _devFundPercentage;
+    }
+
+    function setTreasuryPercentage(uint256 _treasuryPercentage)
+        external
+        onlyGovernance
+    {
+        require(_treasuryPercentage > 0, "!treasuryPercentage-0");
+        treasuryPercentage = _treasuryPercentage;
     }
 
     function setDistributor(address _distributor) external onlyGovernance {
