@@ -16,7 +16,15 @@ import "@typechain/hardhat"
 
 
 const config: HardhatUserConfig = {
-  solidity: '0.8.2',
+  solidity: {
+    version: '0.8.2',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   abiExporter: {
     path: './abi'
   },
@@ -27,7 +35,9 @@ const config: HardhatUserConfig = {
         url: process.env.ALCHEMY,
       },
       loggingEnabled: true,
-      accounts: getHardhatAccounts(20)
+      blockGasLimit: 0x1fffffffffffff,
+      accounts: getHardhatAccounts(20),
+      gas: 1200000000,
     },
     testnet: {
       url: 'https://neurontestnet.xyz/',
@@ -38,7 +48,7 @@ const config: HardhatUserConfig = {
     version: '0.2.12'
   },
   mocha: {
-    timeout: 300000
+    timeout: 300000,
   }
 }
 
