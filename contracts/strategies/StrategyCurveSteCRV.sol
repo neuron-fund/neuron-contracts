@@ -44,6 +44,7 @@ contract StrategyCurveSteCrv is StrategyBase {
         address _governance,
         address _strategist,
         address _controller,
+        address _neuronTokenAddress,
         address _timelock
     )
         StrategyBase(
@@ -51,6 +52,7 @@ contract StrategyCurveSteCrv is StrategyBase {
             _governance,
             _strategist,
             _controller,
+            _neuronTokenAddress,
             _timelock
         )
     {
@@ -78,10 +80,14 @@ contract StrategyCurveSteCrv is StrategyBase {
     }
 
     function getHarvestableEth() external view returns (uint256) {
-        uint256 claimableLdo =
-            gauge.claimable_reward(address(this), address(ldo));
-        uint256 claimableCrv =
-            gauge.claimable_reward(address(this), address(crv));
+        uint256 claimableLdo = gauge.claimable_reward(
+            address(this),
+            address(ldo)
+        );
+        uint256 claimableCrv = gauge.claimable_reward(
+            address(this),
+            address(crv)
+        );
 
         return
             _estimateSell(address(crv), claimableCrv).add(
@@ -97,8 +103,10 @@ contract StrategyCurveSteCrv is StrategyBase {
         address[] memory path = new address[](2);
         path[0] = currency;
         path[1] = weth;
-        uint256[] memory amounts =
-            IUniswapRouterV2(univ2Router2).getAmountsOut(amount, path);
+        uint256[] memory amounts = IUniswapRouterV2(univ2Router2).getAmountsOut(
+            amount,
+            path
+        );
         outAmount = amounts[amounts.length - 1];
 
         return outAmount;
@@ -144,6 +152,17 @@ contract StrategyCurveSteCrv is StrategyBase {
         uint256 _crv = crv.balanceOf(address(this));
 
         if (_crv > 0) {
+            _swapToNeurAndDistributePerformanceFees(address(crv), sushiRouter);
+        }
+
+        if (_ldo > 0) {
+            _swapToNeurAndDistributePerformanceFees(address(ldo), sushiRouter);
+        }
+
+        _ldo = ldo.balanceOf(address(this));
+        _crv = crv.balanceOf(address(this));
+
+        if (_crv > 0) {
             // How much CRV to keep to restake?
             uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
             // IERC20(crv).safeTransfer(address(crvLocker), _keepCRV);
@@ -175,6 +194,6 @@ contract StrategyCurveSteCrv is StrategyBase {
         curve.add_liquidity{value: _eth}(liquidity, 0);
 
         // We want to get back sCRV
-        _distributePerformanceFeesAndDeposit();
+        deposit();
     }
 }

@@ -78,7 +78,7 @@ describe('Token', function () {
     console.log('Strategy harvest')
     await strategy.harvest()
 
-    // Withdraws back to pickleJar
+    // Withdraws back to neuron pool
     const inPoolBefore = await steCrv.balanceOf(neuronPool.address)
     console.log(`inPoolBefore`, ethers.utils.formatEther(inPoolBefore))
     console.log('Withdraw all from controller')

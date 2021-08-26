@@ -22,15 +22,16 @@ contract StrategyFeiTribeLp is StrategyFeiFarmBase {
         address _governance,
         address _strategist,
         address _controller,
+        address _neuronTokenAddress,
         address _timelock
     )
-        public
         StrategyFeiFarmBase(
             fei_rewards,
             uni_fei_tribe_lp,
             _governance,
             _strategist,
             _controller,
+            _neuronTokenAddress,
             _timelock
         )
     {}

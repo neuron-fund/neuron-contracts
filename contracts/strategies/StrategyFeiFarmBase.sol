@@ -25,6 +25,7 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
         address _governance,
         address _strategist,
         address _controller,
+        address _neuronTokenAddress,
         address _timelock
     )
         StrategyStakingRewardsBase(
@@ -33,6 +34,7 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
             _governance,
             _strategist,
             _controller,
+            _neuronTokenAddress,
             _timelock
         )
     {
@@ -63,8 +65,24 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
         // Collects TRIBE tokens
         IStakingRewards(rewards).getReward();
         uint256 _tribe = IERC20(tribe).balanceOf(address(this));
+        uint256 _fei = IERC20(fei).balanceOf(address(this));
 
-        if (_tribe > 0) {
+        if (_tribe > 0 && performanceTreasuryFee > 0) {
+            uint256 tribePerfomanceFeeAmount = _tribe
+                .mul(performanceTreasuryFee)
+                .div(performanceTreasuryMax);
+            _swapUniswapWithPath(tribe_fei_path, tribePerfomanceFeeAmount);
+            _fei = IERC20(fei).balanceOf(address(this));
+            _swapAmountToNeurAndDistributePerformanceFees(
+                fei,
+                _fei,
+                sushiRouter
+            );
+        }
+
+        _tribe = IERC20(tribe).balanceOf(address(this));
+
+        if (_tribe > 0 && performanceTreasuryFee > 0) {
             // 10% is locked up for future gov
             uint256 _keepTRIBE = _tribe.mul(keepTRIBE).div(keepTRIBEMax);
             IERC20(tribe).safeTransfer(
@@ -77,7 +95,7 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
         }
 
         // Adds in liquidity for FEI/TRIBE
-        uint256 _fei = IERC20(fei).balanceOf(address(this));
+        _fei = IERC20(fei).balanceOf(address(this));
         _tribe = IERC20(tribe).balanceOf(address(this));
         if (_fei > 0 && _tribe > 0) {
             IUniswapRouterV2(univ2Router2).addLiquidity(
@@ -103,6 +121,6 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
         }
 
         // We want to get back FEI-TRIBE LP tokens
-        _distributePerformanceFeesAndDeposit();
+        deposit();
     }
 }

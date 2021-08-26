@@ -1,10 +1,8 @@
 pragma solidity 0.8.2;
 
-import "./StrategyBase.sol";
+import "./PolygonStrategyBase.sol";
 
-// Base contract for SNX Staking rewards contract interfaces
-
-abstract contract StrategyStakingRewardsBase is StrategyBase {
+abstract contract PolygonStrategyStakingRewardsBase is PolygonStrategyBase {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -20,7 +18,16 @@ abstract contract StrategyStakingRewardsBase is StrategyBase {
         address _controller,
         address _neuronTokenAddress,
         address _timelock
-    ) StrategyBase(_want, _governance, _strategist, _controller, _neuronTokenAddress, _timelock) {
+    )
+        PolygonStrategyBase(
+            _want,
+            _governance,
+            _strategist,
+            _controller,
+            _neuronTokenAddress,
+            _timelock
+        )
+    {
         rewards = _rewards;
     }
 

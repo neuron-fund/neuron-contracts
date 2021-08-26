@@ -12,7 +12,7 @@ import "../interfaces/IController.sol";
 
 // Strategy Contract Basics
 
-abstract contract StrategyBase {
+abstract contract PolygonStrategyBase {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -34,7 +34,8 @@ abstract contract StrategyBase {
     // Input token accepted by the contract
     address public neuronTokenAddress;
     address public want;
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant weth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address public constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
     // User accounts
     address public governance;
@@ -42,9 +43,9 @@ abstract contract StrategyBase {
     address public strategist;
     address public timelock;
 
-    // Dex
-    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    // Dex - quickswap
+    address public quickswapRouter = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
+    address public sushiRouter = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
 
     mapping(address => bool) public harvesters;
 
@@ -268,7 +269,7 @@ abstract contract StrategyBase {
     }
 
     // **** Internal functions ****
-    function _swapUniswap(
+    function _swapQuickswap(
         address _from,
         address _to,
         uint256 _amount
@@ -288,7 +289,7 @@ abstract contract StrategyBase {
             path[2] = _to;
         }
 
-        IUniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+        IUniswapRouterV2(quickswapRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
@@ -297,12 +298,12 @@ abstract contract StrategyBase {
         );
     }
 
-    function _swapUniswapWithPath(address[] memory path, uint256 _amount)
+    function _swapQuickswapWithPath(address[] memory path, uint256 _amount)
         internal
     {
         require(path[1] != address(0));
 
-        IUniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+        IUniswapRouterV2(quickswapRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,

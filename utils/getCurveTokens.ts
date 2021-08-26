@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers"
 import { Signer } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { ethers } from "hardhat"
-import { DAI, UniswapRouterV2Address, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, FEI, TRIBE, UNI_FEI_TRIBE } from '../constants/addresses'
+import { DAI, UNISWAP_ROUTER_V2, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, FEI, TRIBE, UNI_FEI_TRIBE } from '../constants/addresses'
 import { IUniswapRouterV2, ICurveFi3, IERC20, ICurveFi2, IStEth, ICurveFi, ERC20 } from '../typechain'
 
 export const getToken = async (address: string, signer: Signer) => {
@@ -16,7 +16,35 @@ export const get3Crv = async (recipient: Signer) => {
   const ethBalanceBefore = ethers.utils.formatEther(await recipient.getBalance())
   const daiBalanceBefore = ethers.utils.formatEther(await dai.balanceOf(accAddress))
 
-  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UniswapRouterV2Address, recipient) as IUniswapRouterV2
+  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UNISWAP_ROUTER_V2, recipient) as IUniswapRouterV2
+
+  await uniswapRouter.swapExactETHForTokens(
+    '0',
+    [WETH, DAI],
+    await recipient.getAddress(),
+    Date.now() + 30000,
+    {
+      gasLimit: 4000000,
+      value: ethers.utils.parseEther("5"),
+    },
+  )
+
+  const ethBalanceAfter = ethers.utils.formatEther((await recipient.getBalance()))
+  const daiBalanceAfter = await dai.balanceOf(accAddress)
+  const curve3CrvPool = await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient) as ICurveFi3
+  await dai.connect(recipient).approve(curve3CrvPool.address, daiBalanceAfter)
+  await curve3CrvPool.add_liquidity([daiBalanceAfter, 0, 0], 0)
+  const threeCrv = await getToken(THREE_CRV, recipient)
+  const threeCrvBalance = await threeCrv.balanceOf(accAddress)
+}
+
+export const getPolygon3Crv = async (recipient: Signer) => {
+  const accAddress = await recipient.getAddress()
+  const dai = await getToken(DAI, recipient)
+  const ethBalanceBefore = ethers.utils.formatEther(await recipient.getBalance())
+  const daiBalanceBefore = ethers.utils.formatEther(await dai.balanceOf(accAddress))
+
+  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UNISWAP_ROUTER_V2, recipient) as IUniswapRouterV2
 
   await uniswapRouter.swapExactETHForTokens(
     '0',
@@ -44,7 +72,7 @@ export const getRenCrv = async (recipient: Signer) => {
   const ethBalanceBefore = ethers.utils.formatEther(await recipient.getBalance())
   const wbtcBalanceBefore = ethers.utils.formatEther(await wbtc.balanceOf(accAddress))
 
-  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UniswapRouterV2Address, recipient) as IUniswapRouterV2
+  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UNISWAP_ROUTER_V2, recipient) as IUniswapRouterV2
 
   await uniswapRouter.swapExactETHForTokens(
     '0',
@@ -94,7 +122,7 @@ export const getFeiTribe = async (recipient: Signer) => {
   const feiBalanceBefore = formatEther(await fei.balanceOf(accAddress))
   const tribeBalanceBefore = formatEther(await tribe.balanceOf(accAddress))
 
-  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UniswapRouterV2Address, recipient) as IUniswapRouterV2
+  const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UNISWAP_ROUTER_V2, recipient) as IUniswapRouterV2
   const getFeiPath = [WETH, FEI]
   const getTribePath = [WETH, FEI, TRIBE]
   const tokensAmount = ethers.utils.parseEther("1000")
@@ -121,10 +149,10 @@ export const getFeiTribe = async (recipient: Signer) => {
   const feiBalanceAfter = await fei.balanceOf(accAddress)
   const tribeBalanceAfter = await tribe.balanceOf(accAddress)
 
-  await fei.approve(UniswapRouterV2Address, 0)
-  await fei.approve(UniswapRouterV2Address, feiBalanceAfter)
-  await tribe.approve(UniswapRouterV2Address, 0)
-  await tribe.approve(UniswapRouterV2Address, tribeBalanceAfter)
+  await fei.approve(UNISWAP_ROUTER_V2, 0)
+  await fei.approve(UNISWAP_ROUTER_V2, feiBalanceAfter)
+  await tribe.approve(UNISWAP_ROUTER_V2, 0)
+  await tribe.approve(UNISWAP_ROUTER_V2, tribeBalanceAfter)
 
   await uniswapRouter.addLiquidity(
     FEI,

@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-import "./StrategyBase.sol";
+import "./PolygonStrategyBase.sol";
 import "../interfaces/ICurve.sol";
 
 // Base contract for Curve based staking contract interfaces
 
-abstract contract StrategyCurveBase is StrategyBase {
+abstract contract PolygonStrategyCurveBase is PolygonStrategyBase {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -21,30 +21,22 @@ abstract contract StrategyCurveBase is StrategyBase {
     address public gauge;
     // Curve's contract address => depositing here
     address public curve;
-    address public mintr = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0;
 
     // stablecoins
-    address public dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-    address public usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    address public usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-    address public susd = 0x57Ab1ec28D129707052df4dF418D58a2D46d5f51;
-
-    // bitcoins
-    address public wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
-    address public renbtc = 0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D;
+    address public dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
+    address public usdc = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
+    address public usdt = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
 
     // rewards
-    address public crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+    address public crv = 0x172370d5Cd63279eFa6d502DAB29171933a610AF;
 
     // How much CRV tokens to keep
     uint256 public keepCRV = 0;
     uint256 public keepCRVMax = 10000;
 
     constructor(
-        // Curve's contract address => depositing here
         address _curve,
         address _gauge,
-        // Token accepted by the contract
         address _want,
         address _governance,
         address _strategist,
@@ -52,7 +44,7 @@ abstract contract StrategyCurveBase is StrategyBase {
         address _neuronTokenAddress,
         address _timelock
     )
-        StrategyBase(
+        PolygonStrategyBase(
             _want,
             _governance,
             _strategist,

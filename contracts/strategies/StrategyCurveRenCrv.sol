@@ -27,6 +27,7 @@ contract StrategyCurveRenCrv is StrategyCurveBase {
         address _governance,
         address _strategist,
         address _controller,
+        address _neuronTokenAddress,
         address _timelock
     )
         StrategyCurveBase(
@@ -36,6 +37,7 @@ contract StrategyCurveRenCrv is StrategyCurveBase {
             _governance,
             _strategist,
             _controller,
+            _neuronTokenAddress,
             _timelock
         )
     {
@@ -83,7 +85,15 @@ contract StrategyCurveRenCrv is StrategyCurveBase {
         // Collects crv tokens
         // Don't bother voting in v1
         ICurveMintr(mintr).mint(gauge);
+
         uint256 _crv = IERC20(crv).balanceOf(address(this));
+
+        if (_crv > 0) {
+            _swapToNeurAndDistributePerformanceFees(crv, sushiRouter);
+        }
+
+        _crv = IERC20(crv).balanceOf(address(this));
+
         if (_crv > 0) {
             // x% is sent back to the rewards holder
             // to be used to lock up in as veCRV in a future date
@@ -109,6 +119,6 @@ contract StrategyCurveRenCrv is StrategyCurveBase {
             ICurveFi_2(curve).add_liquidity(liquidity, 0);
         }
 
-        _distributePerformanceFeesAndDeposit();
+        deposit();
     }
 }

@@ -163,7 +163,7 @@ describe('Token', function () {
     console.log('Strategy harvest')
     await strategy.harvest()
 
-    // Withdraws back to pickleJar
+    // Withdraws back to neuron pool
     const inPoolBefore = await uniFeiTribe.balanceOf(neuronPool.address)
     console.log(`inPoolBefore`, formatEther(inPoolBefore))
     console.log('Withdraw all from controller')
