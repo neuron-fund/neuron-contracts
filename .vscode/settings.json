@@ -1,6 +1,7 @@
 {
-  "solidity.compileUsingRemoteVersion": "v0.7.3+commit.9bfce1f6",
+  "solidity.compileUsingRemoteVersion": "'latest'",
   "solidity.enableLocalNodeCompiler": false,
-  "solidity.compileUsingLocalVersion": "null",
   "solidity.enabledAsYouTypeCompilationErrorCheck": true,
+  "solidity.defaultCompiler": "localFile",
+  "solidity.compileUsingLocalVersion": "/Users/a/Work/Neuron-Contracts/.vscode/soljson-v0.8.2+commit.661d1103.js"
 }
