@@ -32,7 +32,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 1337,
       forking: {
-        url: process.env.ALCHEMY,
+        url: process.env.POLYGON ? process.env.ALCHEMY_POLYGON : process.env.ALCHEMY,
       },
       loggingEnabled: true,
       blockGasLimit: 0x1fffffffffffff,
@@ -55,10 +55,10 @@ const config: HardhatUserConfig = {
 function getHardhatAccounts (accountsNumber: number) {
   return testPrivateKeys
     .map(x => {
-      const TEN_MILLION_ETH = "10000000000000000000000000"
+      const A_LOT_OF_ETH = "100000000000000000000000000000000000000000"
       return {
         privateKey: x,
-        balance: TEN_MILLION_ETH,
+        balance: A_LOT_OF_ETH,
       }
     })
 }
