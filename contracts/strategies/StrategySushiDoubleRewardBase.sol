@@ -8,7 +8,7 @@ import "./StrategyBase.sol";
 import "../interfaces/ISushiMasterchefV2.sol";
 import "../interfaces/ISushiRewarder.sol";
 
-abstract contract StrategySushiEthFarmDoubleRewardBase is StrategyBase {
+abstract contract StrategySushiDoubleRewardBase is StrategyBase {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 

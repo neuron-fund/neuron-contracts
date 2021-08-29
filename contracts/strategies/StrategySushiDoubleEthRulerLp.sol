@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.2;
 
-import "./StrategySushiEthFarmDoubleRewardBase.sol";
+import "./StrategySushiDoubleRewardBase.sol";
 
-contract StrategySushiDoubleEthRulerLp is StrategySushiEthFarmDoubleRewardBase {
+contract StrategySushiDoubleEthRulerLp is StrategySushiDoubleRewardBase {
     uint256 public sushi_ruler_poolId = 7;
 
     address public sushi_eth_ruler_lp =
@@ -17,7 +17,7 @@ contract StrategySushiDoubleEthRulerLp is StrategySushiEthFarmDoubleRewardBase {
         address _neuronTokenAddress,
         address _timelock
     )
-        StrategySushiEthFarmDoubleRewardBase(
+        StrategySushiDoubleRewardBase(
             sushi_ruler_poolId,
             sushi_eth_ruler_lp,
             ruler,
