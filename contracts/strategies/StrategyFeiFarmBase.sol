@@ -9,8 +9,8 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
     using SafeMath for uint256;
 
     // Token addresses
-    address public fei = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
-    address public tribe = 0xc7283b66Eb1EB5FB86327f08e1B5816b0720212B;
+    address public constant fei = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
+    address public constant tribe = 0xc7283b66Eb1EB5FB86327f08e1B5816b0720212B;
 
     // How much TRIBE tokens to keep?
     uint256 public keepTRIBE = 0;

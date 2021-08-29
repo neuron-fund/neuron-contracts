@@ -19,9 +19,9 @@ contract StrategyCurveRenCrv is StrategyCurveBase {
 
     // https://www.curve.fi/ren
     // Curve stuff
-    address public ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
-    address public ren_gauge = 0xB1F2cdeC61db658F091671F5f199635aEF202CAC;
-    address public ren_crv = 0x49849C98ae39Fff122806C06791Fa73784FB3675;
+    address public constant ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
+    address public constant ren_gauge = 0xB1F2cdeC61db658F091671F5f199635aEF202CAC;
+    address public constant ren_crv = 0x49849C98ae39Fff122806C06791Fa73784FB3675;
 
     constructor(
         address _governance,

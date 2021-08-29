@@ -20,8 +20,8 @@ contract StrategyCurveSteCrv is StrategyBase {
     using SafeMath for uint256;
 
     // Curve
-    IStEth public stEth = IStEth(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84); // lido stEth
-    IERC20 public steCRV = IERC20(0x06325440D014e39736583c165C2963BA99fAf14E); // ETH-stETH curve lp
+    IStEth public constant stEth = IStEth(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84); // lido stEth
+    IERC20 public constant steCRV = IERC20(0x06325440D014e39736583c165C2963BA99fAf14E); // ETH-stETH curve lp
 
     // Curve DAO
     ICurveGauge public gauge =

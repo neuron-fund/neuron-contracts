@@ -20,15 +20,15 @@ contract StrategyCurve3Crv is StrategyCurveBase {
 
     // Curve stuff
     // Pool to deposit to. In this case it's 3CRV, accepting DAI + USDC + USDT
-    address public three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
+    address public constant three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     // Pool's Gauge - interactions are mediated through ICurveGauge interface @ this address
-    address public three_gauge = 0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A;
+    address public constant three_gauge = 0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A;
 
     // Curve 3Crv token contract address.
     // https://etherscan.io/address/0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490
     // Etherscan states this contract manages 3Crv and USDC
     // The starting deposit is made with this token ^^^
-    address public three_crv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+    address public constant three_crv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 
     constructor(
         address _governance,

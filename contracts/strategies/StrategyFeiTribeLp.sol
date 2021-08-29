@@ -14,8 +14,8 @@ contract StrategyFeiTribeLp is StrategyFeiFarmBase {
     using SafeMath for uint256;
 
     // Token addresses
-    address public fei_rewards = 0x18305DaAe09Ea2F4D51fAa33318be5978D251aBd;
-    address public uni_fei_tribe_lp =
+    address public constant fei_rewards = 0x18305DaAe09Ea2F4D51fAa33318be5978D251aBd;
+    address public constant uni_fei_tribe_lp =
         0x9928e4046d7c6513326cCeA028cD3e7a91c7590A;
 
     constructor(
