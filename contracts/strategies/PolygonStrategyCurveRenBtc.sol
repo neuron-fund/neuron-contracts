@@ -21,16 +21,16 @@ contract PolygonStrategyCurveRenBtc is PolygonStrategyCurveBase {
     // Curve stuff
     // Pool to deposit to. In this case it's renBTC, accepting wBTC + renBTC
     // https://polygon.curve.fi/ren
-    address public curve_renBTC_pool =
+    address public constant curve_renBTC_pool =
         0xC2d95EEF97Ec6C17551d45e77B590dc1F9117C67;
     // Pool's Gauge - interactions are mediated through ICurveGauge interface @ this address
-    address public curve_renBTC_gauge =
+    address public constant curve_renBTC_gauge =
         0xffbACcE0CC7C19d46132f1258FC16CF6871D153c;
     // Curve.fi amWBTC/renBTC (btcCRV) token contract address.
     // The starting deposit is made with this token ^^^
-    address public curve_renBTC_lp = 0xf8a57c1d3b9629b77b6726a042ca48990A84Fb49;
-    address public wbtc = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
-    address public renBTC = 0xDBf31dF14B66535aF65AaC99C32e9eA844e14501;
+    address public constant curve_renBTC_lp = 0xf8a57c1d3b9629b77b6726a042ca48990A84Fb49;
+    address public constant wbtc = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
+    address public constant renBTC = 0xDBf31dF14B66535aF65AaC99C32e9eA844e14501;
 
     constructor(
         address _governance,

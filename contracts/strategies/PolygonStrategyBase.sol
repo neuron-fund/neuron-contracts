@@ -32,8 +32,8 @@ abstract contract PolygonStrategyBase {
 
     // Tokens
     // Input token accepted by the contract
-    address public neuronTokenAddress;
-    address public want;
+    address public immutable neuronTokenAddress;
+    address public immutable want;
     address public constant weth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
     address public constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
@@ -342,6 +342,20 @@ abstract contract PolygonStrategyBase {
         );
     }
 
+    function _swapSushiswapWithPath(address[] memory path, uint256 _amount)
+        internal
+    {
+        require(path[1] != address(0));
+
+        IUniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            block.timestamp.add(60)
+        );
+    }
+
     function _swapWithUniLikeRouter(
         address routerAddress,
         address _from,
@@ -373,20 +387,6 @@ abstract contract PolygonStrategyBase {
             path,
             address(this),
             block.timestamp.add(6000000)
-        );
-    }
-
-    function _swapSushiswapWithPath(address[] memory path, uint256 _amount)
-        internal
-    {
-        require(path[1] != address(0));
-
-        IUniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            block.timestamp.add(60)
         );
     }
 

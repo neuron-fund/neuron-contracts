@@ -14,14 +14,14 @@ abstract contract PolygonStrategySushiDoubleRewardBase is PolygonStrategyBase {
 
     // Token addresses
     address public constant sushi = 0x0b3F868E0BE5597D5DB7fEB59E1CADBb0fdDa50a;
-    address public rewardToken = wmatic;
+    address public constant rewardToken = wmatic;
 
     address public constant sushiMiniChef =
         0x0769fd68dFb93167989C6f7254cd0D766Fb2841F;
 
-    uint256 public poolId;
-    address public token0;
-    address public token1;
+    uint256 public immutable poolId;
+    address public immutable token0;
+    address public immutable token1;
 
     // How much Reward tokens to keep
     uint256 public keepRewardToken = 500;

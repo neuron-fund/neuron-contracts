@@ -18,17 +18,17 @@ abstract contract PolygonStrategyCurveBase is PolygonStrategyBase {
 
     // Curve DAO
     // Pool's gauge => all the interactions are held through this address, ICurveGauge interface
-    address public gauge;
+    address public immutable gauge;
     // Curve's contract address => depositing here
-    address public curve;
+    address public immutable curve;
 
     // stablecoins
-    address public dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
-    address public usdc = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
-    address public usdt = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
+    address public constant dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
+    address public constant usdc = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
+    address public constant usdt = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
 
     // rewards
-    address public crv = 0x172370d5Cd63279eFa6d502DAB29171933a610AF;
+    address public constant crv = 0x172370d5Cd63279eFa6d502DAB29171933a610AF;
 
     // How much CRV tokens to keep
     uint256 public keepCRV = 0;

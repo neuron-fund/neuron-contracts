@@ -32,8 +32,8 @@ abstract contract StrategyBase {
 
     // Tokens
     // Input token accepted by the contract
-    address public neuronTokenAddress;
-    address public want;
+    address public immutable neuronTokenAddress;
+    address public immutable want;
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     // User accounts
@@ -43,8 +43,8 @@ abstract contract StrategyBase {
     address public timelock;
 
     // Dex
-    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    address public constant univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address public constant sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
     mapping(address => bool) public harvesters;
 
