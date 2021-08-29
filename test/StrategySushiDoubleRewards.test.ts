@@ -2,12 +2,13 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer, constants as ethersConstants, ContractFactory } from "ethers"
-import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategySushiDoubleEthAlcxLp__factory, StrategySushiDoubleEthCvxLp__factory, StrategySushiDoubleEthPickleLp__factory, StrategySushiDoubleEthRulerLp__factory } from '../typechain'
-import { SUSHISWAP_ROUTER, SUSHI_ETH_ALCX_LP, SUSHI_ETH_CVX_LP, SUSHI_ETH_PICKLE_LP, SUSHI_ETH_RULER_LP, WETH } from '../constants/addresses'
+import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategySushiDoubleEthAlcxLp__factory, StrategySushiDoubleEthCvxLp__factory, StrategySushiDoubleEthPickleLp__factory, StrategySushiDoubleEthRulerLp__factory } from '../typechain'
+import { ALCX, CVX, PICKLE, RULER, SUSHI, SUSHISWAP_ROUTER, SUSHI_ETH_ALCX_LP, SUSHI_ETH_CVX_LP, SUSHI_ETH_PICKLE_LP, SUSHI_ETH_RULER_LP, WETH } from '../constants/addresses'
 import { getToken } from '../utils/getCurveTokens'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import { sushiGetLpToken } from '../utils/sushiTestUtils'
 import { waitNDays } from '../utils/time'
+import { assert } from 'chai'
 
 describe('Token', function () {
   let accounts
@@ -30,6 +31,8 @@ describe('Token', function () {
   it('Test StrategyAlcxSushiEthAlcxLp', async function () {
     await testSushiDoubleRewards({
       accounts,
+      rewardToken0: SUSHI,
+      rewardToken1: ALCX,
       lpAddress: SUSHI_ETH_ALCX_LP,
       strategyFactory: await ethers.getContractFactory('StrategySushiDoubleEthAlcxLp') as StrategySushiDoubleEthAlcxLp__factory
     })
@@ -38,6 +41,8 @@ describe('Token', function () {
   it('Test StrategySushiDoubleEthPickleLp', async function () {
     await testSushiDoubleRewards({
       accounts,
+      rewardToken0: SUSHI,
+      rewardToken1: PICKLE,
       lpAddress: SUSHI_ETH_PICKLE_LP,
       strategyFactory: await ethers.getContractFactory('StrategySushiDoubleEthPickleLp') as StrategySushiDoubleEthPickleLp__factory
     })
@@ -46,6 +51,8 @@ describe('Token', function () {
   it('Test StrategySushiDoubleEthCvxLp', async function () {
     await testSushiDoubleRewards({
       accounts,
+      rewardToken0: SUSHI,
+      rewardToken1: CVX,
       lpAddress: SUSHI_ETH_CVX_LP,
       strategyFactory: await ethers.getContractFactory('StrategySushiDoubleEthCvxLp') as StrategySushiDoubleEthCvxLp__factory
     })
@@ -54,6 +61,8 @@ describe('Token', function () {
   it('Test StrategySushiDoubleEthRulerLp', async function () {
     await testSushiDoubleRewards({
       accounts,
+      rewardToken0: SUSHI,
+      rewardToken1: RULER,
       lpAddress: SUSHI_ETH_RULER_LP,
       strategyFactory: await ethers.getContractFactory('StrategySushiDoubleEthRulerLp') as StrategySushiDoubleEthRulerLp__factory
     })
@@ -62,9 +71,17 @@ describe('Token', function () {
 
 async function testSushiDoubleRewards<T extends ContractFactory> ({
   accounts,
+  rewardToken0,
+  rewardToken1,
   lpAddress,
   strategyFactory
-}: { accounts: Signer[], lpAddress: string, strategyFactory: T }
+}: {
+  accounts: Signer[],
+  lpAddress: string,
+  strategyFactory: T,
+  rewardToken0: string,
+  rewardToken1: string,
+}
 ) {
   const deployer = accounts[0]
   const governance = deployer
@@ -210,4 +227,12 @@ async function testSushiDoubleRewards<T extends ContractFactory> ({
 
   console.log('Strategy harvest')
   await strategy.harvest()
+
+  const reward0Contract = await IERC20__factory.connect(rewardToken0, deployer)
+  const treasureReward0Amount = await reward0Contract.balanceOf(treasuryAddress)
+  assert(treasureReward0Amount.gte(0), `No rewards for token ${rewardToken0} in treasury`)
+
+  const rewardToken1Contract = await IERC20__factory.connect(rewardToken1, deployer)
+  const treasureReward1Amount = await rewardToken1Contract.balanceOf(treasuryAddress)
+  assert(treasureReward1Amount.gte(0), `No rewards for token ${rewardToken1} in treasury`)
 }
