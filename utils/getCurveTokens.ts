@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers"
 import { Signer } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { ethers } from "hardhat"
-import { DAI, UNISWAP_ROUTER_V2, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, FEI, TRIBE, UNI_FEI_TRIBE } from '../constants/addresses'
+import { DAI, UNISWAP_ROUTER_V2, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, FEI, TRIBE, UNI_FEI_TRIBE_LP } from '../constants/addresses'
 import { IUniswapRouterV2, ICurveFi3, IERC20, ICurveFi2, IStEth, ICurveFi, ERC20 } from '../typechain'
 
 export const getToken = async (address: string, signer: Signer) => {
@@ -165,6 +165,6 @@ export const getFeiTribe = async (recipient: Signer) => {
     Date.now() + 30000,
   )
 
-  const uniFeiTribe = await getToken(UNI_FEI_TRIBE, recipient)
+  const uniFeiTribe = await getToken(UNI_FEI_TRIBE_LP, recipient)
   const uniFeiTribeBalance = await uniFeiTribe.balanceOf(accAddress)
 }

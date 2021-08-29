@@ -1,33 +1,24 @@
 
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
-import { Signer } from "ethers"
+import { BigNumber, Signer, constants as ethersConstants } from "ethers"
 import { IUniswapRouterV2 } from '../typechain/IUniswapRouterV2'
-import { Controller__factory, IERC20, NeuronPool__factory, StrategyFeiTribeLp__factory } from '../typechain'
+import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyFeiTribeLp__factory } from '../typechain'
 import { assert } from 'chai'
+import { parseEther } from 'ethers/lib/utils'
+import { FEI, SUSHISWAP_ROUTER, TRIBE, UNISWAP_ROUTER_V2, UNI_FEI_TRIBE_LP, WETH } from '../constants/addresses'
+import { waitNDays } from '../utils/time'
 
-
-const WBTC = '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
-const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
-const REN_CRV = '0x49849C98ae39Fff122806C06791Fa73784FB3675'
-const FEI = '0x956F47F50A910163D8BF957Cf5846D573E7f87CA'
-const TRIBE = '0xc7283b66Eb1EB5FB86327f08e1B5816b0720212B'
-// User stakes FEI and TRIBE to Uniswap (FEI-TRIBE) pool and gets this tokens
-const UNI_FEI_TRIBE = '0x9928e4046d7c6513326cCeA028cD3e7a91c7590A'
-
-// Tokens that user got from staking to FEI-TRIBE to Uni we put into fei.money pool which gives TRIBE token for that 
-const FEI_REWARDS_POOL = '0x18305DaAe09Ea2F4D51fAa33318be5978D251aBd'
-const UniswapRouterV2Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
 
 const getToken = async (address: string, signer: Signer) => {
-  return (await ethers.getContractAt('IERC20', address, signer)) as IERC20
+  return (await ethers.getContractAt('@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20', address, signer)) as IERC20
 }
 
 const { formatEther } = ethers.utils
 describe('Token', function () {
   let accounts: Signer[]
 
-  beforeEach(async function () {
+  it('Test StrategyFeiTribeLp', async function () {
     accounts = await ethers.getSigners()
 
     const getFeiTribe = async (recipient: Signer) => {
@@ -41,7 +32,7 @@ describe('Token', function () {
       const tribeBalanceBefore = formatEther(await tribe.balanceOf(accAddress))
       console.log(`tribeBalanceBefore`, tribeBalanceBefore)
 
-      const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UniswapRouterV2Address, recipient) as IUniswapRouterV2
+      const uniswapRouter = await ethers.getContractAt('IUniswapRouterV2', UNISWAP_ROUTER_V2, recipient) as IUniswapRouterV2
       const getFeiPath = [WETH, FEI]
       const getTribePath = [WETH, FEI, TRIBE]
       const tokensAmount = ethers.utils.parseEther("1000")
@@ -73,10 +64,10 @@ describe('Token', function () {
       const tribeBalanceAfter = await tribe.balanceOf(accAddress)
       console.log(`tribeBalanceAfter`, formatEther(tribeBalanceAfter))
 
-      await fei.approve(UniswapRouterV2Address, 0)
-      await fei.approve(UniswapRouterV2Address, feiBalanceAfter)
-      await tribe.approve(UniswapRouterV2Address, 0)
-      await tribe.approve(UniswapRouterV2Address, tribeBalanceAfter)
+      await fei.approve(UNISWAP_ROUTER_V2, 0)
+      await fei.approve(UNISWAP_ROUTER_V2, feiBalanceAfter)
+      await tribe.approve(UNISWAP_ROUTER_V2, 0)
+      await tribe.approve(UNISWAP_ROUTER_V2, tribeBalanceAfter)
 
       console.log('Add liquidity to uniswap TRIBE-FEI pool')
       await uniswapRouter.addLiquidity(
@@ -90,7 +81,7 @@ describe('Token', function () {
         Date.now() + 30000,
       )
 
-      const uniFeiTribe = await getToken(UNI_FEI_TRIBE, recipient)
+      const uniFeiTribe = await getToken(UNI_FEI_TRIBE_LP, recipient)
       const uniFeiTribeBalance = await uniFeiTribe.balanceOf(accAddress)
       console.log(`uniFeiTribeBalance`, formatEther(uniFeiTribeBalance))
     }
@@ -103,6 +94,55 @@ describe('Token', function () {
     const treasury = accounts[2]
     const user = accounts[3]
 
+    const deployerAddress = await deployer.getAddress()
+    const governanceAddress = await governance.getAddress()
+    const devAddress = await devfund.getAddress()
+    const treasuryAddress = await treasury.getAddress()
+    const timelockAddress = await timelock.getAddress()
+
+    const neuronsPerBlock = parseEther('0.3')
+    const startBlock = 0
+    const bonusEndBlock = 0
+
+    const NeuronToken = await ethers.getContractFactory('NeuronToken') as NeuronToken__factory
+    const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
+    const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
+    const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
+    const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
+
+    const neuronToken = await NeuronToken.deploy(governanceAddress)
+    await neuronToken.deployed()
+    await neuronToken.setMinter(deployerAddress)
+    await neuronToken.applyMinter()
+    await neuronToken.mint(deployerAddress, parseEther('100000'))
+    const sushiRouter = await IUniswapRouterV2__factory.connect(SUSHISWAP_ROUTER, deployer)
+    const wethContract = await IWETH__factory.connect(WETH, deployer)
+    await wethContract.deposit({ value: parseEther('10') })
+
+    await neuronToken.approve(SUSHISWAP_ROUTER, ethersConstants.MaxUint256)
+    await wethContract.approve(SUSHISWAP_ROUTER, ethersConstants.MaxUint256)
+
+    const deadline = Math.floor(Date.now() / 1000) + 20000000
+
+    await sushiRouter.addLiquidity(
+      WETH,
+      neuronToken.address,
+      await wethContract.balanceOf(deployerAddress),
+      await neuronToken.balanceOf(deployerAddress),
+      0,
+      0,
+      deployerAddress,
+      deadline,
+    )
+
+    const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, treasuryAddress, neuronsPerBlock, startBlock, bonusEndBlock)
+    await masterChef.deployed()
+
+    await neuronToken.setMinter(masterChef.address)
+    await neuronToken.applyMinter()
+    await neuronToken.setMinter(deployerAddress)
+    await neuronToken.applyMinter()
+
     const Controller = await ethers.getContractFactory('Controller') as Controller__factory
 
     const controller = await Controller.deploy(
@@ -113,33 +153,54 @@ describe('Token', function () {
       await treasury.getAddress()
     )
 
-    const Strategy = await ethers.getContractFactory('StrategyFeiTribeLp') as StrategyFeiTribeLp__factory
-    const strategy = await Strategy.deploy(
+
+    const axon = await AxonVyper.deploy(neuronToken.address, 'Axon token', 'AXON', '1.0')
+    await axon.deployed()
+    const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
+    const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
+    const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress, governanceAddress)
+    await gaugesDistributor.deployed()
+    await masterChef.setDistributor(gaugesDistributor.address)
+
+    const strategyFactory = await ethers.getContractFactory('StrategyFeiTribeLp') as StrategyFeiTribeLp__factory
+
+    const strategy = await strategyFactory.deploy(
       await governance.getAddress(),
       await strategist.getAddress(),
       controller.address,
+      neuronToken.address,
       await timelock.getAddress()
     )
-
-    console.log('Assert strategy wants correct token')
-    assert(await strategy.want() === UNI_FEI_TRIBE)
 
     const NeuronPool = await ethers.getContractFactory('NeuronPool') as NeuronPool__factory
     const neuronPool = await NeuronPool.deploy(
       await strategy.want(),
-      await governance.getAddress(),
-      await timelock.getAddress(),
-      controller.address
+      governanceAddress,
+      timelockAddress,
+      controller.address,
+      masterChef.address,
+      gaugesDistributor.address
     )
+    await neuronPool.deployed()
 
     await controller.setNPool(await strategy.want(), neuronPool.address)
     await controller.approveStrategy(await strategy.want(), strategy.address)
     await controller.setStrategy(await strategy.want(), strategy.address)
 
+
+    const neuronPoolAddress = neuronPool.address
+    await gaugesDistributor.addGauge(neuronPoolAddress)
+    await gaugesDistributor.setWeights([neuronPoolAddress], [BigNumber.from('100')])
+
+    // Wait for masterchef to mint tokens for gauges distributor
+    await waitNDays(10, network.provider)
+
+    await gaugesDistributor.distribute()
+
     await getFeiTribe(user)
 
 
-    const uniFeiTribe = await getToken(UNI_FEI_TRIBE, user)
+    const uniFeiTribe = await getToken(UNI_FEI_TRIBE_LP, user)
     // Since we get rewards in tribe we must check thats we get more tribe after withdraw for strategy
     const tribe = await getToken(TRIBE, user)
     const uniFeiTribeUserBalanceInitial = await uniFeiTribe.balanceOf(await user.getAddress())
@@ -163,32 +224,8 @@ describe('Token', function () {
     console.log('Strategy harvest')
     await strategy.harvest()
 
-    // Withdraws back to neuron pool
-    const inPoolBefore = await uniFeiTribe.balanceOf(neuronPool.address)
-    console.log(`inPoolBefore`, formatEther(inPoolBefore))
-    console.log('Withdraw all from controller')
-    await controller.withdrawAll(uniFeiTribe.address)
-    const inPoolAfter = await uniFeiTribe.balanceOf(neuronPool.address)
-    console.log(`inPoolAfter`, formatEther(inPoolAfter))
-
-    assert(inPoolAfter.gt(inPoolBefore), 'Unsuccesfull withdraw from strategy to pool')
-
-    const uniFeiTribeUserBalanceBefore = await uniFeiTribe.balanceOf(await user.getAddress())
-    console.log(`uniFeiTribeUserBalanceBefore`, formatEther(uniFeiTribeUserBalanceBefore))
-    console.log('Widthdraw from pool to user')
-    await neuronPoolUserConnected.withdrawAll()
-    const uniFeiTribeUserBalanceAfter = await uniFeiTribe.balanceOf(await user.getAddress())
-    console.log(`uniFeiTribeUserBalanceAfter`, formatEther(uniFeiTribeUserBalanceAfter))
-    const tribeUserBalanceAfter = await tribe.balanceOf(await user.getAddress())
-    console.log(`tribeUserBalanceAfter`, formatEther(tribeUserBalanceAfter))
-
-    assert(uniFeiTribeUserBalanceAfter.gt(uniFeiTribeUserBalanceBefore), 'Unsuccesfull withdraw from pool to user')
-
-    // Gained some interest
-    assert(tribeUserBalanceInitial.gt(tribeUserBalanceAfter), 'User have not got any interest after deposit')
-  })
-
-  it('should do something right', async function () {
-    // const box = await Box.attach(address)
+    const reward0Contract = await IERC20__factory.connect(TRIBE, deployer)
+    const treasureReward0Amount = await reward0Contract.balanceOf(treasuryAddress)
+    assert(treasureReward0Amount.gte(0), `No rewards for token ${TRIBE} in treasury`)
   })
 })

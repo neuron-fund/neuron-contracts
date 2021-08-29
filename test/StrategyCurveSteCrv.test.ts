@@ -1,18 +1,19 @@
 
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
-import { Signer } from "ethers"
-import { Controller__factory, ICurveFi, IERC20, IStEth, NeuronPool__factory, StrategyCurveSteCrv__factory } from '../typechain'
+import { BigNumber, Signer, constants as ethersConstants } from "ethers"
+import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFi, IERC20, IERC20__factory, IStEth, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyCurveRenCrv__factory, StrategyCurveSteCrv__factory } from '../typechain'
 import { assert } from 'chai'
-import { CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV } from '../constants/addresses'
+import { CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, SUSHISWAP_ROUTER, WETH } from '../constants/addresses'
 import { getSteCrv, getToken } from '../utils/getCurveTokens'
+import { parseEther } from 'ethers/lib/utils'
+import { waitNDays } from '../utils/time'
 
 describe('Token', function () {
   let accounts: Signer[]
 
-  beforeEach(async function () {
+  it('Test StrategyCurveSteCrv', async function () {
     accounts = await ethers.getSigners()
-
 
     const deployer = accounts[0]
     const governance = deployer
@@ -21,6 +22,55 @@ describe('Token', function () {
     const devfund = accounts[1]
     const treasury = accounts[2]
     const user = accounts[3]
+
+    const deployerAddress = await deployer.getAddress()
+    const governanceAddress = await governance.getAddress()
+    const devAddress = await devfund.getAddress()
+    const treasuryAddress = await treasury.getAddress()
+    const timelockAddress = await timelock.getAddress()
+
+    const neuronsPerBlock = parseEther('0.3')
+    const startBlock = 0
+    const bonusEndBlock = 0
+
+    const NeuronToken = await ethers.getContractFactory('NeuronToken') as NeuronToken__factory
+    const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
+    const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
+    const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
+    const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
+
+    const neuronToken = await NeuronToken.deploy(governanceAddress)
+    await neuronToken.deployed()
+    await neuronToken.setMinter(deployerAddress)
+    await neuronToken.applyMinter()
+    await neuronToken.mint(deployerAddress, parseEther('100000'))
+    const sushiRouter = await IUniswapRouterV2__factory.connect(SUSHISWAP_ROUTER, deployer)
+    const wethContract = await IWETH__factory.connect(WETH, deployer)
+    await wethContract.deposit({ value: parseEther('10') })
+
+    await neuronToken.approve(SUSHISWAP_ROUTER, ethersConstants.MaxUint256)
+    await wethContract.approve(SUSHISWAP_ROUTER, ethersConstants.MaxUint256)
+
+    const deadline = Math.floor(Date.now() / 1000) + 20000000
+
+    await sushiRouter.addLiquidity(
+      WETH,
+      neuronToken.address,
+      await wethContract.balanceOf(deployerAddress),
+      await neuronToken.balanceOf(deployerAddress),
+      0,
+      0,
+      deployerAddress,
+      deadline,
+    )
+
+    const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, treasuryAddress, neuronsPerBlock, startBlock, bonusEndBlock)
+    await masterChef.deployed()
+
+    await neuronToken.setMinter(masterChef.address)
+    await neuronToken.applyMinter()
+    await neuronToken.setMinter(deployerAddress)
+    await neuronToken.applyMinter()
 
     const Controller = await ethers.getContractFactory('Controller') as Controller__factory
 
@@ -32,28 +82,49 @@ describe('Token', function () {
       await treasury.getAddress()
     )
 
-    const Strategy = await ethers.getContractFactory('StrategyCurveSteCrv') as StrategyCurveSteCrv__factory
-    const strategy = await Strategy.deploy(
+
+    const axon = await AxonVyper.deploy(neuronToken.address, 'Axon token', 'AXON', '1.0')
+    await axon.deployed()
+    const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
+    const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
+    const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress, governanceAddress)
+    await gaugesDistributor.deployed()
+    await masterChef.setDistributor(gaugesDistributor.address)
+
+    const strategyFactory = await ethers.getContractFactory('StrategyCurveSteCrv') as StrategyCurveSteCrv__factory
+
+    const strategy = await strategyFactory.deploy(
       await governance.getAddress(),
       await strategist.getAddress(),
       controller.address,
+      neuronToken.address,
       await timelock.getAddress()
     )
-
-    console.log('Assert strategy wants correct token')
-    assert(await strategy.want() === STE_CRV)
 
     const NeuronPool = await ethers.getContractFactory('NeuronPool') as NeuronPool__factory
     const neuronPool = await NeuronPool.deploy(
       await strategy.want(),
-      await governance.getAddress(),
-      await timelock.getAddress(),
-      controller.address
+      governanceAddress,
+      timelockAddress,
+      controller.address,
+      masterChef.address,
+      gaugesDistributor.address
     )
+    await neuronPool.deployed()
 
     await controller.setNPool(await strategy.want(), neuronPool.address)
     await controller.approveStrategy(await strategy.want(), strategy.address)
     await controller.setStrategy(await strategy.want(), strategy.address)
+
+
+    const neuronPoolAddress = neuronPool.address
+    await gaugesDistributor.addGauge(neuronPoolAddress)
+    await gaugesDistributor.setWeights([neuronPoolAddress], [BigNumber.from('100')])
+
+    // Wait for masterchef to mint tokens for gauges distributor
+    await waitNDays(10, network.provider)
+
+    await gaugesDistributor.distribute()
 
     await getSteCrv(user)
 
@@ -78,30 +149,8 @@ describe('Token', function () {
     console.log('Strategy harvest')
     await strategy.harvest()
 
-    // Withdraws back to neuron pool
-    const inPoolBefore = await steCrv.balanceOf(neuronPool.address)
-    console.log(`inPoolBefore`, ethers.utils.formatEther(inPoolBefore))
-    console.log('Withdraw all from controller')
-    await controller.withdrawAll(steCrv.address)
-    const inPoolAfter = await steCrv.balanceOf(neuronPool.address)
-    console.log(`inPoolAfter`, ethers.utils.formatEther(inPoolAfter))
-
-    assert(inPoolAfter.gt(inPoolBefore), 'Unsuccesfull withdraw from strategy to pool')
-
-    const steCrvUserBalanceBefore = await steCrv.balanceOf(await user.getAddress())
-    console.log(`steCrvUserBalanceBefore`, ethers.utils.formatEther(steCrvUserBalanceBefore))
-    console.log('Widthdraw from pool to user')
-    await neuronPoolUserConnected.withdrawAll()
-    const steCrvUserBalanceAfter = await steCrv.balanceOf(await user.getAddress())
-    console.log(`steCrvUserBalanceAfter`, ethers.utils.formatEther(steCrvUserBalanceAfter))
-
-    assert(steCrvUserBalanceAfter.gt(steCrvUserBalanceBefore), 'Unsuccesfull withdraw from pool to user')
-
-    // Gained some interest
-    assert(steCrvUserBalanceAfter.gt(steCrvUserBalanceInitial), 'User have not got any interest after deposit')
-  })
-
-  it('should do something right', async function () {
-    // const box = await Box.attach(address)
+    const reward0Contract = await IERC20__factory.connect(CRV, deployer)
+    const treasureReward0Amount = await reward0Contract.balanceOf(treasuryAddress)
+    assert(treasureReward0Amount.gte(0), `No rewards for token ${CRV} in treasury`)
   })
 })

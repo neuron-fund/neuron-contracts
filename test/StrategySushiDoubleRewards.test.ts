@@ -132,19 +132,6 @@ async function testSushiDoubleRewards<T extends ContractFactory> ({
     deadline,
   )
 
-  await wethContract.deposit({ value: parseEther('1') })
-
-  console.log('neuron balance before', formatEther(await neuronToken.balanceOf(deployerAddress)))
-
-  await sushiRouter.swapExactTokensForTokens(
-    await wethContract.balanceOf(deployerAddress),
-    0,
-    [WETH, neuronToken.address],
-    deployerAddress,
-    Math.floor(Date.now() / 1000) + 20000000
-  )
-  console.log('neuron balance after', formatEther(await neuronToken.balanceOf(deployerAddress)))
-
   const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, treasuryAddress, neuronsPerBlock, startBlock, bonusEndBlock)
   await masterChef.deployed()
 
@@ -204,7 +191,6 @@ async function testSushiDoubleRewards<T extends ContractFactory> ({
   await waitNDays(10, network.provider)
 
   await gaugesDistributor.distribute()
-
 
   await sushiGetLpToken({ signer: user, lpTokenAddress: lpAddress, ethAmount: parseEther('10') })
 
