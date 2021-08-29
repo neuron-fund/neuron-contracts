@@ -7,7 +7,7 @@ import { DAI, UNISWAP_ROUTER_V2, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_R
 import { IUniswapRouterV2, ICurveFi3, IERC20, ICurveFi2, IStEth, ICurveFi, ERC20 } from '../typechain'
 
 export const getToken = async (address: string, signer: Signer) => {
-  return (await ethers.getContractAt('ERC20', address, signer)) as ERC20
+  return (await ethers.getContractAt('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20', address, signer)) as ERC20
 }
 
 export const get3Crv = async (recipient: Signer) => {
