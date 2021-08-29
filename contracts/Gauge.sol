@@ -34,7 +34,7 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
 
-    uint256 private _totalSupply;
+    uint256 public _totalSupply;
     uint256 public derivedSupply;
     mapping(address => uint256) private _balances;
     mapping(address => uint256) public derivedBalances;
