@@ -5,10 +5,10 @@ import "./StrategySushiFarmBase.sol";
 
 contract StrategySushiEthWBtcLp is StrategySushiFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public sushi_wbtc_poolId = 21;
+    uint256 public constant sushi_wbtc_poolId = 21;
     // Token addresses
-    address public sushi_eth_wbtc_lp = 0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58;
-    address public wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+    address public constant sushi_eth_wbtc_lp = 0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58;
+    address public constant wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
     constructor(
         address _governance,

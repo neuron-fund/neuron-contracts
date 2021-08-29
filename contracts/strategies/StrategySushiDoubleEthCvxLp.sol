@@ -4,9 +4,9 @@ pragma solidity 0.8.2;
 import "./StrategySushiEthFarmDoubleRewardBase.sol";
 
 contract StrategySushiDoubleEthCvxLp is StrategySushiEthFarmDoubleRewardBase {
-    uint256 public sushi_cvx_poolId = 1;
+    uint256 public constant sushi_cvx_poolId = 1;
 
-    address public sushi_eth_cvx_lp =
+    address public constant sushi_eth_cvx_lp =
         0x05767d9EF41dC40689678fFca0608878fb3dE906;
     address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
 

@@ -4,9 +4,9 @@ pragma solidity 0.8.2;
 import "./StrategySushiEthFarmDoubleRewardBase.sol";
 
 contract StrategySushiDoubleEthRulerLp is StrategySushiEthFarmDoubleRewardBase {
-    uint256 public sushi_ruler_poolId = 7;
+    uint256 public constant sushi_ruler_poolId = 7;
 
-    address public sushi_eth_ruler_lp =
+    address public constant sushi_eth_ruler_lp =
         0xb1EECFea192907fC4bF9c4CE99aC07186075FC51;
     address public constant ruler = 0x2aECCB42482cc64E087b6D2e5Da39f5A7A7001f8;
 
