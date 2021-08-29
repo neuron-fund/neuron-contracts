@@ -143,10 +143,9 @@ async function testPolygonCurveStrategy<T extends ContractFactory> ({
   await neuronToken.applyMinter()
   await neuronToken.mint(deployerAddress, parseEther('100000'))
   const quickSwapRouter = await QuickSwapRouter__factory.connect(POLYGON_QUICKSWAP_ROUTER, deployer)
-  const wethContract = await IPolygonWETH__factory.connect(POLYGON_WETH, deployer)
 
   await neuronToken.approve(POLYGON_QUICKSWAP_ROUTER, ethersConstants.MaxUint256)
-  await wethContract.approve(POLYGON_QUICKSWAP_ROUTER, ethersConstants.MaxUint256)
+  await polygonWeth.approve(POLYGON_QUICKSWAP_ROUTER, ethersConstants.MaxUint256)
   await polygonWmatic.approve(POLYGON_QUICKSWAP_ROUTER, ethersConstants.MaxUint256)
 
   // Get wmatic from matic
@@ -166,7 +165,7 @@ async function testPolygonCurveStrategy<T extends ContractFactory> ({
     getDexDeadline()
   )
 
-  console.log('weth balance before liquidity', formatEther(await wethContract.balanceOf(deployerAddress),))
+  console.log('weth balance before liquidity', formatEther(await polygonWeth.balanceOf(deployerAddress),))
   console.log('neuron balance before liquidity', formatEther(await neuronToken.balanceOf(deployerAddress)))
 
   await quickSwapRouter.addLiquidity(
@@ -257,6 +256,8 @@ async function testPolygonCurveStrategy<T extends ContractFactory> ({
       getDexDeadline()
     )
   }
+
+  // Getting token1
 
   if (token1 !== POLYGON_WETH) {
     await quickSwapRouter.swapExactTokensForTokens(
