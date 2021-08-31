@@ -23,6 +23,7 @@ contract GaugesDistributor {
     uint256 public pid;
     uint256 public totalWeight;
     IMinter public minter;
+    bool public isManualWeights = true;
 
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
@@ -152,7 +153,10 @@ contract GaugesDistributor {
             "Set weights function can only be executed by admin or governance"
         );
 
-        require(_tokensToVote.length == _weights.length, "Number Tokens to vote should be the same as weights number");
+        require(
+            _tokensToVote.length == _weights.length,
+            "Number Tokens to vote should be the same as weights number"
+        );
 
         uint256 _tokensCnt = _tokensToVote.length;
         totalWeight = 0;
@@ -166,7 +170,15 @@ contract GaugesDistributor {
                 weights[_token] = _tokenWeight;
             }
         }
+    }
 
+    function setIsManualWeights(bool _isManualWeights) external {
+        require(
+            msg.sender == admin || msg.sender == governance,
+            "!admin and !governance"
+        );
+
+        isManualWeights = _isManualWeights;
     }
 
     // Vote with AXON on a gauge
@@ -174,6 +186,7 @@ contract GaugesDistributor {
         external
     {
         require(_tokenVote.length == _weights.length);
+        require(!isManualWeights, "isManualWeights should be false");
         _vote(msg.sender, _tokenVote, _weights);
     }
 
