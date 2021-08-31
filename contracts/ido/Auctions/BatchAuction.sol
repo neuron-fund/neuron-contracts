@@ -481,7 +481,7 @@ contract BatchAuction is
     function getRemainingAmount(address _user) public view returns (uint256) {
         uint256 claimerCommitment = _getTokenAmount(commitments[_user]);
         uint256 remainingRatio = getRemainingRatio(block.timestamp);
-        return DecimalMath.mul(claimerCommitment, remainingRatio);
+        return DecimalMath.ONE.mul(7).div(10).mul(claimerCommitment, remainingRatio);
     }
 
     function getRemainingRatio(uint256 timestamp)
