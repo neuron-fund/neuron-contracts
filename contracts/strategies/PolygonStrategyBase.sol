@@ -338,7 +338,7 @@ abstract contract PolygonStrategyBase {
             path,
             address(this),
             // BEFORE_DEPLOY less deadline, initally 60 secs
-            block.timestamp.add(6000000)
+            block.timestamp.add(60)
         );
     }
 
@@ -361,7 +361,7 @@ abstract contract PolygonStrategyBase {
         address _from,
         address _to,
         uint256 _amount
-    ) internal {
+    ) internal returns (bool) {
         require(_to != address(0));
         require(
             routerAddress != address(0),
@@ -381,27 +381,18 @@ abstract contract PolygonStrategyBase {
             path[2] = _to;
         }
 
-        IUniswapRouterV2(routerAddress).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            block.timestamp.add(6000000)
-        );
-    }
-
-    function _distributePerformanceWantTokenFeesAndDeposit() internal {
-        uint256 _want = IERC20(want).balanceOf(address(this));
-
-        if (_want > 0) {
-            // Treasury fees
-            // Sending strategy's tokens to treasury. Currently @ 20% (set by performanceTreasuryFee constant) of strategy's assets
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceTreasuryFee).div(performanceTreasuryMax)
-            );
-
-            deposit();
+        try
+            IUniswapRouterV2(routerAddress).swapExactTokensForTokens(
+                _amount,
+                0,
+                path,
+                address(this),
+                block.timestamp.add(60)
+            )
+        {
+            return true;
+        } catch {
+            return false;
         }
     }
 
@@ -439,26 +430,41 @@ abstract contract PolygonStrategyBase {
 
         IERC20(swapToken).safeApprove(swapRouterAddress, 0);
         IERC20(weth).safeApprove(swapRouterAddress, 0);
-        IERC20(swapToken).safeApprove(swapRouterAddress, type(uint256).max);
+        IERC20(swapToken).safeApprove(swapRouterAddress, amount);
         IERC20(weth).safeApprove(swapRouterAddress, type(uint256).max);
-
-        _swapWithUniLikeRouter(
+        bool isSuccesfullSwap = _swapWithUniLikeRouter(
             swapRouterAddress,
             swapToken,
             neuronTokenAddress,
             amount
         );
 
-        uint256 neuronTokenBalance = IERC20(neuronTokenAddress).balanceOf(
-            address(this)
-        );
+        if (isSuccesfullSwap) {
+            uint256 neuronTokenBalance = IERC20(neuronTokenAddress).balanceOf(
+                address(this)
+            );
 
-        if (neuronTokenBalance > 0) {
-            // Treasury fees
-            // Sending strategy's tokens to treasury. Initially @ 30% (set by performanceTreasuryFee constant) of strategy's assets
-            IERC20(neuronTokenAddress).safeTransfer(
+            if (neuronTokenBalance > 0) {
+                // Treasury fees
+                // Sending strategy's tokens to treasury. Initially @ 30% (set by performanceTreasuryFee constant) of strategy's assets
+                IERC20(neuronTokenAddress).safeTransfer(
+                    IController(controller).treasury(), // BEFORE_DEPLOY поменять адрес на кошелек который будет переводить в аксон
+                    neuronTokenBalance
+                );
+            }
+        } else {
+            // If failed swap to Neuron just transfer swap token to treasury
+            IERC20(swapToken).safeApprove(
+                IController(controller).treasury(),
+                0
+            );
+            IERC20(swapToken).safeApprove(
+                IController(controller).treasury(),
+                amount
+            );
+            IERC20(swapToken).safeTransfer(
                 IController(controller).treasury(), // BEFORE_DEPLOY поменять адрес на кошелек который будет переводить в аксон
-                neuronTokenBalance
+                amount
             );
         }
     }
