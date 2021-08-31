@@ -14,10 +14,10 @@ contract MasterChef is Ownable {
 
     // The NEURON TOKEN
     AnyswapV5ERC20 public neuronToken;
-    // Dev fund (20%, initially)
-    uint256 public devFundPercentage = 20;
-    // Treasury (20%, initially)
-    uint256 public treasuryPercentage = 10;
+    // Dev fund (15%, initially)
+    uint256 public devFundPercentage = 15;
+    // Treasury (15%, initially)
+    uint256 public treasuryPercentage = 15;
     address public governance;
     // Dev address.
     address public devaddr;
