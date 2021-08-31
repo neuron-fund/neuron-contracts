@@ -59,7 +59,7 @@ contract PolygonStrategyCurveRenBtc is PolygonStrategyCurveBase {
         return "PolygonStrategyCurveRenBtc";
     }
 
-    function getMostPremium() public view override returns (address, uint256) {
+    function getMostPremium() pure public override returns (address, uint256) {
         // Always return wbtc because there is no liquidity for renBTC tokens
         return (wbtc, 0);
     }
