@@ -87,7 +87,6 @@ contract GaugesDistributor {
         delete tokenVote[_owner];
     }
 
-    // TODO У пикла не вызывалась почти никогда. Получается веса не вычисляются снова, если юзер перестал быть холдером аксона.
     // Adjusts _owner's votes according to latest _owner's AXON balance
     function poke(address _owner) public {
         address[] memory _tokenVote = tokenVote[_owner];

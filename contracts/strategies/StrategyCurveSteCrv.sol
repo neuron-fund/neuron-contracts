@@ -138,7 +138,6 @@ contract StrategyCurveSteCrv is StrategyBase {
     }
 
     function harvest() public override onlyBenevolent {
-        // TODO develop a frontrunning protection - maybe by only letting the keeper bot call the harvest?
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun / sandwiched
         // But ETH is a dark forest, and I wanna see how this plays out
