@@ -16,7 +16,6 @@ contract GaugesDistributor {
 
     IERC20 public immutable NEURON;
     IERC20 public immutable AXON;
-    address public treasury;
     address public governance;
     address public admin;
 
@@ -36,26 +35,22 @@ contract GaugesDistributor {
         address _minter,
         address _neuronToken,
         address _axon,
-        address _treasury,
         address _governance,
         address _admin
     ) {
         minter = IMinter(_minter);
         NEURON = IERC20(_neuronToken);
         AXON = IERC20(_axon);
-        treasury = _treasury;
         governance = _governance;
         admin = _admin;
     }
 
     function setMinter(address _minter) public {
-        require(msg.sender == governance, "!governance");
+        require(
+            msg.sender == governance,
+            "!admin and !governance"
+        );
         minter = IMinter(_minter);
-    }
-
-    function setTreasury(address _treasury) public {
-        require(msg.sender == governance, "!governance");
-        treasury = _treasury;
     }
 
     function tokens() external view returns (address[] memory) {
@@ -152,6 +147,7 @@ contract GaugesDistributor {
             msg.sender == admin || msg.sender == governance,
             "Set weights function can only be executed by admin or governance"
         );
+        require(isManualWeights, "Manual weights mode is off");
 
         require(
             _tokensToVote.length == _weights.length,
@@ -173,10 +169,7 @@ contract GaugesDistributor {
     }
 
     function setIsManualWeights(bool _isManualWeights) external {
-        require(
-            msg.sender == admin || msg.sender == governance,
-            "!admin and !governance"
-        );
+        require(msg.sender == governance, "!governance");
 
         isManualWeights = _isManualWeights;
     }
@@ -191,7 +184,7 @@ contract GaugesDistributor {
     }
 
     function addGauge(address _token) external {
-        require(msg.sender == governance, "!gov");
+        require(msg.sender == governance, "!governance");
         require(gauges[_token] == address(0x0), "exists");
         gauges[_token] = address(
             new Gauge(_token, address(NEURON), address(AXON))

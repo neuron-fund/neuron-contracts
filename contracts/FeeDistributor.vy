@@ -140,7 +140,6 @@ def checkpoint_token():
          by the contract owner. Beyond initial distro, it can be enabled for anyone
          to call.
     """
-    # BEFORE_DEPLOY передавать админа
     assert (msg.sender == self.admin) or\
            (self.can_checkpoint_token and (block.timestamp > self.last_token_time + TOKEN_CHECKPOINT_DEADLINE))
     self._checkpoint_token()
