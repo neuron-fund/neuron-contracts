@@ -12,6 +12,7 @@
   "license": "ISC",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.6",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@symfoni/hardhat-react": "^0.3.0",
     "@typechain/ethers-v5": "^7.0.1",
@@ -26,6 +27,7 @@
     "hardhat-abi-exporter": "^2.2.1",
     "hardhat-deploy": "^0.8.11",
     "hardhat-deploy-ethers": "*",
+    "hardhat-gas-reporter": "^1.0.4",
     "hardhat-typechain": "^0.3.5",
     "ts-generator": "^0.1.1",
     "ts-morph": "^11.0.3",
@@ -38,6 +40,7 @@
     "@nomiclabs/hardhat-vyper": "^2.0.1",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.2.0",
+    "date-fns": "^2.23.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
     "replace-in-file": "^6.2.0"

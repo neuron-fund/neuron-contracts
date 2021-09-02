@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./PolygonStrategySushiDoubleRewardBase.sol";
-import "hardhat/console.sol";
 
 contract PolygonStrategySushiDoubleDaiPickleLp is PolygonStrategyBase {
     using SafeERC20 for IERC20;
@@ -174,7 +173,6 @@ contract PolygonStrategySushiDoubleDaiPickleLp is PolygonStrategyBase {
         }
 
         uint256 _dai = IERC20(dai).balanceOf(address(this));
-        console.log("dai amount", _dai.div(2));
         // Swap half DAI for pickle
         if (_dai > 0) {
             IERC20(dai).safeApprove(sushiRouter, 0);

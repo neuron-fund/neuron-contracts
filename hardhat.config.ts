@@ -13,7 +13,8 @@ import "@nomiclabs/hardhat-web3"
 import 'hardhat-abi-exporter'
 import { testPrivateKeys } from './utils/testPrivateKeys'
 import "@typechain/hardhat"
-
+import "hardhat-gas-reporter"
+import "@nomiclabs/hardhat-etherscan"
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -43,7 +44,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: 1337,
+      chainId: process.env.POLYGON ? 1339 : 1337,
       forking: {
         url: process.env.POLYGON ? process.env.ALCHEMY_POLYGON : process.env.ALCHEMY,
       },
@@ -51,6 +52,14 @@ const config: HardhatUserConfig = {
       blockGasLimit: 0x1fffffffffffff,
       accounts: getHardhatAccounts(20),
       gas: 1200000000,
+    },
+    prodMainnet: {
+      url: process.env.PROD_MAINNET_RPC,
+      gasPrice: 60e9,
+    },
+    localPolygon : {
+      url: 'http://127.0.0.1:8546/',
+      accounts: getHardhatAccounts(20).map(x => x.privateKey)
     },
     testnet: {
       url: 'https://neurontestnet.xyz/',
@@ -61,6 +70,7 @@ const config: HardhatUserConfig = {
     version: '0.2.12'
   },
   mocha: {
+    reporter: 'eth-gas-reporter',
     timeout: 300000,
   }
 }

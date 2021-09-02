@@ -24,7 +24,7 @@ abstract contract PolygonStrategyQuickswapBase is
     address public token1;
 
     // How much Reward tokens to keep
-    uint256 public keepRewardToken = 500;
+    uint256 public keepRewardToken = 0;
     uint256 public keepRewardTokenMax = 10000;
 
     constructor(

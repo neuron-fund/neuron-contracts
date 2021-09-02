@@ -31,7 +31,7 @@ abstract contract PolygonStrategyCurveBase is PolygonStrategyBase {
     address public constant crv = 0x172370d5Cd63279eFa6d502DAB29171933a610AF;
 
     // How much CRV tokens to keep
-    uint256 public keepCRV = 0;
+    uint256 public keepCRV = 500;
     uint256 public keepCRVMax = 10000;
 
     constructor(
