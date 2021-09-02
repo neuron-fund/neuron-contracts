@@ -233,7 +233,6 @@ contract Gauge is ReentrancyGuard {
         emit RewardAdded(reward);
     }
 
-    // BEFORE_DEPLOY gauges shouldn't be empty at the moment of first users staking. Set rewardPerTokenStored
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();

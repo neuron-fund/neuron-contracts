@@ -76,7 +76,6 @@ contract GaugesDistributor {
             uint256 _votes = votes[_owner][_token];
 
             if (_votes > 0) {
-                // BEFORE_DEPLOY totalWeight = 0, после преминта надо проголосовать, перед деплоем в паблик, иначе гейджы работать не будут
                 totalWeight = totalWeight.sub(_votes);
                 weights[_token] = weights[_token].sub(_votes);
 
@@ -154,17 +153,18 @@ contract GaugesDistributor {
         );
 
         uint256 _tokensCnt = _tokensToVote.length;
-        totalWeight = 0;
+        uint256 _totalWeight = 0;
         for (uint256 i = 0; i < _tokensCnt; i++) {
             address _token = _tokensToVote[i];
             address _gauge = gauges[_token];
             uint256 _tokenWeight = _weights[i];
 
             if (_gauge != address(0x0)) {
-                totalWeight = totalWeight.add(_tokenWeight);
+                _totalWeight = _totalWeight.add(_tokenWeight);
                 weights[_token] = _tokenWeight;
             }
         }
+        totalWeight = _totalWeight;
     }
 
     function setIsManualWeights(bool _isManualWeights) external {
@@ -200,7 +200,6 @@ contract GaugesDistributor {
         return _tokens.length;
     }
 
-    // BEFORE_DEPLOY once-per-week call
     function distribute() external {
         require(
             msg.sender == admin || msg.sender == governance,

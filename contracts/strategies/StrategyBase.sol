@@ -338,7 +338,6 @@ abstract contract StrategyBase {
             0,
             path,
             address(this),
-            // BEFORE_DEPLOY less deadline, initally 60 secs
             block.timestamp.add(60)
         );
     }
@@ -449,7 +448,7 @@ abstract contract StrategyBase {
                 // Treasury fees
                 // Sending strategy's tokens to treasury. Initially @ 30% (set by performanceTreasuryFee constant) of strategy's assets
                 IERC20(neuronTokenAddress).safeTransfer(
-                    IController(controller).treasury(), // BEFORE_DEPLOY поменять адрес на кошелек который будет переводить в аксон
+                    IController(controller).treasury(),
                     neuronTokenBalance
                 );
             }
@@ -458,7 +457,7 @@ abstract contract StrategyBase {
             IERC20(swapToken).safeApprove(IController(controller).treasury(), 0);
             IERC20(swapToken).safeApprove(IController(controller).treasury(), amount);
             IERC20(swapToken).safeTransfer(
-                IController(controller).treasury(), // BEFORE_DEPLOY поменять адрес на кошелек который будет переводить в аксон
+                IController(controller).treasury(),
                 amount
             );
         }
