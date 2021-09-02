@@ -1,7 +1,7 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer, constants as ethersConstants, ContractFactory } from "ethers"
-import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategySushiDoubleEthAlcxLp__factory, StrategySushiEthUsdcLp__factory, StrategySushiEthSushiLp__factory, StrategySushiEthWBtcLp__factory, StrategySushiEthDaiLp__factory } from '../typechain'
+import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategySushiDoubleEthAlcxLp__factory, StrategySushiEthUsdcLp__factory, StrategySushiEthSushiLp__factory, StrategySushiEthWbtcLp__factory, StrategySushiEthDaiLp__factory } from '../typechain'
 import { ALCX, CVX, DAI, PICKLE, RULER, SUSHI, SUSHISWAP_ROUTER, SUSHI_ETH_ALCX_LP, SUSHI_ETH_CVX_LP, SUSHI_ETH_PICKLE_LP, SUSHI_ETH_RULER_LP, USDC, WBTC, WETH } from '../constants/addresses'
 import { getToken } from '../utils/getCurveTokens'
 import { formatEther, parseEther } from 'ethers/lib/utils'
@@ -51,11 +51,11 @@ describe('Token', function () {
     })
   })
 
-  it('Test StrategySushiEthWBtcLp', async function () {
+  it('Test StrategySushiEthWbtcLp', async function () {
     await testSushiDoubleRewards({
       accounts,
       lpAddress: '0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58',
-      strategyFactory: await ethers.getContractFactory('StrategySushiEthWBtcLp') as StrategySushiEthWBtcLp__factory
+      strategyFactory: await ethers.getContractFactory('StrategySushiEthWbtcLp') as StrategySushiEthWbtcLp__factory
     })
   })
 })
@@ -151,7 +151,7 @@ async function testSushiDoubleRewards<T extends ContractFactory> ({
   )
 
 
-  const axon = await AxonVyper.deploy(neuronToken.address, 'Axon token', 'AXON', '1.0')
+  const axon = await AxonVyper.deploy(neuronToken.address, 'veNEUR token', 'veNEUR', '1.0')
   await axon.deployed()
   const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
   const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
