@@ -27,7 +27,7 @@ async function main () {
   const neuronToken = await NeuronToken.deploy(governanceAddress)
   await neuronToken.deployed()
 
-  const axon = await AxonVyper.deploy(neuronToken.address, 'Axon token', 'AXON', '1.0')
+  const axon = await AxonVyper.deploy(neuronToken.address, 'veNEUR token', 'veNEUR', '1.0')
   await axon.deployed()
 
   const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
