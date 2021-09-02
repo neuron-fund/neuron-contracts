@@ -51,7 +51,7 @@ const config: HardhatUserConfig = {
       loggingEnabled: true,
       blockGasLimit: 0x1fffffffffffff,
       accounts: getHardhatAccounts(20),
-      gas: 1200000000,
+      gas: 120e9,
     },
     prodMainnet: {
       url: process.env.PROD_MAINNET_RPC,
@@ -65,6 +65,9 @@ const config: HardhatUserConfig = {
       url: 'https://neurontestnet.xyz/',
       accounts: getHardhatAccounts(20).map(x => x.privateKey)
     }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN
   },
   vyper: {
     version: '0.2.12'
