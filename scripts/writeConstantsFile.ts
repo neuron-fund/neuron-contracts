@@ -7,8 +7,8 @@ export const writeConstantsFile = ({
   controllerAddress,
   masterChefAddress,
   gaugesDistributorAddress,
-  axonAddress,
-  feeDistributorAddress,
+  axonAddress = '',
+  feeDistributorAddress = '',
   deployedStrategies
 }, fileName) => (
   writeFileSync(path.resolve(__dirname, `../frontend/${fileName}.ts`), `

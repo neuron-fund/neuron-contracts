@@ -55,7 +55,10 @@ const config: HardhatUserConfig = {
     },
     prodMainnet: {
       url: process.env.PROD_MAINNET_RPC,
-      gasPrice: 60e9,
+      gasPrice: 70e9,
+    },
+    prodPolygon: {
+      url: process.env.PROD_POLYGON_RPC,
     },
     localPolygon : {
       url: 'http://127.0.0.1:8546/',
@@ -67,7 +70,7 @@ const config: HardhatUserConfig = {
     }
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN
+    apiKey: process.env.ETHERSCAN_API
   },
   vyper: {
     version: '0.2.12'
