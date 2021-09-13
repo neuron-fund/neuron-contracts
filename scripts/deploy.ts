@@ -54,12 +54,10 @@ export async function deploy () {
 
   console.log('START DEPLOY')
 
-  // TODO make AXON and fee-distributor changeable
   const neuronsPerBlock = parseEther('0.3')
   const startBlock = 0
   const bonusEndBlock = 0
 
-  // TODO decide on timelock
   const neuronToken = await NeuronToken.deploy(governanceAddress)
   await neuronToken.deployed()
   const masterChef = await Masterchef.deploy(neuronToken.address, governanceAddress, devAddress, masterChefTreasureAddress, neuronsPerBlock, startBlock, bonusEndBlock)
