@@ -61,5 +61,33 @@ export const Pools = {
     inputTokenSymbol: 'SLP',
     inputTokenAddress: '0xb1EECFea192907fC4bF9c4CE99aC07186075FC51',
     gaugeAddress: '0xd1523BF164AC159f035e0168e3900ba069a90e1c'
-  }
+  },
+  SushiEthDaiLp: {
+    strategyAddress: '0xB5CC2a5245199aA2cB3dCC7e29b91259FAFd018E',
+    poolAddress: '0x05EEcC1924186aFB5E59ca31904753B6997369d2',
+    gaugeAddress: '0x2e5d5BEBc90790327fF63eD26911a60d5A593D00',
+    inputTokenAddress: '',
+    inputTokenSymbol: '',
+  },
+  SushiEthSushiLp: {
+    strategyAddress: '0x5333EAf16DA26C75ACE875a685A732CF679cF6b8',
+    poolAddress: '0x0D55b94Ea45a81D8c51c631e49805Cf146bA91eE',
+    gaugeAddress: '0x7d150cf5413803c001973E74290Da36C9Bd2806f',
+    inputTokenAddress: '0x795065dCc9f64b5614C407a6EFDC400DA6221FB0',
+    inputTokenSymbol: 'SLP',
+  },
+  SushiEthUsdcLp: {
+    strategyAddress: '0xD41eB35E58A9089e3ff8D75D2612A6C9cF68827f',
+    poolAddress: '0x70D1d65F55C451eAa2A32Cf016F1449f71Bae4CC',
+    gaugeAddress: '0x9CA8ECb6CE746cd2cbE56ab8427Ece65b751667B',
+    inputTokenAddress: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0',
+    inputTokenSymbol: 'SLP',
+  },
+  SushiEthWbtcLp: {
+    strategyAddress: '0x074ee9744D85d6c6B729f9944D6A5d8f341C8061',
+    poolAddress: '0x872C6FeBeF9d005D8CF95cb444B42697A57d070A',
+    gaugeAddress: '0x8e7fcED71CF4Dbc82783A773b365386c0FDB5179',
+    inputTokenAddress: '0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58',
+    inputTokenSymbol: 'SLP',
+  },
 }
