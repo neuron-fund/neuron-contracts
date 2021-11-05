@@ -6,3 +6,5 @@ artifacts
 typechain
 abi
 .env
+.DS_Store
+zapper
