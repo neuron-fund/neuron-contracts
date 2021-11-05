@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers"
 import { Signer } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { ethers } from "hardhat"
-import { DAI, UNISWAP_ROUTER_V2, WETH, CURVE_3CRV_POOL, THREE_CRV, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, FEI, TRIBE, UNI_FEI_TRIBE_LP } from '../constants/addresses'
+import { DAI, UNISWAP_ROUTER_V2, WETH, CURVE_3CRV_POOL, CURVE_3CRV_LP_TOKEN, WBTC, CURVE_REN_CRV_POOL, REN_CRV, CURVE_STE_CRV_POOL, LIDO_ST_ETH, STE_CRV, FEI, TRIBE, UNI_FEI_TRIBE_LP } from '../constants/addresses'
 import { IUniswapRouterV2, ICurveFi3, IERC20, ICurveFi2, IStEth, ICurveFi, ERC20 } from '../typechain'
 
 export const getToken = async (address: string, signer: Signer) => {
@@ -34,7 +34,7 @@ export const get3Crv = async (recipient: Signer) => {
   const curve3CrvPool = await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient) as ICurveFi3
   await dai.connect(recipient).approve(curve3CrvPool.address, daiBalanceAfter)
   await curve3CrvPool.add_liquidity([daiBalanceAfter, 0, 0], 0)
-  const threeCrv = await getToken(THREE_CRV, recipient)
+  const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, recipient)
   const threeCrvBalance = await threeCrv.balanceOf(accAddress)
 }
 
@@ -62,7 +62,7 @@ export const getPolygon3Crv = async (recipient: Signer) => {
   const curve3CrvPool = await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient) as ICurveFi3
   await dai.connect(recipient).approve(curve3CrvPool.address, daiBalanceAfter)
   await curve3CrvPool.add_liquidity([daiBalanceAfter, 0, 0], 0)
-  const threeCrv = await getToken(THREE_CRV, recipient)
+  const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, recipient)
   const threeCrvBalance = await threeCrv.balanceOf(accAddress)
 }
 

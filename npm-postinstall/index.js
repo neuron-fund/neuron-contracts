@@ -5,8 +5,13 @@ const replace = require('replace-in-file');
 // https://github.com/nomiclabs/hardhat/issues/1696
 const fixAbiGasType = async () => {
   try {
-    const results = await replace({
+    await replace({
       files: 'node_modules/@ethersproject/abi/lib/fragments.d.ts',
+      from: `gas?: string;`,
+      to: `gas?: string | number;`
+    });
+    await replace({
+      files: 'node_modules/@ethersproject/abi/src.ts/fragments.ts',
       from: `gas?: string;`,
       to: `gas?: string | number;`
     });

@@ -5,7 +5,7 @@ import { BigNumber, Signer, constants as ethersConstants } from "ethers"
 import { IUniswapRouterV2 } from '../typechain/IUniswapRouterV2'
 import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFi3, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyCurve3Crv, StrategyCurve3Crv__factory, StrategyFeiTribeLp__factory } from '../typechain'
 import { assert } from 'chai'
-import { CRV, SUSHISWAP_ROUTER, THREE_CRV, TRIBE, WETH } from '../constants/addresses'
+import { CRV, SUSHISWAP_ROUTER, CURVE_3CRV_LP_TOKEN, TRIBE, WETH } from '../constants/addresses'
 import { get3Crv, getToken } from '../utils/getCurveTokens'
 import { parseEther } from 'ethers/lib/utils'
 import { waitNDays } from '../utils/time'
@@ -128,7 +128,7 @@ describe('Token', function () {
     await gaugesDistributor.distribute()
     await get3Crv(user)
 
-    const threeCrv = await getToken(THREE_CRV, user)
+    const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, user)
     const threeCrvUserBalanceInitial = await threeCrv.balanceOf(await user.getAddress())
     console.log(`threeCrvUserBalanceInitial`, ethers.utils.formatEther(threeCrvUserBalanceInitial))
     await threeCrv.connect(user).approve(neuronPool.address, threeCrvUserBalanceInitial)

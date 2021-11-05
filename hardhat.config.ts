@@ -2,6 +2,7 @@ import { config as dontenvConfig } from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
 const env = dontenvConfig()
 dotenvExpand(env)
+import { testPrivateKeys } from './utils/testPrivateKeys'
 
 import { HardhatUserConfig } from "hardhat/config"
 import "@nomiclabs/hardhat-ethers"
@@ -11,10 +12,10 @@ import "hardhat-deploy-ethers"
 import "hardhat-deploy"
 import "@nomiclabs/hardhat-web3"
 import 'hardhat-abi-exporter'
-import { testPrivateKeys } from './utils/testPrivateKeys'
 import "@typechain/hardhat"
 import "hardhat-gas-reporter"
 import "@nomiclabs/hardhat-etherscan"
+import "@openzeppelin/hardhat-upgrades"
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -55,12 +56,13 @@ const config: HardhatUserConfig = {
     },
     prodMainnet: {
       url: process.env.PROD_MAINNET_RPC,
-      gasPrice: 70e9,
+      gasPrice: 40e9,
+      blockGasLimit: 5e6
     },
     prodPolygon: {
       url: process.env.PROD_POLYGON_RPC,
     },
-    localPolygon : {
+    localPolygon: {
       url: 'http://127.0.0.1:8546/',
       accounts: getHardhatAccounts(20).map(x => x.privateKey)
     },
@@ -78,7 +80,13 @@ const config: HardhatUserConfig = {
   mocha: {
     reporter: 'eth-gas-reporter',
     timeout: 300000,
-  }
+  },
+  // namedAccounts: {
+  //   default: {
+  //     default: 0,
+
+  //   }
+  // }
 }
 
 function getHardhatAccounts (accountsNumber: number) {
