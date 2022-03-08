@@ -15,26 +15,20 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
     using Address for address;
 
     uint256 public poolId;
-    address public reward; // Можно динамечски через запрос по poolId получить адрес, а можно явно указать что лучше?
 
     address public constant convexBooster =
-        0xF403C135812408BFbE8713b5A23a04b3D48AAE31; // Основной котракт convex для взаимодействия с пулами
-    address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B; // токен convex
-    address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52; // токен curve
-
-    // How much CRV tokens to keep
-    uint256 public keepCRV = 500; // ?
-    uint256 public keepCRVMax = 10000; // ?
+        0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
+    address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+    address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
 
     constructor(
-        address _want, // токен-расписка из Curve
-        address _governance, // Нужны пояснения по ролям _governance _strategist
+        address _want,
+        address _governance,
         address _strategist,
-        address _controller, // Что делает?
-        address _neuronTokenAddress, // Адрес к нашему erc20 токену?
-        address _timelock, // Тайминг вознаграждений? Как используется?
-        uint256 _poolId,
-        address _reward // адресс контракта в котором храниться награда от стейкинга токенов-расписок Curve
+        address _controller,
+        address _neuronTokenAddress,
+        address _timelock,
+        uint256 _poolId
     )
         StrategyBase(
             _want,
@@ -46,30 +40,35 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
         )
     {
         poolId = _poolId;
-        reward = _reward;
+    }
+
+    function getCrvRewardContract() internal view returns (address) {
+        (, , , address crvRewards, , ) = IConvexBooster(convexBooster).poolInfo(
+            poolId
+        );
+        return crvRewards;
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        return IBaseRewardPool(reward).balanceOf(address(this));
+        return IBaseRewardPool(getCrvRewardContract()).balanceOf(address(this));
     }
 
     function deposit() public override {
-        uint256 _want = IERC20(want).balanceOf(address(this)); // получаем баланс токенов-расписок из Curve, которые принадлежат контракту текущей стратегии
+        uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
             IERC20(want).safeApprove(convexBooster, 0);
             IERC20(want).safeApprove(convexBooster, _want);
 
-            IConvexBooster(convexBooster).deposit(poolId, _want, true); // Вносим токены-расписки Curve в стейк конвекса
+            IConvexBooster(convexBooster).deposit(poolId, _want, true);
         }
     }
 
-    // Нужны пояснения по этому методоы и его публичной версии, так как мне кажется дикостью возвращать аргумент, и в публичном методе тоже какая то жесть
     function _withdrawSome(uint256 _amount) 
         internal
         override
         returns (uint256)
     {
-        IBaseRewardPool(reward).withdrawAndUnwrap(_amount, true);
+        IBaseRewardPool(getCrvRewardContract()).withdrawAndUnwrap(_amount, true);
         return _amount;
     }
 }
