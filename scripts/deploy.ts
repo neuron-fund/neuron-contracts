@@ -1,41 +1,13 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { ContractFactory, Wallet } from "ethers"
-import {
-  Controller,
-  Controller__factory,
-  MasterChef__factory,
-  NeuronPool__factory,
-  NeuronToken__factory,
-  StrategyBase,
-  StrategyCurveRenCrv__factory,
-  StrategyFeiTribeLp__factory,
-  StrategyCurve3Crv__factory,
-  StrategyCurveSteCrv__factory,
-  GaugesDistributor__factory,
-  AxonVyper__factory,
-  FeeDistributor__factory,
-  StrategySushiDoubleEthAlcxLp__factory,
-  StrategySushiDoubleEthCvxLp__factory,
-  StrategySushiDoubleEthPickleLp__factory,
-  StrategySushiDoubleEthRulerLp__factory,
-  StrategySushiEthDaiLp__factory,
-  StrategySushiEthSushiLp__factory,
-  StrategySushiEthUsdcLp__factory,
-  StrategySushiEthWbtcLp__factory,
-  StrategyYearnAffiliate__factory,
-  StrategyYearnCrvFrax__factory,
-  StrategyYearnCrvLusd__factory,
-  StrategyYearnCrvSteth__factory,
-  StrategyYearnUsdcV2__factory,
-  StartegyConvexCurve3Lp__factory
-} from '../typechain'
+import { Controller, Controller__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, GaugesDistributor__factory, AxonVyper__factory, FeeDistributor__factory, StrategySushiDoubleEthAlcxLp__factory, StrategySushiDoubleEthCvxLp__factory, StrategySushiDoubleEthPickleLp__factory, StrategySushiDoubleEthRulerLp__factory, StrategySushiEthDaiLp__factory, StrategySushiEthSushiLp__factory, StrategySushiEthUsdcLp__factory, StrategySushiEthWbtcLp__factory, StrategyYearnAffiliate__factory, StrategyYearnCrvFrax__factory, StrategyYearnCrvLusd__factory, StrategyYearnCrvSteth__factory, StrategyYearnUsdcV2__factory } from '../typechain'
 import { getToken } from '../utils/getCurveTokens'
 import { waitNDays } from '../utils/time'
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
-export async function deploy() {
+export async function deploy () {
   const accounts = await ethers.getSigners()
   const deployer = accounts[5]
   const devWallet = await Wallet.createRandom()
@@ -76,8 +48,6 @@ export async function deploy() {
   const StrategyYearnCrvLusd = await ethers.getContractFactory('StrategyYearnCrvLusd', deployer) as StrategyYearnCrvLusd__factory
   const StrategyYearnCrvSteth = await ethers.getContractFactory('StrategyYearnCrvSteth', deployer) as StrategyYearnCrvSteth__factory
   const StrategyYearnUsdcV2 = await ethers.getContractFactory('StrategyYearnUsdcV2', deployer) as StrategyYearnUsdcV2__factory
-  // TODO: добавить стратигии convex
-  const StartegyConvexCurve3Lp = await ethers.getContractFactory('StartegyConvexCurve3Lp', deployer) as StartegyConvexCurve3Lp__factory
 
   const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
   const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
@@ -139,8 +109,6 @@ export async function deploy() {
     // { name: 'YearnCrvLusd', factory: StrategyYearnCrvLusd, noNeuronTokenInConstructor: true },
     // { name: 'YearnCrvSteth', factory: StrategyYearnCrvSteth, noNeuronTokenInConstructor: true },
     // { name: 'YearnUsdcV2', factory: StrategyYearnUsdcV2, noNeuronTokenInConstructor: true },
-    // TODO: добавить стратегии convex
-    { name: 'ConvexCurve3Lp', factory: StartegyConvexCurve3Lp },
   ]
 
 
