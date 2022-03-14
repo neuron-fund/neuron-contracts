@@ -2,17 +2,17 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer, constants as ethersConstants } from "ethers"
-import { ERC20, IConvexBooster, AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFi3, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyConvexCurve3Lp__factory } from '../typechain'
+import { IConvexBooster,ICurveGauge, IConvexMasterChef, AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFi3, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyConvexCurve3Lp__factory, StrategyConvexCurveSUSD__factory } from '../typechain'
 import { assert } from 'chai'
-import { CRV, SUSHISWAP_ROUTER, CURVE_3CRV_LP_TOKEN, TRIBE, WETH, CONVEX_BOOSTER } from '../constants/addresses'
-import { get3Crv, getToken } from '../utils/getCurveTokens'
+import { CRV, SUSHISWAP_ROUTER, CURVE_3CRV_LP_TOKEN, TRIBE, WETH, CURVE_SUSD_LP_TOKEN, CONVEX_BOOSTER } from '../constants/addresses'
+import { getSUsdLp, getToken } from '../utils/getCurveTokens'
 import { parseEther } from 'ethers/lib/utils'
 import { waitNDays } from '../utils/time'
 
 describe('Token', function () {
   let accounts: Signer[]
 
-  it('Test StrategyConvexCurve3Lp', async function () {
+  it('Test StrategyConvexCurveSUSD', async function () {
     accounts = await ethers.getSigners()
 
     const deployer = accounts[0]
@@ -91,7 +91,7 @@ describe('Token', function () {
     await gaugesDistributor.deployed()
     await masterChef.setDistributor(gaugesDistributor.address)
 
-    const strategyFactory = await ethers.getContractFactory('StrategyConvexCurve3Lp') as StrategyConvexCurve3Lp__factory
+    const strategyFactory = await ethers.getContractFactory('StrategyConvexCurveSUSD') as StrategyConvexCurveSUSD__factory
 
     const strategy = await strategyFactory.deploy(
       await governance.getAddress(),
@@ -125,17 +125,17 @@ describe('Token', function () {
     await waitNDays(10, network.provider)
 
     await gaugesDistributor.distribute()
-    await get3Crv(user)
+    await getSUsdLp(user)
 
-    const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, user)
-    const threeCrvUserBalanceInitial = await threeCrv.balanceOf(await user.getAddress())
-    console.log(`threeCrvUserBalanceInitial`, ethers.utils.formatEther(threeCrvUserBalanceInitial))
-    await threeCrv.connect(user).approve(neuronPool.address, threeCrvUserBalanceInitial)
+    const sUsdCrv = await getToken(CURVE_SUSD_LP_TOKEN, user)
+    const sUsdLpUserBalanceInitial = await sUsdCrv.balanceOf(await user.getAddress())
+    console.log(`sUsdLpUserBalanceInitial`, ethers.utils.formatEther(sUsdLpUserBalanceInitial))
+    await sUsdCrv.connect(user).approve(neuronPool.address, sUsdLpUserBalanceInitial)
 
     console.log('Connect user to pool')
     const neuronPoolUserConnected = neuronPool.connect(user)
     console.log('Depositing to pool')
-    await neuronPoolUserConnected.deposit(threeCrvUserBalanceInitial)
+    await neuronPoolUserConnected.deposit(sUsdLpUserBalanceInitial)
     console.log('Execute pools earn function')
     await neuronPool.earn()
 
@@ -162,17 +162,22 @@ describe('Token', function () {
     console.log(`crvHarvested = ${crvHarvested} CRV`);
     assert(crvHarvested > 0, '!CrvHarvested');
 
+    // check harvest snx
+    const snxHarvested = receitp.events.find(x => x.event == 'SnxHarvested').args[0];
+    console.log(`snxHarvested = ${snxHarvested} SNX`);
+    assert(crvHarvested > 0, '!SnxHarvested');
+
     // check deposit after harvest
     const deposited = receitp.events.find(x => x.event == 'Deposited').args[0];
     console.log(`deposited = ${deposited} 3Crv`);
     assert(deposited > 0, '!Deposited');
 
     await neuronPool.connect(user).withdrawAll();
-    const threeCrvUserBalanceResult = await threeCrv.balanceOf(await user.getAddress());
+    const sUsdLpUserBalanceResult = await sUsdCrv.balanceOf(await user.getAddress());
     
-    console.log(`Initial 3crv balance: ${threeCrvUserBalanceInitial}`);
-    console.log(`Result 3crv  balance: ${threeCrvUserBalanceResult}`);
+    console.log(`Initial sUsdCrv balance: ${sUsdLpUserBalanceInitial}`);
+    console.log(`Result  sUsdCrv  balance: ${sUsdLpUserBalanceResult}`);
 
-    assert(threeCrvUserBalanceResult > threeCrvUserBalanceInitial, 'not farmed');
+    assert(sUsdLpUserBalanceResult > sUsdLpUserBalanceInitial, 'not farmed');
   })
 })

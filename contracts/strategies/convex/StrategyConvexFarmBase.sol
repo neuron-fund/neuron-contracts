@@ -8,27 +8,32 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../StrategyBase.sol";
 import "../../interfaces/IConvexFarm.sol";
-import "../../interfaces/IConvexFarm.sol";
 
 abstract contract StrategyConvexFarmBase is StrategyBase {
     using SafeERC20 for IERC20;
     using Address for address;
 
+    // Strategy config, + "want" this lp token
+    address public swapPool;
     uint256 public poolId;
 
+    // Base convex config
     address public constant convexBooster =
         0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
     address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
     address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
 
+    event Deposited(uint256 amount);
+
     constructor(
         address _want,
+        address _swapPool,
+        uint256 _poolId,
         address _governance,
         address _strategist,
         address _controller,
         address _neuronTokenAddress,
-        address _timelock,
-        uint256 _poolId
+        address _timelock
     )
         StrategyBase(
             _want,
@@ -39,6 +44,7 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
             _timelock
         )
     {
+        swapPool = _swapPool;
         poolId = _poolId;
     }
 
@@ -60,6 +66,7 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
             IERC20(want).safeApprove(convexBooster, _want);
 
             IConvexBooster(convexBooster).deposit(poolId, _want, true);
+            Deposited(_want);
         }
     }
 

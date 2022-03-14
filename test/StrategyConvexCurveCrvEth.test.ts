@@ -2,10 +2,10 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer, constants as ethersConstants } from "ethers"
-import { ERC20, IConvexBooster, AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFi3, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyConvexCurve3Lp__factory } from '../typechain'
+import { StrategyConvexCurveCrvEth__factory, ERC20, IConvexBooster, AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFi3, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyConvexCurve3Lp__factory } from '../typechain'
 import { assert } from 'chai'
-import { CRV, SUSHISWAP_ROUTER, CURVE_3CRV_LP_TOKEN, TRIBE, WETH, CONVEX_BOOSTER } from '../constants/addresses'
-import { get3Crv, getToken } from '../utils/getCurveTokens'
+import { CRV, SUSHISWAP_ROUTER, CURVE_3CRV_LP_TOKEN, TRIBE, WETH, CONVEX_BOOSTER, CURVE_CRV_ETH_LP_TOKEN } from '../constants/addresses'
+import { get3Crv, getCrvEth, getToken } from '../utils/getCurveTokens'
 import { parseEther } from 'ethers/lib/utils'
 import { waitNDays } from '../utils/time'
 
@@ -91,7 +91,7 @@ describe('Token', function () {
     await gaugesDistributor.deployed()
     await masterChef.setDistributor(gaugesDistributor.address)
 
-    const strategyFactory = await ethers.getContractFactory('StrategyConvexCurve3Lp') as StrategyConvexCurve3Lp__factory
+    const strategyFactory = await ethers.getContractFactory('StrategyConvexCurveCrvEth') as StrategyConvexCurveCrvEth__factory
 
     const strategy = await strategyFactory.deploy(
       await governance.getAddress(),
@@ -125,17 +125,17 @@ describe('Token', function () {
     await waitNDays(10, network.provider)
 
     await gaugesDistributor.distribute()
-    await get3Crv(user)
+    await getCrvEth(user)
 
-    const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, user)
-    const threeCrvUserBalanceInitial = await threeCrv.balanceOf(await user.getAddress())
-    console.log(`threeCrvUserBalanceInitial`, ethers.utils.formatEther(threeCrvUserBalanceInitial))
-    await threeCrv.connect(user).approve(neuronPool.address, threeCrvUserBalanceInitial)
+    const crvEth = await getToken(CURVE_CRV_ETH_LP_TOKEN, user)
+    const crvEthUserBalanceInitial = await crvEth.balanceOf(await user.getAddress())
+    console.log(`crvEthUserBalanceInitial`, ethers.utils.formatEther(crvEthUserBalanceInitial))
+    await crvEth.connect(user).approve(neuronPool.address, crvEthUserBalanceInitial)
 
     console.log('Connect user to pool')
     const neuronPoolUserConnected = neuronPool.connect(user)
     console.log('Depositing to pool')
-    await neuronPoolUserConnected.deposit(threeCrvUserBalanceInitial)
+    await neuronPoolUserConnected.deposit(crvEthUserBalanceInitial)
     console.log('Execute pools earn function')
     await neuronPool.earn()
 
@@ -164,15 +164,15 @@ describe('Token', function () {
 
     // check deposit after harvest
     const deposited = receitp.events.find(x => x.event == 'Deposited').args[0];
-    console.log(`deposited = ${deposited} 3Crv`);
+    console.log(`deposited = ${deposited} crvEth`);
     assert(deposited > 0, '!Deposited');
 
     await neuronPool.connect(user).withdrawAll();
-    const threeCrvUserBalanceResult = await threeCrv.balanceOf(await user.getAddress());
+    const crvEthUserBalanceResult = await crvEth.balanceOf(await user.getAddress());
     
-    console.log(`Initial 3crv balance: ${threeCrvUserBalanceInitial}`);
-    console.log(`Result 3crv  balance: ${threeCrvUserBalanceResult}`);
+    console.log(`Initial 3crv balance: ${crvEthUserBalanceInitial}`);
+    console.log(`Result 3crv  balance: ${crvEthUserBalanceResult}`);
 
-    assert(threeCrvUserBalanceResult > threeCrvUserBalanceInitial, 'not farmed');
+    assert(crvEthUserBalanceResult > crvEthUserBalanceInitial, 'not farmed');
   })
 })
