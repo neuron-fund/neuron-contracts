@@ -20,9 +20,9 @@ contract StrategyConvexCurveCrvEth is StrategyConvexFarmBase {
         address _timelock
     )
         StrategyConvexFarmBase(
-            0xEd4064f376cB8d68F770FB1Ff088a3d0F3FF5c4d, // want, lp token
-            0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // swapPool, ren
-            61, // poolId
+            0xEd4064f376cB8d68F770FB1Ff088a3d0F3FF5c4d, // want
+            0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // curvePool
+            61, // convexPoolId
             _governance,
             _strategist,
             _controller,
@@ -62,9 +62,9 @@ contract StrategyConvexCurveCrvEth is StrategyConvexFarmBase {
         // reinvestment
         _crv = IERC20(crv).balanceOf(address(this));
         if (_crv > 0) {
-            IERC20(crv).safeApprove(swapPool, 0);
-            IERC20(crv).safeApprove(swapPool, _crv);
-            ICurveFi_2(swapPool).add_liquidity([0, _crv], 0);
+            IERC20(crv).safeApprove(curvePool, 0);
+            IERC20(crv).safeApprove(curvePool, _crv);
+            ICurveFi_2(curvePool).add_liquidity([0, _crv], 0);
         }
         deposit();
     }

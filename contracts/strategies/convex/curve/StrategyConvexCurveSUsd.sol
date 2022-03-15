@@ -31,9 +31,9 @@ contract StrategyConvexCurveSUSD is StrategyConvexFarmBase {
         address _timelock
     )
         StrategyConvexFarmBase(
-            0xC25a3A3b969415c80451098fa907EC722572917F, // want, lp token - sUSD
-            0xA5407eAE9Ba41422680e2e00537571bcC53efBfD, // swapPool
-            4, // poolId
+            0xC25a3A3b969415c80451098fa907EC722572917F, // want
+            0xA5407eAE9Ba41422680e2e00537571bcC53efBfD, // curvePool
+            4, // convexPoolId
             _governance,
             _strategist,
             _controller,
@@ -94,17 +94,17 @@ contract StrategyConvexCurveSUSD is StrategyConvexFarmBase {
         uint256 _to = IERC20(to).balanceOf(address(this));
 
         if (_to > 0) {
-            IERC20(to).safeApprove(swapPool, 0);
-            IERC20(to).safeApprove(swapPool, _to);
+            IERC20(to).safeApprove(curvePool, 0);
+            IERC20(to).safeApprove(curvePool, _to);
             uint256[4] memory liquidity;
             liquidity[toIndex] = _to;
-            ICurveFi_4(swapPool).add_liquidity(liquidity, 0);
+            ICurveFi_4(curvePool).add_liquidity(liquidity, 0);
         }
         deposit();
     }
 
     function getMostPremium() internal view returns (address, uint256) {
-        ICurveFi_4 curve = ICurveFi_4(swapPool);
+        ICurveFi_4 curve = ICurveFi_4(curvePool);
         uint256[4] memory balances = [
             curve.balances(0), // DAI
             curve.balances(1) * (10**12), // USDC

@@ -25,9 +25,9 @@ contract StrategyConvexCurve3Lp is StrategyConvexFarmBase {
         address _timelock
     )
         StrategyConvexFarmBase(
-            0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490, // want, lp token
-            0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // swapPool, 3crv
-            9, // poolId
+            0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490, // want = 3crv lp-token
+            0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // curvePool = 3crv pool
+            9, // convexPoolId
             _governance,
             _strategist,
             _controller,
@@ -77,17 +77,17 @@ contract StrategyConvexCurve3Lp is StrategyConvexFarmBase {
         // reinvestment
         uint256 _to = IERC20(to).balanceOf(address(this));
         if (_to > 0) {
-            IERC20(to).safeApprove(swapPool, 0);
-            IERC20(to).safeApprove(swapPool, _to);
+            IERC20(to).safeApprove(curvePool, 0);
+            IERC20(to).safeApprove(curvePool, _to);
             uint256[3] memory liquidity;
             liquidity[toIndex] = _to;
-            ICurveFi_3(swapPool).add_liquidity(liquidity, 0);
+            ICurveFi_3(curvePool).add_liquidity(liquidity, 0);
         }
         deposit();
     }
 
     function getMostPremium() internal view returns (address, uint256) {
-        ICurveFi_3 curve = ICurveFi_3(swapPool);
+        ICurveFi_3 curve = ICurveFi_3(curvePool);
         uint256[3] memory balances = [
             curve.balances(0), // DAI
             curve.balances(1) * (10**12), // USDC

@@ -14,8 +14,8 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
     using Address for address;
 
     // Strategy config, + "want" this lp token
-    address public swapPool;
-    uint256 public poolId;
+    address public curvePool;
+    uint256 public convexPoolId;
 
     // Base convex config
     address public constant convexBooster =
@@ -27,8 +27,8 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
 
     constructor(
         address _want,
-        address _swapPool,
-        uint256 _poolId,
+        address _curvePool,
+        uint256 _convexPoolId,
         address _governance,
         address _strategist,
         address _controller,
@@ -44,13 +44,13 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
             _timelock
         )
     {
-        swapPool = _swapPool;
-        poolId = _poolId;
+        curvePool = _curvePool;
+        convexPoolId = _convexPoolId;
     }
 
     function getCrvRewardContract() internal view returns (address) {
         (, , , address crvRewards, , ) = IConvexBooster(convexBooster).poolInfo(
-            poolId
+            convexPoolId
         );
         return crvRewards;
     }
@@ -65,8 +65,8 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
             IERC20(want).safeApprove(convexBooster, 0);
             IERC20(want).safeApprove(convexBooster, _want);
 
-            IConvexBooster(convexBooster).deposit(poolId, _want, true);
-            Deposited(_want);
+            IConvexBooster(convexBooster).deposit(convexPoolId, _want, true);
+            emit Deposited(_want);
         }
     }
 

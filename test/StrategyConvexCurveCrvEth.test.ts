@@ -12,7 +12,7 @@ import { waitNDays } from '../utils/time'
 describe('Token', function () {
   let accounts: Signer[]
 
-  it('Test StrategyConvexCurve3Lp', async function () {
+  it('Test StrategyConvexCurveCrvEth', async function () {
     accounts = await ethers.getSigners()
 
     const deployer = accounts[0]
@@ -139,14 +139,14 @@ describe('Token', function () {
     console.log('Execute pools earn function')
     await neuronPool.earn()
 
-    console.log('Time travel one week later')
-    const oneWeekInSeconds = 60 * 60 * 24 * 7 * 12
-    await network.provider.send('evm_increaseTime', [oneWeekInSeconds])
+    console.log('Time travel 12 week later')
+    const weeksInSeconds = 60 * 60 * 24 * 7 * 12
+    await network.provider.send('evm_increaseTime', [weeksInSeconds])
     await network.provider.send('evm_mine')
 
     // Update pool
     const booster = await ethers.getContractAt('IConvexBooster', CONVEX_BOOSTER, accounts[10]) as IConvexBooster;
-    booster.earmarkRewards(await strategy.poolId());
+    booster.earmarkRewards(await strategy.convexPoolId());
 
     console.log('Strategy harvest')
     const tx = await strategy.harvest()
@@ -155,24 +155,24 @@ describe('Token', function () {
     // check harvest cvx
     const cvxHarvested = receitp.events.find(x => x.event == 'CvxHarvested').args[0];
     console.log(`cvxHarvested = ${cvxHarvested} CVX`);
-    assert(cvxHarvested > 0, '!CvxHarvested');
+    assert(!cvxHarvested.isZero(), '!CvxHarvested');
 
     // check harvest crv
     const crvHarvested = receitp.events.find(x => x.event == 'CrvHarvested').args[0];
     console.log(`crvHarvested = ${crvHarvested} CRV`);
-    assert(crvHarvested > 0, '!CrvHarvested');
+    assert(!crvHarvested.isZero(), '!CrvHarvested');
 
     // check deposit after harvest
     const deposited = receitp.events.find(x => x.event == 'Deposited').args[0];
     console.log(`deposited = ${deposited} crvEth`);
-    assert(deposited > 0, '!Deposited');
+    assert(!deposited.isZero(), '!Deposited');
 
     await neuronPool.connect(user).withdrawAll();
     const crvEthUserBalanceResult = await crvEth.balanceOf(await user.getAddress());
     
-    console.log(`Initial 3crv balance: ${crvEthUserBalanceInitial}`);
-    console.log(`Result 3crv  balance: ${crvEthUserBalanceResult}`);
+    console.log(`Initial crvEth balance: ${crvEthUserBalanceInitial}`);
+    console.log(`Result  crvEth balance: ${crvEthUserBalanceResult}`);
 
-    assert(crvEthUserBalanceResult > crvEthUserBalanceInitial, 'not farmed');
+    assert(crvEthUserBalanceResult.gt(crvEthUserBalanceInitial), 'not farmed');
   })
 })

@@ -24,9 +24,9 @@ contract StrategyConvexCurveRen is StrategyConvexFarmBase {
         address _timelock
     )
         StrategyConvexFarmBase(
-            0x49849C98ae39Fff122806C06791Fa73784FB3675, // want, lp token
-            0x93054188d876f558f4a66B2EF1d97d16eDf0895B, // swapPool, ren
-            6, // poolId
+            0x49849C98ae39Fff122806C06791Fa73784FB3675, // want
+            0x93054188d876f558f4a66B2EF1d97d16eDf0895B, // curvePool
+            6, // convexPoolId
             _governance,
             _strategist,
             _controller,
@@ -76,17 +76,17 @@ contract StrategyConvexCurveRen is StrategyConvexFarmBase {
         // reinvestment
         uint256 _to = IERC20(to).balanceOf(address(this));
         if (_to > 0) {
-            IERC20(to).safeApprove(swapPool, 0);
-            IERC20(to).safeApprove(swapPool, _to);
+            IERC20(to).safeApprove(curvePool, 0);
+            IERC20(to).safeApprove(curvePool, _to);
             uint256[2] memory liquidity;
             liquidity[toIndex] = _to;
-            ICurveFi_2(swapPool).add_liquidity(liquidity, 0);
+            ICurveFi_2(curvePool).add_liquidity(liquidity, 0);
         }
         deposit();
     }
 
     function getMostPremium() internal view returns (address, uint256) {
-        ICurveFi_2 curve = ICurveFi_2(swapPool);
+        ICurveFi_2 curve = ICurveFi_2(curvePool);
         uint256[2] memory balances = [
             curve.balances(0), // renBtc
             curve.balances(1) // wBtc
