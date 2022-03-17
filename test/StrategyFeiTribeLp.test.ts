@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer, constants as ethersConstants } from "ethers"
 import { IUniswapRouterV2 } from '../typechain/IUniswapRouterV2'
-import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyFeiTribeLp__factory } from '../typechain'
+import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyFeiTribeLp__factory } from '../typechain'
 import { assert } from 'chai'
 import { parseEther } from 'ethers/lib/utils'
 import { FEI, SUSHISWAP_ROUTER, TRIBE, UNISWAP_ROUTER_V2, UNI_FEI_TRIBE_LP, WETH } from '../constants/addresses'
@@ -106,7 +106,6 @@ describe('Token', function () {
 
     const NeuronToken = await ethers.getContractFactory('NeuronToken') as NeuronToken__factory
     const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
-    const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
     const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
     const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
 
@@ -158,9 +157,6 @@ describe('Token', function () {
     await axon.deployed()
     const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
     const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
-    const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress, governanceAddress)
-    await gaugesDistributor.deployed()
-    await masterChef.setDistributor(gaugesDistributor.address)
 
     const strategyFactory = await ethers.getContractFactory('StrategyFeiTribeLp') as StrategyFeiTribeLp__factory
 
@@ -179,23 +175,12 @@ describe('Token', function () {
       timelockAddress,
       controller.address,
       masterChef.address,
-      gaugesDistributor.address
     )
     await neuronPool.deployed()
 
     await controller.setNPool(await strategy.want(), neuronPool.address)
     await controller.approveStrategy(await strategy.want(), strategy.address)
     await controller.setStrategy(await strategy.want(), strategy.address)
-
-
-    const neuronPoolAddress = neuronPool.address
-    await gaugesDistributor.addGauge(neuronPoolAddress)
-    await gaugesDistributor.setWeights([neuronPoolAddress], [BigNumber.from('100')])
-
-    // Wait for masterchef to mint tokens for gauges distributor
-    await waitNDays(10, network.provider)
-
-    await gaugesDistributor.distribute()
 
     await getFeiTribe(user)
 

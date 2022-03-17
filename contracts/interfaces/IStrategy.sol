@@ -3,8 +3,6 @@ pragma solidity 0.8.2;
 interface IStrategy {
     function rewards() external view returns (address);
 
-    function gauge() external view returns (address);
-
     function want() external view returns (address);
 
     function timelock() external view returns (address);

@@ -2,7 +2,7 @@
 import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer, constants as ethersConstants, ContractFactory, BigNumberish, ContractTransaction } from "ethers"
-import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFiPolygon2__factory, ICurveFiPolygon3__factory, IERC20, IERC20__factory, IPolygonWETH__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, PolygonStrategyCurveAm3Crv__factory, StrategySushiDoubleEthAlcxLp__factory, StrategySushiDoubleEthCvxLp__factory, StrategySushiDoubleEthPickleLp__factory, StrategySushiDoubleEthRulerLp__factory } from '../typechain'
+import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, ICurveFiPolygon2__factory, ICurveFiPolygon3__factory, IERC20, IERC20__factory, IPolygonWETH__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, PolygonStrategyCurveAm3Crv__factory, StrategySushiDoubleEthAlcxLp__factory, StrategySushiDoubleEthCvxLp__factory, StrategySushiDoubleEthPickleLp__factory, StrategySushiDoubleEthRulerLp__factory } from '../typechain'
 import { POLYGON_CURVE_AM_3_CRV_LP_TOKEN, POLYGON_CURVE_AM_3_CRV_POOL, POLYGON_CURVE_CRV, POLYGON_CURVE_REN_BTC_LP_TOKEN, POLYGON_CURVE_REN_BTC_POOL, POLYGON_DAI, POLYGON_QUICKSWAP_ROUTER, POLYGON_WBTC, POLYGON_WETH, POLYGON_WMATIC, SUSHISWAP_ROUTER, SUSHI_ETH_ALCX_LP, SUSHI_ETH_CVX_LP, SUSHI_ETH_PICKLE_LP, SUSHI_ETH_RULER_LP, WETH } from '../constants/addresses'
 import { getToken } from '../utils/getCurveTokens'
 import { formatEther, parseEther } from 'ethers/lib/utils'
@@ -99,7 +99,6 @@ async function testPolygonCurveStrategy<T extends ContractFactory> ({
 
   const NeuronToken = await ethers.getContractFactory('NeuronToken') as NeuronToken__factory
   const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
-  const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
   const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
   const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
 
@@ -173,9 +172,6 @@ async function testPolygonCurveStrategy<T extends ContractFactory> ({
   await axon.deployed()
   const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
   const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
-  const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress, governanceAddress)
-  await gaugesDistributor.deployed()
-  await masterChef.setDistributor(gaugesDistributor.address)
 
   const strategy = await strategyFactory.deploy(
     await governance.getAddress(),
@@ -192,23 +188,12 @@ async function testPolygonCurveStrategy<T extends ContractFactory> ({
     timelockAddress,
     controller.address,
     masterChef.address,
-    gaugesDistributor.address
   )
   await neuronPool.deployed()
 
   await controller.setNPool(await strategy.want(), neuronPool.address)
   await controller.approveStrategy(await strategy.want(), strategy.address)
   await controller.setStrategy(await strategy.want(), strategy.address)
-
-
-  const neuronPoolAddress = neuronPool.address
-  await gaugesDistributor.addGauge(neuronPoolAddress)
-  await gaugesDistributor.setWeights([neuronPoolAddress], [BigNumber.from('100')])
-
-  // Wait for masterchef to mint tokens for gauges distributor
-  await waitNDays(10, network.provider)
-
-  await gaugesDistributor.distribute()
 
   await quickSwapRouter.swapExactTokensForTokens(
     parseEther('40'),

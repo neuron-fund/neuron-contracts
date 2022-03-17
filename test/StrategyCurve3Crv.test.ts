@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers"
 import { ethers, network } from "hardhat"
 import { BigNumber, Signer, constants as ethersConstants } from "ethers"
 import { IUniswapRouterV2 } from '../typechain/IUniswapRouterV2'
-import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, GaugesDistributor__factory, ICurveFi3, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyCurve3Crv, StrategyCurve3Crv__factory, StrategyFeiTribeLp__factory } from '../typechain'
+import { AxonVyper__factory, Controller__factory, FeeDistributor__factory, ICurveFi3, IERC20, IERC20__factory, IUniswapRouterV2__factory, IWETH__factory, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyCurve3Crv, StrategyCurve3Crv__factory, StrategyFeiTribeLp__factory } from '../typechain'
 import { assert } from 'chai'
 import { CRV, SUSHISWAP_ROUTER, CURVE_3CRV_LP_TOKEN, TRIBE, WETH } from '../constants/addresses'
 import { get3Crv, getToken } from '../utils/getCurveTokens'
@@ -36,7 +36,6 @@ describe('Token', function () {
 
     const NeuronToken = await ethers.getContractFactory('NeuronToken') as NeuronToken__factory
     const Masterchef = await ethers.getContractFactory('MasterChef', deployer) as MasterChef__factory
-    const GaugesDistributor = await ethers.getContractFactory('GaugesDistributor', deployer) as GaugesDistributor__factory
     const AxonVyper = await ethers.getContractFactory('AxonVyper', deployer) as AxonVyper__factory
     const FeeDistributor = await ethers.getContractFactory('FeeDistributor', deployer) as FeeDistributor__factory
 
@@ -88,10 +87,6 @@ describe('Token', function () {
     await axon.deployed()
     const currentBlock = await network.provider.send("eth_getBlockByNumber", ["latest", true])
     const feeDistributor = await FeeDistributor.deploy(axon.address, currentBlock.timestamp, neuronToken.address, deployerAddress, deployerAddress)
-    const gaugesDistributor = await GaugesDistributor.deploy(masterChef.address, neuronToken.address, axon.address, treasuryAddress, governanceAddress, governanceAddress)
-    await gaugesDistributor.deployed()
-    await masterChef.setDistributor(gaugesDistributor.address)
-
     const strategyFactory = await ethers.getContractFactory('StrategyCurve3Crv') as StrategyCurve3Crv__factory
 
     const strategy = await strategyFactory.deploy(
@@ -109,7 +104,6 @@ describe('Token', function () {
       timelockAddress,
       controller.address,
       masterChef.address,
-      gaugesDistributor.address
     )
     await neuronPool.deployed()
 
@@ -117,15 +111,6 @@ describe('Token', function () {
     await controller.approveStrategy(await strategy.want(), strategy.address)
     await controller.setStrategy(await strategy.want(), strategy.address)
 
-
-    const neuronPoolAddress = neuronPool.address
-    await gaugesDistributor.addGauge(neuronPoolAddress)
-    await gaugesDistributor.setWeights([neuronPoolAddress], [BigNumber.from('100')])
-
-    // Wait for masterchef to mint tokens for gauges distributor
-    await waitNDays(10, network.provider)
-
-    await gaugesDistributor.distribute()
     await get3Crv(user)
 
     const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, user)

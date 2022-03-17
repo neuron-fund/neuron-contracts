@@ -7,9 +7,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./interfaces/IController.sol";
 
-import {GaugesDistributor} from "./GaugesDistributor.sol";
-import {Gauge} from "./Gauge.sol";
-
 contract NeuronPool is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -28,7 +25,6 @@ contract NeuronPool is ERC20 {
     address public timelock;
     address public controller;
     address public masterchef;
-    GaugesDistributor public gaugesDistributor;
 
     constructor(
         // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool
@@ -37,8 +33,7 @@ contract NeuronPool is ERC20 {
         address _governance,
         address _timelock,
         address _controller,
-        address _masterchef,
-        address _gaugesDistributor
+        address _masterchef
     )
         ERC20(
             string(abi.encodePacked("neuroned", ERC20(_token).name())),
@@ -51,7 +46,6 @@ contract NeuronPool is ERC20 {
         timelock = _timelock;
         controller = _controller;
         masterchef = _masterchef;
-        gaugesDistributor = GaugesDistributor(_gaugesDistributor);
     }
 
     function decimals() public view virtual override returns (uint8) {
@@ -141,10 +135,6 @@ contract NeuronPool is ERC20 {
             // For subsequent users: (tokens_stacked * exist_pTokens) / total_tokens_stacked. total_tokesn_stacked - not considering first users
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
-
-        Gauge gauge = Gauge(gaugesDistributor.getGauge(address(this)));
-        _mint(address(gauge), shares);
-        gauge.depositStateUpdateByPool(msg.sender, shares);
     }
 
     function withdrawAll() external {
@@ -186,12 +176,6 @@ contract NeuronPool is ERC20 {
         }
 
         token.safeTransfer(holder, r);
-    }
-
-    function withdrawAllRightFromFarm() external {
-        Gauge gauge = Gauge(gaugesDistributor.getGauge(address(this)));
-        uint256 shares = gauge.withdrawAllStateUpdateByPool(msg.sender);
-        withdrawFor(msg.sender, shares, address(gauge));
     }
 
     function getRatio() public view returns (uint256) {

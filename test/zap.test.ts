@@ -5,7 +5,7 @@ import { deployments, ethers, network } from 'hardhat'
 import { CURVE_3CRV_LP_TOKEN, CURVE_3CRV_POOL, POLYGON_CURVE_AM_3_CRV_LP_TOKEN } from '../constants/addresses'
 import { Pools } from '../frontend/mainnetAddresses'
 import { deploy } from '../scripts/deploy'
-import { Gauge__factory, NeuronZap__factory } from '../typechain'
+import { NeuronZap__factory } from '../typechain'
 
 const { AddressZero } = ethers.constants
 
@@ -50,7 +50,6 @@ describe('Test Zap', function () {
     const sellToken = AddressZero
     const buyToken = CURVE_3CRV_LP_TOKEN
     const neuronPool = Pools.Curve3Crv.poolAddress
-    const neuronGauge = Pools.Curve3Crv.gaugeAddress
 
     const { data } = await zapperRequest.get('', {
       params: {
@@ -68,7 +67,6 @@ describe('Test Zap', function () {
       sellToken,
       buyToken,
       neuronPool,
-      neuronGauge,
       sellAmount,
       zapperContract,
       zapperCallData,
@@ -77,10 +75,5 @@ describe('Test Zap', function () {
       }
     )
     console.log('res', res)
-
-    const gauge = await Gauge__factory.connect(neuronGauge, user)
-    const userGaugeBalance = await gauge.balanceOf(user.address)
-    console.log(`userGaugeBalance`, userGaugeBalance)
-    console.log(`userGaugeBalance`, formatEther(userGaugeBalance))
   })
 })

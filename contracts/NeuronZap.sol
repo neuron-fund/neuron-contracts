@@ -1,7 +1,6 @@
 pragma solidity 0.8.2;
 
 import { INeuronPool } from "./interfaces/INeuronPool.sol";
-import { IGauge } from "./interfaces/IGauge.sol";
 import { IZapperCurveAdd } from "./interfaces/IZapperCurveAdd.sol";
 import { IZapperCurveRemove } from "./interfaces/IZapperCurveRemove.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -18,7 +17,6 @@ contract NeuronZap is Initializable {
     address sellToken,
     address buyToken,
     address neuronPool,
-    address neuronGauge,
     uint256 amount,
     // The `to` field from the API response.
     address payable zapperContract,
@@ -49,8 +47,6 @@ contract NeuronZap is Initializable {
     INeuronPool(neuronPool).deposit(boughtTokensAmount);
     uint256 poolTokensAmount = INeuronPool(neuronPool).balanceOf(address(this));
     require(poolTokensAmount > 0, "No pool tokens minted");
-    _approveToken(neuronPool, neuronGauge, poolTokensAmount);
-    IGauge(neuronGauge).depositFromSenderFor(poolTokensAmount, msg.sender);
 
     return poolTokensAmount;
   }
