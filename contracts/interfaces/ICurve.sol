@@ -64,10 +64,6 @@ interface ICurveFi_4 {
     function add_liquidity(uint256[4] calldata amounts, uint256 min_mint_amount)
         external;
 
-    function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount)
-        external
-        payable;
-
     function remove_liquidity_imbalance(
         uint256[4] calldata amounts,
         uint256 max_burn_amount
