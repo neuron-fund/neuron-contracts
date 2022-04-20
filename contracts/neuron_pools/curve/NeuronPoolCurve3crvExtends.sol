@@ -5,19 +5,20 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"; // use in deploy
 
 import {ICurveFi_2, ICurveFi_3} from "../../interfaces/ICurve.sol";
-import {NeuronPoolCurveBase} from "../NeuronPoolCurveBase.sol";
+import {NeuronPoolCurveBaseInitialize} from "../NeuronPoolCurveBaseInitialize.sol";
 
-contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBase {
+contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
     using SafeERC20 for IERC20;
 
-    ICurveFi_2 public immutable BASE_POOL;
+    ICurveFi_2 public BASE_POOL;
 
     ICurveFi_3 internal constant THREE_POOL =
         ICurveFi_3(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
 
-    IERC20 public immutable FIRST_TOKEN_IN_BASE_POOL;
+    IERC20 public FIRST_TOKEN_IN_BASE_POOL;
     IERC20 public constant CRV3 =
         IERC20(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
     IERC20 public constant DAI =
@@ -27,7 +28,7 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBase {
     IERC20 public constant USDT =
         IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
-    constructor(
+    function initialize(
         address _token,
         address _governance,
         address _timelock,
@@ -35,27 +36,26 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBase {
         address _masterchef,
         address _basePool,
         address _firstTokenInBasePool
-    )
-        NeuronPoolCurveBase(
+    ) external initializer {
+        __NeuronPoolCurveBaseInitialize_init(
             _token,
             _governance,
             _timelock,
             _controller,
             _masterchef
-        )
-    {
+        );
         BASE_POOL = ICurveFi_2(_basePool);
         FIRST_TOKEN_IN_BASE_POOL = IERC20(_firstTokenInBasePool);
     }
 
     function deposit3poolToken(
-        IERC20 _token,
+        IERC20 _enterToken,
         uint256 _amount,
         uint256[3] memory _addLiquidityPayload
     ) internal returns (uint256 crv3amount) {
         address self = address(this);
 
-        _token.safeApprove(address(THREE_POOL), _amount);
+        _enterToken.safeApprove(address(THREE_POOL), _amount);
 
         uint256 initial3crvBalance = CRV3.balanceOf(self);
 
@@ -71,14 +71,14 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBase {
         return result3crvTokenBalance - initial3crvBalance;
     }
 
-    function depositBaseToken(address _token, uint256 _amount)
+    function depositBaseToken(address _enterToken, uint256 _amount)
         internal
         override
         returns (uint256)
     {
         address self = address(this);
-        IERC20 lpToken = token;
-        IERC20 enterToken = IERC20(_token);
+        IERC20 tokenMem = token;
+        IERC20 enterToken = IERC20(_enterToken);
 
         enterToken.safeTransferFrom(msg.sender, self, _amount);
 
@@ -105,11 +105,11 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBase {
         ICurveFi_2 BASE_POOL_MEM = BASE_POOL;
         enterToken.safeApprove(address(BASE_POOL_MEM), _amount);
 
-        uint256 initialLpTokenBalance = lpToken.balanceOf(self);
+        uint256 initialLpTokenBalance = tokenMem.balanceOf(self);
 
         BASE_POOL_MEM.add_liquidity(addLiquidityPayload, 0);
 
-        uint256 resultLpTokenBalance = lpToken.balanceOf(self);
+        uint256 resultLpTokenBalance = tokenMem.balanceOf(self);
 
         require(
             resultLpTokenBalance > initialLpTokenBalance,
@@ -119,12 +119,12 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBase {
         return resultLpTokenBalance - initialLpTokenBalance;
     }
 
-    function withdrawBaseToken(address _token, uint256 _userLpTokensAmount)
+    function withdrawBaseToken(address _withdrawableToken, uint256 _userLpTokensAmount)
         internal
         override
     {
         address self = address(this);
-        IERC20 withdrawableToken = IERC20(_token);
+        IERC20 withdrawableToken = IERC20(_withdrawableToken);
 
         int128 firstLevelTokenIndex;
         int128 secondLevelTokenIndex = -1;

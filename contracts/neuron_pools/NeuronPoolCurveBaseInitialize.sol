@@ -5,29 +5,29 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-import {NeuronPoolBase} from "./NeuronPoolBase.sol";
+import {NeuronPoolBaseInitialize} from "./NeuronPoolBaseInitialize.sol";
 import "../interfaces/IController.sol";
 
-abstract contract NeuronPoolCurveBase is NeuronPoolBase {
+abstract contract NeuronPoolCurveBaseInitialize is NeuronPoolBaseInitialize {
     using SafeERC20 for IERC20;
 
-    constructor(
+    function __NeuronPoolCurveBaseInitialize_init(
         address _token,
         address _governance,
         address _timelock,
         address _controller,
         address _masterchef
-    )
-        NeuronPoolBase(_token, _governance, _timelock, _controller, _masterchef)
-    {}
+    ) internal initializer {
+        __NeuronPoolBaseInitialize_init(_token, _governance, _timelock, _controller, _masterchef);
+    }
 
     function depositBaseToken(
-        address _token,
+        address _enterToken,
         uint256 _amount
     ) internal virtual returns (uint256);
 
     function withdrawBaseToken(
-        address _token,
+        address _withdrawableToken,
         uint256 _userLpTokensAmount
     ) internal virtual;
 

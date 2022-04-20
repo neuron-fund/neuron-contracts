@@ -44,14 +44,14 @@ contract NeuronPoolCurveIronBank is NeuronPoolCurveBase {
         )
     {}
 
-    function depositBaseToken(address _token, uint256 _amount)
+    function depositBaseToken(address _enterToken, uint256 _amount)
         internal
         override
         returns (uint256)
     {
         address self = address(this);
-        IERC20 lpToken = token;
-        IERC20 enterToken = IERC20(_token);
+        IERC20 tokenMem = token;
+        IERC20 enterToken = IERC20(_enterToken);
 
         uint256[3] memory addLiquidityPayload;
         if (enterToken == CYDAI || enterToken == DAI) {
@@ -67,7 +67,7 @@ contract NeuronPoolCurveIronBank is NeuronPoolCurveBase {
         enterToken.safeTransferFrom(msg.sender, self, _amount);
         enterToken.safeApprove(address(BASE_POOL), _amount);
 
-        uint256 initialLpTokenBalance = lpToken.balanceOf(self);
+        uint256 initialLpTokenBalance = tokenMem.balanceOf(self);
 
         BASE_POOL.add_liquidity(
             addLiquidityPayload,
@@ -75,7 +75,7 @@ contract NeuronPoolCurveIronBank is NeuronPoolCurveBase {
             enterToken == DAI || enterToken == USDC || enterToken == USDT
         );
 
-        uint256 resultLpTokenBalance = lpToken.balanceOf(self);
+        uint256 resultLpTokenBalance = tokenMem.balanceOf(self);
 
         require(
             resultLpTokenBalance > initialLpTokenBalance,
@@ -85,12 +85,12 @@ contract NeuronPoolCurveIronBank is NeuronPoolCurveBase {
         return resultLpTokenBalance - initialLpTokenBalance;
     }
 
-    function withdrawBaseToken(address _token, uint256 _userLpTokensAmount)
-        internal
-        override
-    {
+    function withdrawBaseToken(
+        address _withdrawableToken,
+        uint256 _userLpTokensAmount
+    ) internal override {
         address self = address(this);
-        IERC20 withdrawableToken = IERC20(_token);
+        IERC20 withdrawableToken = IERC20(_withdrawableToken);
 
         int128 tokenIndex;
         if (withdrawableToken == CYDAI || withdrawableToken == DAI) {

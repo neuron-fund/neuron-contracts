@@ -1,10 +1,9 @@
-import { ethers, network, upgrades, deployments } from 'hardhat';
-import { BigNumber, Contract, Signer } from 'ethers';
+import { ethers, network, deployments } from 'hardhat';
+import { Contract, Signer } from 'ethers';
 import { assert } from 'chai';
 import { expectRevert } from '@openzeppelin/test-helpers';
-import { Controller__factory, ICurveFi2, IERC20, IERC20__factory, IUniswapRouterV2, IUSDT, MasterChef__factory, NeuronPoolCurveBase, NeuronToken__factory, StrategyConvexCurve3Lp__factory } from '../typechain';
+import { IERC20, IERC20__factory, IUniswapRouterV2, NeuronPoolBase } from '../typechain-types';
 import { UNISWAP_ROUTER_V2, WETH } from '../constants/addresses';
-import { parseEther } from 'ethers/lib/utils';
 
 const DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
 const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -31,7 +30,6 @@ const MIM3CRV = '0x5a6A4D54456819380173272A5E8E9B9904BdF41B';
 
 interface Config {
     name: string;
-    contract: string;
     tokens: string[];
     errorToken: string;
 }
@@ -39,7 +37,6 @@ interface Config {
 const configs: Config[] = [
     {
         name: 'NeuronPoolCurve3pool',
-        contract: 'NeuronPoolCurve3pool',
         tokens: [
             CRV3,
             DAI,
@@ -50,7 +47,6 @@ const configs: Config[] = [
     },
     {
         name: 'NeuronPoolCurveFrax',
-        contract: 'NeuronPoolCurve3crvExtends',
         tokens: [
             FRAX3CRV,
             FRAX,
@@ -63,7 +59,6 @@ const configs: Config[] = [
     },
     {
         name: 'NeuronPoolCurveLUSD',
-        contract: 'NeuronPoolCurve3crvExtends',
         tokens: [
             LUSD3CRV,
             LUSD,
@@ -76,7 +71,6 @@ const configs: Config[] = [
     },
     {
         name: 'NeuronPoolCurveALUSD',
-        contract: 'NeuronPoolCurve3crvExtends',
         tokens: [
             ALUSD3CRV,
             ALUSD,
@@ -89,7 +83,6 @@ const configs: Config[] = [
     }, 
     {
         name: 'NeuronPoolCurveMIM',
-        contract: 'NeuronPoolCurve3crvExtends',
         tokens: [
             MIM3CRV,
             MIM,
@@ -102,7 +95,6 @@ const configs: Config[] = [
     },    
     {
         name: 'NeuronPoolCurveIronBank',
-        contract: 'NeuronPoolCurveIronBank',
         tokens: [
             IB3CRV,
             CYDAI,
@@ -116,7 +108,6 @@ const configs: Config[] = [
     },
     {
         name: 'NeuronPoolCurveUSDP',
-        contract: 'NeuronPoolCurve3crvExtends',
         tokens: [
             USDP3CRV,
             USDP,
@@ -129,7 +120,6 @@ const configs: Config[] = [
     },
     {
         name: 'NeuronPoolCurveMIMUST',
-        contract: 'NeuronPoolCurveMIMUST',
         tokens: [
             MIMUST,
             MIM,
@@ -166,12 +156,11 @@ function testNeuronPool(config: Config) {
             });
         });
 
-
         // --------------------------------------------------------
         // ----------------------  DEPLOY  ------------------------
         // --------------------------------------------------------
 
-        let neuronPool: NeuronPoolCurveBase;
+        let neuronPool: NeuronPoolBase;
         let user: Signer;
 
         beforeEach(async () => {
@@ -179,7 +168,7 @@ function testNeuronPool(config: Config) {
             const NeuronPoolDeployment = await deployments.get(config.name);
             const accounts = await ethers.getSigners();
             user = accounts[10];
-            neuronPool = await _getContract(config.contract, NeuronPoolDeployment.address);
+            neuronPool = await _getContract('NeuronPoolBase', NeuronPoolDeployment.address);
         });
 
         // --------------------------------------------------------
@@ -215,7 +204,6 @@ function testNeuronPool(config: Config) {
                 );
             });
         }
-
 
         // --------------------------------------------------------
         // -------------------  SAFETY TESTS  ---------------------

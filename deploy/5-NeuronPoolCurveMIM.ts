@@ -8,25 +8,33 @@ import { NeuronPoolCurve3crvExtends__factory } from '../typechain-types';
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre;
   const { deploy, get } = deployments;
-  const [deploer] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
 
   const MasterChefDeployment = await get('MasterChef');
   const ControllerDeployment = await get('Controller');
   const controller = await ethers.getContractAt('Controller', ControllerDeployment.address) as Controller;
   const MockStrategyCurveMIMDeployment = await get('MockStrategyCurveMIM');
   const mockStrategyCurveMIM = await ethers.getContractAt('MockStrategy', MockStrategyCurveMIMDeployment.address) as MockStrategy;
+  const NeuronPoolCurve3crvExtendsRealizationDeployment = await get('NeuronPoolCurve3crvExtendsRealization');
 
-  const NeuronPoolDeployment = await deploy<DeployArgs<NeuronPoolCurve3crvExtends__factory>>('NeuronPoolCurveMIM', {
-    contract: 'NeuronPoolCurve3crvExtends',
-    from: deploer.address,
+  const factory = await ethers.getContractFactory('NeuronPoolCurve3crvExtends') as NeuronPoolCurve3crvExtends__factory;
+
+  const data = factory.interface.encodeFunctionData('initialize', [
+    await mockStrategyCurveMIM.want(),
+    deployer.address,
+    deployer.address,
+    ControllerDeployment.address,
+    MasterChefDeployment.address,
+    '0x5a6A4D54456819380173272A5E8E9B9904BdF41B',
+    '0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3',
+  ]);
+
+  const NeuronPoolDeployment = await deploy('NeuronPoolCurveMIM', {
+    from: deployer.address,
+    contract: 'ERC1967Proxy',
     args: [
-      await mockStrategyCurveMIM.want(),
-      deploer.address,
-      deploer.address,
-      ControllerDeployment.address,
-      MasterChefDeployment.address,
-      '0x5a6A4D54456819380173272A5E8E9B9904BdF41B',
-      '0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3',
+      NeuronPoolCurve3crvExtendsRealizationDeployment.address,
+      data,
     ],
   });
 
@@ -36,5 +44,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 deploy.tags = ['NeuronPoolCurveMIM']
-deploy.dependencies = ['MasterChef', 'Controller', 'MockStrategyCurveMIM'];
+deploy.dependencies = ['MasterChef', 'Controller', 'MockStrategyCurveMIM', 'NeuronPoolCurve3crvExtendsRealization'];
 export default deploy

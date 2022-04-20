@@ -1,15 +1,19 @@
 pragma solidity 0.8.2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "../interfaces/IController.sol";
 
-abstract contract NeuronPoolBase is ERC20, ReentrancyGuard {
+abstract contract NeuronPoolBaseInitialize is Initializable, ERC20Upgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
+    // using SafeERC20Upgradeable for IERC20Upgradeable;
     using Address for address;
     using SafeMath for uint256;
 
@@ -20,14 +24,14 @@ abstract contract NeuronPoolBase is ERC20, ReentrancyGuard {
     uint256 public min = 9500;
     uint256 public constant max = 10000;
 
-    uint8 public immutable _decimals;
+    uint8 public _decimals;
 
     address public governance;
     address public timelock;
     address public controller;
     address public masterchef;
 
-    constructor(
+    function __NeuronPoolBaseInitialize_init(
         // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool
         // Usually want/_want in strategies
         address _token,
@@ -35,12 +39,13 @@ abstract contract NeuronPoolBase is ERC20, ReentrancyGuard {
         address _timelock,
         address _controller,
         address _masterchef
-    )
-        ERC20(
+    ) internal initializer {
+        __ERC20_init(
             string(abi.encodePacked("neuroned", ERC20(_token).name())),
             string(abi.encodePacked("neur", ERC20(_token).symbol()))
-        )
-    {
+        );
+        __ReentrancyGuard_init_unchained();
+        
         _decimals = ERC20(_token).decimals();
         token = IERC20(_token);
         governance = _governance;

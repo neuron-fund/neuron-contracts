@@ -8,25 +8,33 @@ import { NeuronPoolCurve3crvExtends__factory } from '../typechain-types';
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre;
   const { deploy, get } = deployments;
-  const [deploer] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
 
   const MasterChefDeployment = await get('MasterChef');
   const ControllerDeployment = await get('Controller');
   const controller = await ethers.getContractAt('Controller', ControllerDeployment.address) as Controller;
   const MockStrategyCurveFraxDeployment = await get('MockStrategyCurveFrax');
   const mockStrategyCurveFrax = await ethers.getContractAt('MockStrategy', MockStrategyCurveFraxDeployment.address) as MockStrategy;
+  const NeuronPoolCurve3crvExtendsRealizationDeployment = await get('NeuronPoolCurve3crvExtendsRealization');
 
-  const NeuronPoolDeployment = await deploy<DeployArgs<NeuronPoolCurve3crvExtends__factory>>('NeuronPoolCurveFrax', {
-    contract: 'NeuronPoolCurve3crvExtends',
-    from: deploer.address,
-    args: [
-      await mockStrategyCurveFrax.want(),
-      deploer.address,
-      deploer.address,
+  const factory = await ethers.getContractFactory('NeuronPoolCurve3crvExtends') as NeuronPoolCurve3crvExtends__factory;
+
+  const data = factory.interface.encodeFunctionData('initialize', [
+    await mockStrategyCurveFrax.want(),
+      deployer.address,
+      deployer.address,
       ControllerDeployment.address,
       MasterChefDeployment.address,
       '0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B',
       '0x853d955aCEf822Db058eb8505911ED77F175b99e'
+  ]);
+
+  const NeuronPoolDeployment = await deploy('NeuronPoolCurveFrax', {
+    from: deployer.address,
+    contract: 'ERC1967Proxy',
+    args: [
+      NeuronPoolCurve3crvExtendsRealizationDeployment.address,
+      data,
     ],
   });
 
@@ -36,5 +44,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 deploy.tags = ['NeuronPoolCurveFrax']
-deploy.dependencies = ['MasterChef', 'Controller', 'MockStrategyCurveFrax'];
+deploy.dependencies = ['MasterChef', 'Controller', 'MockStrategyCurveFrax', 'NeuronPoolCurve3crvExtendsRealization'];
 export default deploy

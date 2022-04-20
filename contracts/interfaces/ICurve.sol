@@ -46,7 +46,7 @@ interface ICurveFi_3 {
     function add_liquidity(
         uint256[3] calldata amounts,
         uint256 min_mint_amount,
-        bool use_underling
+        bool use_underlying
     ) external;
 
     function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount)
@@ -79,7 +79,7 @@ interface ICurveFi_3 {
         uint256,
         int128,
         uint256,
-        bool use_underling
+        bool use_underlying
     ) external;
 }
 

@@ -8,7 +8,7 @@ import { NeuronPoolCurve3pool__factory } from '../typechain-types/factories/cont
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre;
   const { deploy, get } = deployments;
-  const [deploer] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
 
   const MasterChefDeployment = await get('MasterChef');
   const ControllerDeployment = await get('Controller');
@@ -18,11 +18,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const NeuronPoolDeployment = await deploy<DeployArgs<NeuronPoolCurve3pool__factory>>('NeuronPoolCurve3pool', {
     contract: 'NeuronPoolCurve3pool',
-    from: deploer.address,
+    from: deployer.address,
     args: [
       await mockStrategyCurve3pool.want(),
-      deploer.address,
-      deploer.address,
+      deployer.address,
+      deployer.address,
       ControllerDeployment.address,
       MasterChefDeployment.address,
     ],

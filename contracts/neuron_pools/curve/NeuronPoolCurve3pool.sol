@@ -26,16 +26,23 @@ contract NeuronPoolCurve3pool is NeuronPoolCurveBase {
         address _controller,
         address _masterchef
     )
-        NeuronPoolCurveBase(_token, _governance, _timelock, _controller, _masterchef)
+        NeuronPoolCurveBase(
+            _token,
+            _governance,
+            _timelock,
+            _controller,
+            _masterchef
+        )
     {}
 
-    function depositBaseToken(
-        address _token,
-        uint256 _amount
-    ) internal override returns (uint256) {
+    function depositBaseToken(address _enterToken, uint256 _amount)
+        internal
+        override
+        returns (uint256)
+    {
         address self = address(this);
-        IERC20 lpToken = token;
-        IERC20 enterToken = IERC20(_token);
+        IERC20 tokenMem = token;
+        IERC20 enterToken = IERC20(_enterToken);
 
         uint256[3] memory addLiquidityPayload;
         if (enterToken == DAI) {
@@ -51,11 +58,11 @@ contract NeuronPoolCurve3pool is NeuronPoolCurveBase {
         enterToken.safeTransferFrom(msg.sender, self, _amount);
         enterToken.safeApprove(address(BASE_POOL), _amount);
 
-        uint256 initialLpTokenBalance = lpToken.balanceOf(self);
+        uint256 initialLpTokenBalance = tokenMem.balanceOf(self);
 
         BASE_POOL.add_liquidity(addLiquidityPayload, 0);
 
-        uint256 resultLpTokenBalance = lpToken.balanceOf(self);
+        uint256 resultLpTokenBalance = tokenMem.balanceOf(self);
 
         require(
             resultLpTokenBalance > initialLpTokenBalance,
@@ -66,11 +73,11 @@ contract NeuronPoolCurve3pool is NeuronPoolCurveBase {
     }
 
     function withdrawBaseToken(
-        address _token,
+        address _withdrawableToken,
         uint256 _userLpTokensAmount
     ) internal override {
         address self = address(this);
-        IERC20 withdrawableToken = IERC20(_token);
+        IERC20 withdrawableToken = IERC20(_withdrawableToken);
 
         int128 tokenIndex;
         if (withdrawableToken == DAI) {
@@ -84,11 +91,7 @@ contract NeuronPoolCurve3pool is NeuronPoolCurveBase {
         }
 
         uint256 initialLpTokenBalance = withdrawableToken.balanceOf(self);
-        BASE_POOL.remove_liquidity_one_coin(
-            _userLpTokensAmount,
-            tokenIndex,
-            0
-        );
+        BASE_POOL.remove_liquidity_one_coin(_userLpTokensAmount, tokenIndex, 0);
         uint256 resultLpTokenBalance = withdrawableToken.balanceOf(self);
 
         require(resultLpTokenBalance > initialLpTokenBalance, "!base_amount");
