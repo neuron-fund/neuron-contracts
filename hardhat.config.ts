@@ -48,32 +48,33 @@ const config: HardhatUserConfig = {
       chainId: process.env.POLYGON ? 1339 : 1337,
       forking: {
         url: process.env.POLYGON ? process.env.ALCHEMY_POLYGON : process.env.ALCHEMY,
+        blockNumber: Number(process.env.FORK_BLOCK_NUMBER) || undefined,
       },
       loggingEnabled: true,
       blockGasLimit: 0x1fffffffffffff,
       accounts: getHardhatAccounts(20),
       gas: 120e9,
     },
-    prodMainnet: {
-      url: process.env.PROD_MAINNET_RPC,
-      gasPrice: 40e9,
-      blockGasLimit: 5e6
-    },
-    prodPolygon: {
-      url: process.env.PROD_POLYGON_RPC,
-    },
-    localPolygon: {
-      url: 'http://127.0.0.1:8546/',
-      accounts: getHardhatAccounts(20).map(x => x.privateKey)
-    },
-    testnet: {
-      url: 'https://neurontestnet.xyz/',
-      accounts: getHardhatAccounts(20).map(x => x.privateKey)
-    }
+    // prodMainnet: {
+    //   url: process.env.PROD_MAINNET_RPC,
+    //   gasPrice: 40e9,
+    //   blockGasLimit: 5e6
+    // },
+    // prodPolygon: {
+    //   url: process.env.PROD_POLYGON_RPC,
+    // },
+    // localPolygon: {
+    //   url: 'http://127.0.0.1:8546/',
+    //   accounts: getHardhatAccounts(20).map(x => x.privateKey)
+    // },
+    // testnet: {
+    //   url: 'https://neurontestnet.xyz/',
+    //   accounts: getHardhatAccounts(20).map(x => x.privateKey)
+    // }
   },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API
-  },
+  // etherscan: {
+  //   apiKey: process.env.ETHERSCAN_API
+  // },
   vyper: {
     version: '0.2.12'
   },
