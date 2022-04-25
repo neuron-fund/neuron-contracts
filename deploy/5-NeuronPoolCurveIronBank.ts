@@ -1,8 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
-import { Controller, MockStrategy } from '../typechain'
 import { DeployArgs } from '../types'
-import { NeuronPoolCurveIronBank__factory } from '../typechain-types';
+import { Controller, MockStrategy, NeuronPoolCurveIronBank__factory } from '../typechain-types';
 
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

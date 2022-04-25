@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
-import { MockStrategy__factory } from '../typechain'
 import { DeployArgs } from '../types'
+import { MockStrategy__factory } from '../typechain-types';
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre

@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
-import { MasterChef__factory, NeuronToken } from '../typechain'
 import { DeployArgs } from '../types'
 import { parseEther } from 'ethers/lib/utils'
+import { MasterChef__factory, NeuronToken } from '../typechain-types'
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
