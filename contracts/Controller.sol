@@ -300,7 +300,7 @@ contract Controller {
         // Calculate how much underlying
         // is the amount of pTokens worth
         uint256 _fromNPoolUnderlyingAmount = _fromNPoolAmount
-        .mul(INeuronPool(_fromNPool).getRatio())
+        .mul(INeuronPool(_fromNPool).pricePerShare())
         .div(10**uint256(INeuronPool(_fromNPool).decimals()));
 
         // Call 'withdrawForSwap' on NPool's current strategy if NPool
