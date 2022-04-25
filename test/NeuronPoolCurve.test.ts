@@ -15,10 +15,6 @@ const LUSD3CRV = '0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA';
 const LUSD = '0x5f98805A4E8be255a32880FDeC7F6728C6568bA0';
 const ALUSD = '0xBC6DA0FE9aD5f3b0d58160288917AA56653660E9';
 const ALUSD3CRV = '0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c';
-const CYDAI = '0x8e595470Ed749b85C6F7669de83EAe304C2ec68F';
-const CYUSDC = '0x76Eb2FE28b36B3ee97F3Adae0C69606eeDB2A37c';
-const CYUSDT = '0x48759F220ED983dB51fA7A8C0D2AAb8f3ce4166a';
-const IB3CRV = '0x5282a4eF67D9C33135340fB3289cc1711c13638C';
 const USDP3CRV = '0x7Eb40E450b9655f4B3cC4259BCC731c63ff55ae6';
 const USDP = '0x1456688345527bE1f37E9e627DA0837D6f08C925';
 const MIM = '0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3';
@@ -87,19 +83,6 @@ const configs: Config[] = [
             MIM3CRV,
             MIM,
             CRV3,
-            DAI,
-            USDC,
-            USDT,
-        ],
-        errorToken: FRAX3CRV,
-    },    
-    {
-        name: 'NeuronPoolCurveIronBank',
-        tokens: [
-            IB3CRV,
-            CYDAI,
-            CYUSDC,
-            CYUSDT,
             DAI,
             USDC,
             USDT,
@@ -291,10 +274,6 @@ async function _createTokens(token: string, recipient: Signer) {
             [LUSD3CRV]: '0xc64844d9b3db280a6e46c1431e2229cd62dd2d69',
             [ALUSD3CRV]: '0x613d9871c25721e8f90acf8cc4341bb145f29c23',
             [ALUSD]: '0x50acc1281845be0ac6936b4d7ad6a14ae613c1c9',
-            [IB3CRV]: '0xd4dfbde97c93e56d1e41325bb428c18299db203f',
-            [CYDAI]: '0x76871399f5a0756a2f886d316548bd5b1ba648c8',  //12841707758819
-            [CYUSDC]: '0x2b19fde5d7377b48be50a5d0a78398a496e8b15c', //37370791287966272
-            [CYUSDT]: '0x08d49c032f268d3ac4265d1909c28dfaab440040', //9558343770152895
             [USDP3CRV]: '0x44bc6e3a8384979df6673ac81066c67c83d6d6b2',
             [MIMUST]: '0xcd468d6421a6c5109d6c29698548b2af46a5e21b',
             [MIM3CRV]: '0xe896e539e557bc751860a7763c8dd589af1698ce',

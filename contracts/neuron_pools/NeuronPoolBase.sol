@@ -123,11 +123,8 @@ abstract contract NeuronPoolBase is ERC20, ReentrancyGuard {
         IERC20(reserve).safeTransfer(controller, amount);
     }
 
-    function getRatio() public view returns (uint256) {
-        uint256 currentTotalSupply = totalSupply();
-        if (currentTotalSupply == 0) {
-            return 0;
-        }
-        return balance().mul(1e18).div(currentTotalSupply);
+    function pricePerShare() public view returns (uint256) {
+        uint256 total = totalSupply();
+        return total == 0 ? 0 : balance() * 1e18 / total;
     }
 }

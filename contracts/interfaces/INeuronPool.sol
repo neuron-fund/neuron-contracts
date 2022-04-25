@@ -8,7 +8,7 @@ interface INeuronPool is IERC20 {
 
     function claimInsurance() external; // NOTE: Only yDelegatedVault implements this
 
-    function getRatio() external view returns (uint256);
+    function pricePerShare() external view returns (uint256);
 
     function depositAll() external;
 
