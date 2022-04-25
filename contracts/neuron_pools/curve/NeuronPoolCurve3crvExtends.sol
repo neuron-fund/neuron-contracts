@@ -55,6 +55,7 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
     ) internal returns (uint256 crv3amount) {
         address self = address(this);
 
+        _enterToken.safeApprove(address(THREE_POOL), 0);
         _enterToken.safeApprove(address(THREE_POOL), _amount);
 
         uint256 initial3crvBalance = CRV3.balanceOf(self);
@@ -103,6 +104,7 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
         }
 
         ICurveFi_2 BASE_POOL_MEM = BASE_POOL;
+        enterToken.safeApprove(address(BASE_POOL_MEM), 0);
         enterToken.safeApprove(address(BASE_POOL_MEM), _amount);
 
         uint256 initialLpTokenBalance = tokenMem.balanceOf(self);

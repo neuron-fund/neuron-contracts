@@ -65,6 +65,7 @@ contract NeuronPoolCurveIronBank is NeuronPoolCurveBase {
         }
 
         enterToken.safeTransferFrom(msg.sender, self, _amount);
+        enterToken.safeApprove(address(BASE_POOL), 0);
         enterToken.safeApprove(address(BASE_POOL), _amount);
 
         uint256 initialLpTokenBalance = tokenMem.balanceOf(self);
