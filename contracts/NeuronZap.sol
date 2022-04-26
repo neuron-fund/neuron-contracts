@@ -46,7 +46,7 @@ contract NeuronZap is Initializable {
     );
 
     _approveToken(buyToken, neuronPool, boughtTokensAmount);
-    INeuronPool(neuronPool).deposit(boughtTokensAmount);
+    INeuronPool(neuronPool).deposit(buyToken, boughtTokensAmount);
     uint256 poolTokensAmount = INeuronPool(neuronPool).balanceOf(address(this));
     require(poolTokensAmount > 0, "No pool tokens minted");
     _approveToken(neuronPool, neuronGauge, poolTokensAmount);
@@ -74,8 +74,8 @@ contract NeuronZap is Initializable {
       poolUserBalance
     );
 
-    INeuronPool(neuronPool).withdraw(poolUserBalance);
     address fromToken = INeuronPool(neuronPool).token();
+    INeuronPool(neuronPool).withdraw(fromToken, poolUserBalance);
     uint256 fromTokenAmount = IERC20(fromToken).balanceOf(address(this));
     _approveToken(fromToken, zapperContract, fromTokenAmount);
 

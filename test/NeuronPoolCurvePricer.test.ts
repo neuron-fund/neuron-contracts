@@ -1,73 +1,90 @@
-import { ethers, network, deployments } from 'hardhat';
-import { Contract, Signer } from 'ethers';
+import { ethers, deployments } from 'hardhat';
+import { Signer } from 'ethers';
 import { assert } from 'chai';
-import { expectRevert } from '@openzeppelin/test-helpers';
-import { IERC20, IERC20__factory, IUniswapRouterV2, NeuronPoolBase, NeuronPoolCurvePricer } from '../typechain-types';
-import { UNISWAP_ROUTER_V2, WETH } from '../constants/addresses';
+import { INeuronPool, IPricer } from '../typechain-types';
+import TokenHelper from './helpers/TokenHelper';
+import NetworkHelper from './helpers/NetworkHelper';
 
 
-describe(`NeuronPoolPricer.sol`, () => {
-    // --------------------------------------------------------
-    // ----------------------  RESET  -------------------------
-    // --------------------------------------------------------
+interface IConfig {
+    name: string;
+    neuronPool: string;
+}
 
-    let initialBlockNumber: number;
-    beforeEach(async () => {
-        if (initialBlockNumber === undefined) initialBlockNumber = await ethers.provider.getBlockNumber();
-        else await network.provider.request({
-            method: "hardhat_reset",
-            params: [{
-                forking: {
-                    jsonRpcUrl: process.env.POLYGON ? process.env.ALCHEMY_POLYGON : process.env.ALCHEMY,
-                    blockNumber: initialBlockNumber
-                }
-            }]
-        });
-    });
+const configs: IConfig[] = [
+    {
+        name: 'NeuronPoolCurve3poolPricer',
+        neuronPool: 'NeuronPoolCurve3pool',
+    },
+    {
+        name: 'NeuronPoolCurveFraxPricer',
+        neuronPool: 'NeuronPoolCurveFrax',
+    },
+    // {
+    //     name: 'NeuronPoolCurveLUSDPricer',
+    // },
+    // {
+    //     name: 'NeuronPoolCurveALUSDPricer',
+    // },
+    {
+        name: 'NeuronPoolCurveMIMPricer',
+        neuronPool: 'NeuronPoolCurveMIM',
+    },
+    {
+        name: 'NeuronPoolCurveUSDPPricer',
+        neuronPool: 'NeuronPoolCurveUSDP',
+    },
+    {
+        name: 'NeuronPoolCurveMIMUSTPricer',
+        neuronPool: 'NeuronPoolCurveMIMUST',
+    },
+];
 
-    // --------------------------------------------------------
-    // ----------------------  DEPLOY  ------------------------
-    // --------------------------------------------------------
-
-    let neuronPoolCurvePricer: NeuronPoolCurvePricer;
-    let user: Signer;
-
-    beforeEach(async () => {
-        await deployments.fixture(['NeuronPoolCurvePricer']);
-        const NeuronPoolCurvePricerDeployment = await deployments.get('NeuronPoolCurvePricer');
-        const accounts = await ethers.getSigners();
-        user = accounts[10];
-        neuronPoolCurvePricer = await _getContract('NeuronPoolCurvePricer', NeuronPoolCurvePricerDeployment.address);
-    });
-
-    // --------------------------------------------------------
-    // ------------------  REGULAR TESTS  ---------------------
-    // --------------------------------------------------------
-
-    it(`Regular test`, async () => {
-        const price = await neuronPoolCurvePricer.getPrice();
-        console.log(`PRICE: ${price}`);
-        console.log(`PRICE: ${ethers.utils.formatEther(price)}`);
-    });
+describe('NeuronPoolPricers', () => {
+    for (const config of configs) {
+        testNeuronPoolPricers(config);
+    }
 });
 
-// --------------------------------------------------------
-// -----------------  GLOBAL HELPERS  ---------------------
-// --------------------------------------------------------
 
-async function _getToken(address: string, signer?: Signer): Promise<IERC20> {
-    return await _getContract('@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20', address, signer) as IERC20;
-}
+function testNeuronPoolPricers(config: IConfig) {
+    describe(`${config.name}`, () => {
+        // --------------------------------------------------------
+        // ----------------------  DEPLOY  ------------------------
+        // --------------------------------------------------------
 
-async function _getContract<T extends Contract>(contract: string, address: string, deployer?: Signer): Promise<T> {
-    return await ethers.getContractAt(contract, address) as T;
-}
+        let neuronPoolCurvePricer: IPricer;
+        let user: Signer;
 
+        beforeEach(async () => {
+            await NetworkHelper.reset();
+            await deployments.fixture([config.name]);
+            const NeuronPoolCurvePricerDeployment = await deployments.get(config.name);
+            const accounts = await ethers.getSigners();
+            user = accounts[10];
+            neuronPoolCurvePricer = await ethers.getContractAt(
+                'IPricer',
+                NeuronPoolCurvePricerDeployment.address
+            ) as IPricer;
 
-async function impersonateAccount(acctAddress) {
-    await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [acctAddress],
+            const NeuronPoolCurveDeployment = await deployments.get(config.neuronPool);
+            const neuronPoolCurve = await ethers.getContractAt('INeuronPool', NeuronPoolCurveDeployment.address) as INeuronPool;
+            const tokenAddress = await neuronPoolCurve.token();
+            await TokenHelper.createTokens(tokenAddress, user);
+            const token = await TokenHelper.getToken(tokenAddress);
+            const tokenBalance = await token.balanceOf(await user.getAddress());
+            await token.connect(user).approve(neuronPoolCurve.address, tokenBalance);
+            await neuronPoolCurve.connect(user).deposit(await neuronPoolCurve.token(), tokenBalance);
+        });
+
+        // --------------------------------------------------------
+        // ------------------  REGULAR TESTS  ---------------------
+        // --------------------------------------------------------
+
+        it(`Regular test`, async () => {
+            const price = await neuronPoolCurvePricer.getPrice();
+            assert(price.lt(ethers.utils.parseEther('1.1')), `Price more 1.1, = ${ethers.utils.formatEther(price)}`);
+            assert(price.gt(ethers.utils.parseEther('0.9')), `Price low 0.9 = ${ethers.utils.formatEther(price)}`);
+        });
     });
-    return await ethers.getSigner(acctAddress);
 }

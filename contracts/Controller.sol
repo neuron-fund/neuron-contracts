@@ -321,7 +321,7 @@ contract Controller {
         //       as we transferred the access
         IERC20(_fromNPool).safeApprove(_fromNPool, 0);
         IERC20(_fromNPool).safeApprove(_fromNPool, _fromNPoolAmount);
-        INeuronPool(_fromNPool).withdraw(_fromNPoolAmount);
+        INeuronPool(_fromNPool).withdraw(_toNPoolToken, _fromNPoolAmount);
 
         // Calculate fee
         uint256 _fromUnderlyingBalance = IERC20(_fromNPoolToken).balanceOf(
@@ -351,7 +351,7 @@ contract Controller {
         uint256 _toBal = IERC20(_toNPoolToken).balanceOf(address(this));
         IERC20(_toNPoolToken).safeApprove(_toNPool, 0);
         IERC20(_toNPoolToken).safeApprove(_toNPool, _toBal);
-        INeuronPool(_toNPool).deposit(_toBal);
+        INeuronPool(_toNPool).deposit(_toNPoolToken, _toBal);
 
         // Send NPool Tokens to user
         uint256 _toNPoolBal = INeuronPool(_toNPool).balanceOf(address(this));
