@@ -20,12 +20,14 @@ const configs: IConfig[] = [
         name: 'NeuronPoolCurveFraxPricer',
         neuronPool: 'NeuronPoolCurveFrax',
     },
-    // {
-    //     name: 'NeuronPoolCurveLUSDPricer',
-    // },
-    // {
-    //     name: 'NeuronPoolCurveALUSDPricer',
-    // },
+    {
+        name: 'NeuronPoolCurveLUSDPricer',
+        neuronPool: 'NeuronPoolCurveLUSD',
+    },
+    {
+        name: 'NeuronPoolCurveALUSDPricer',
+        neuronPool: 'NeuronPoolCurveALUSD',
+    },
     {
         name: 'NeuronPoolCurveMIMPricer',
         neuronPool: 'NeuronPoolCurveMIM',
@@ -83,6 +85,7 @@ function testNeuronPoolPricers(config: IConfig) {
 
         it(`Regular test`, async () => {
             const price = await neuronPoolCurvePricer.getPrice();
+            console.log(`PRICE: ${price}`);
             assert(price.lt(ethers.utils.parseEther('1.1')), `Price more 1.1, = ${ethers.utils.formatEther(price)}`);
             assert(price.gt(ethers.utils.parseEther('0.9')), `Price low 0.9 = ${ethers.utils.formatEther(price)}`);
         });

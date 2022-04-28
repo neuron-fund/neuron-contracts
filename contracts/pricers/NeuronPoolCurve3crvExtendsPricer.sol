@@ -7,7 +7,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IPricer} from "../interfaces/IPricer.sol";
 import {ICurvePool} from "../interfaces/ICurve.sol";
 import {INeuronPool} from "../interfaces/INeuronPool.sol";
-import "hardhat/console.sol";
 
 contract NeuronPoolCurve3crvExtendsPricer is IPricer, Initializable {
     INeuronPool public neuronPool;
@@ -30,7 +29,11 @@ contract NeuronPoolCurve3crvExtendsPricer is IPricer, Initializable {
     function getPrice() external view override returns (uint256) {
         uint256 crv3Price = crv3Pricer.getPrice();
         (, int256 rawPrice, , , ) = tokenPriceFeed.latestRoundData();
-        uint256 tokenPrice = uint256(rawPrice);
-        return neuronPool.pricePerShare() * (crv3Price < tokenPrice ? crv3Price : tokenPrice) / 1e8;
+        uint256 tokenPrice = uint256(rawPrice) * 1e10;
+        
+        return
+            (neuronPool.pricePerShare() *
+                curvePool.get_virtual_price() *
+                (crv3Price < tokenPrice ? crv3Price : tokenPrice)) / 1e36;
     }
 }
