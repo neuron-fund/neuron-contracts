@@ -1,5 +1,9 @@
 pragma solidity 0.8.2;
 
+interface ICurvePool {
+    function get_virtual_price() external view returns (uint256);
+}
+
 interface ICurveFi {
     function add_liquidity(
         // stETH pool
@@ -32,10 +36,22 @@ interface ICurveFi_2 {
     ) external;
 
     function balances(int128) external view returns (uint256);
+
+    function remove_liquidity_one_coin(
+        uint256,
+        int128,
+        uint256
+    ) external;
 }
 
 interface ICurveFi_3 {
     function get_virtual_price() external view returns (uint256);
+
+    function add_liquidity(
+        uint256[3] calldata amounts,
+        uint256 min_mint_amount,
+        bool use_underlying
+    ) external;
 
     function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount)
         external;
@@ -56,6 +72,19 @@ interface ICurveFi_3 {
     ) external;
 
     function balances(uint256) external view returns (uint256);
+
+    function remove_liquidity_one_coin(
+        uint256,
+        int128,
+        uint256
+    ) external;
+
+    function remove_liquidity_one_coin(
+        uint256,
+        int128,
+        uint256,
+        bool use_underlying
+    ) external;
 }
 
 interface ICurveFi_4 {
@@ -234,9 +263,10 @@ interface ICurveFi_Polygon_2 {
         view
         returns (uint256);
 
-    function add_liquidity(uint256[2] calldata _amounts, uint256 _min_mint_amount)
-        external
-        returns (uint256);
+    function add_liquidity(
+        uint256[2] calldata _amounts,
+        uint256 _min_mint_amount
+    ) external returns (uint256);
 
     function add_liquidity(
         uint256[2] calldata _amounts,
