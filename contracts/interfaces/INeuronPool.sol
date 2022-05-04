@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -7,15 +8,15 @@ interface INeuronPool is IERC20 {
 
     function claimInsurance() external; // NOTE: Only yDelegatedVault implements this
 
-    function getRatio() external view returns (uint256);
+    function pricePerShare() external view returns (uint256);
 
-    function depositAll() external;
+    function depositAll(address _enterToken) external;
 
-    function deposit(uint256) external;
+    function deposit(address _enterToken, uint256 _amount) external;
 
-    function withdrawAll() external;
+    function withdrawAll(address _withdrawableToken) external;
 
-    function withdraw(uint256) external;
+    function withdraw(address _withdrawableToken, uint256 _shares) external;
 
     function earn() external;
 

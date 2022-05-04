@@ -8,3 +8,7 @@ abi
 .env
 .DS_Store
 zapper
+typechain-types
+.vscode
+.idea
+bin
