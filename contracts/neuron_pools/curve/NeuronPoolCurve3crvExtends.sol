@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"; // use in deploy
 
 import {ICurveFi_2, ICurveFi_3} from "../../interfaces/ICurve.sol";
-import {NeuronPoolCurveBaseInitialize} from "../NeuronPoolCurveBaseInitialize.sol";
+import {NeuronPoolBaseInitialize} from "../NeuronPoolBaseInitialize.sol";
 
-contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
+contract NeuronPoolCurve3crvExtends is NeuronPoolBaseInitialize {
     using SafeERC20 for IERC20;
 
     ICurveFi_2 public BASE_POOL;
@@ -37,7 +37,7 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
         address _basePool,
         address _firstTokenInBasePool
     ) external initializer {
-        __NeuronPoolCurveBaseInitialize_init(
+        __NeuronPoolBaseInitialize_init(
             _token,
             _governance,
             _timelock,
@@ -46,6 +46,21 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
         );
         BASE_POOL = ICurveFi_2(_basePool);
         FIRST_TOKEN_IN_BASE_POOL = IERC20(_firstTokenInBasePool);
+    }
+
+    function getSupportedTokens()
+        external
+        view
+        override
+        returns (address[] memory tokens)
+    {
+        tokens = new address[](6);
+        tokens[0] = address(token);
+        tokens[1] = address(FIRST_TOKEN_IN_BASE_POOL);
+        tokens[2] = address(CRV3);
+        tokens[3] = address(DAI);
+        tokens[4] = address(USDC);
+        tokens[5] = address(USDT);
     }
 
     function deposit3poolToken(
@@ -121,10 +136,10 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
         return resultLpTokenBalance - initialLpTokenBalance;
     }
 
-    function withdrawBaseToken(address _withdrawableToken, uint256 _userLpTokensAmount)
-        internal
-        override
-    {
+    function withdrawBaseToken(
+        address _withdrawableToken,
+        uint256 _userLpTokensAmount
+    ) internal override {
         address self = address(this);
         IERC20 withdrawableToken = IERC20(_withdrawableToken);
 

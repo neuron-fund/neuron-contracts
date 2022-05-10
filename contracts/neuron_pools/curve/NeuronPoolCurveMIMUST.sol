@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {ICurveFi_2} from "../../interfaces/ICurve.sol";
-import {NeuronPoolCurveBase} from "../NeuronPoolCurveBase.sol";
+import {NeuronPoolBase} from "../NeuronPoolBase.sol";
 
-contract NeuronPoolCurveMIMUST is NeuronPoolCurveBase {
+contract NeuronPoolCurveMIMUST is NeuronPoolBase {
     using SafeERC20 for IERC20;
 
     ICurveFi_2 internal constant BASE_POOL =
@@ -27,7 +27,7 @@ contract NeuronPoolCurveMIMUST is NeuronPoolCurveBase {
         address _controller,
         address _masterchef
     )
-        NeuronPoolCurveBase(
+        NeuronPoolBase(
             _token,
             _governance,
             _timelock,
@@ -35,6 +35,19 @@ contract NeuronPoolCurveMIMUST is NeuronPoolCurveBase {
             _masterchef
         )
     {}
+
+    
+    function getSupportedTokens()
+        external
+        view
+        override
+        returns (address[] memory tokens)
+    {
+        tokens = new address[](3);
+        tokens[0] = address(token);
+        tokens[1] = address(MIM);
+        tokens[2] = address(UST);
+    }
 
     function depositBaseToken(address _enterToken, uint256 _amount)
         internal

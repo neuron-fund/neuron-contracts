@@ -10,9 +10,9 @@ interface INeuronPool is IERC20 {
 
     function pricePerShare() external view returns (uint256);
 
-    function depositAll(address _enterToken) external;
+    function depositAll(address _enterToken) external returns (uint256);
 
-    function deposit(address _enterToken, uint256 _amount) external;
+    function deposit(address _enterToken, uint256 _amount) external returns (uint256);
 
     function withdrawAll(address _withdrawableToken) external;
 
@@ -21,4 +21,9 @@ interface INeuronPool is IERC20 {
     function earn() external;
 
     function decimals() external view returns (uint8);
+
+    function getSupportedTokens()
+        external
+        view
+        returns (address[] memory tokens);
 }

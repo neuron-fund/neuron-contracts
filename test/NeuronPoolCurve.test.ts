@@ -2,7 +2,7 @@ import { ethers, network, deployments } from 'hardhat';
 import { Signer } from 'ethers';
 import { assert } from 'chai';
 import { expectRevert } from '@openzeppelin/test-helpers';
-import { NeuronPoolBase } from '../typechain-types';
+import { INeuronPool, NeuronPoolBase } from '../typechain-types';
 import { ALUSD, ALUSD3CRV, CRV3, DAI, FRAX, FRAX3CRV, LUSD, LUSD3CRV, MIM, MIM3CRV, MIMUST, USDC, USDP, USDP3CRV, USDT, UST } from '../constants/addresses';
 import TokenHelper from './helpers/TokenHelper';
 import NetworkHelper from './helpers/NetworkHelper';
@@ -109,7 +109,7 @@ function testNeuronPool(config: Config) {
         // ----------------------  DEPLOY  ------------------------
         // --------------------------------------------------------
 
-        let neuronPool: NeuronPoolBase;
+        let neuronPool: INeuronPool;
         let user: Signer;
 
         beforeEach(async () => {
@@ -118,14 +118,14 @@ function testNeuronPool(config: Config) {
             const NeuronPoolDeployment = await deployments.get(config.name);
             const accounts = await ethers.getSigners();
             user = accounts[10];
-            neuronPool = await ethers.getContractAt('NeuronPoolBase', NeuronPoolDeployment.address) as NeuronPoolBase;
+            neuronPool = await ethers.getContractAt('INeuronPool', NeuronPoolDeployment.address) as INeuronPool;
         });
 
         // --------------------------------------------------------
         // ------------------  REGULAR TESTS  ---------------------
         // --------------------------------------------------------
 
-        // it('Regular test tokens')
+        it('Regular test tokens')
         for (let i = 0; i < config.tokens.length; i++) {
             const tokenAddress = config.tokens[i];
             it(`Regular test: deposit and withdraw tokens (index = ${i}; address = ${tokenAddress})`, async () => {
@@ -154,6 +154,13 @@ function testNeuronPool(config: Config) {
                 );
             });
         }
+
+        it('Get supported tokens', async () => {
+            const tokens = await neuronPool.getSupportedTokens();
+            console.log(config.tokens);
+            console.log(tokens);
+            assert(JSON.stringify(tokens) === JSON.stringify(config.tokens), 'Supported tokens not equals');
+        });
 
         // --------------------------------------------------------
         // -------------------  SAFETY TESTS  ---------------------
