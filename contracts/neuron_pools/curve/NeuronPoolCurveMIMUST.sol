@@ -12,13 +12,10 @@ import {NeuronPoolBase} from "../NeuronPoolBase.sol";
 contract NeuronPoolCurveMIMUST is NeuronPoolBase {
     using SafeERC20 for IERC20;
 
-    ICurveFi_2 internal constant BASE_POOL =
-        ICurveFi_2(0x55A8a39bc9694714E2874c1ce77aa1E599461E18);
+    ICurveFi_2 internal constant BASE_POOL = ICurveFi_2(0x55A8a39bc9694714E2874c1ce77aa1E599461E18);
 
-    IERC20 public constant MIM =
-        IERC20(0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3);
-    IERC20 public constant UST =
-        IERC20(0xa47c8bf37f92aBed4A126BDA807A7b7498661acD);
+    IERC20 internal constant MIM = IERC20(0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3);
+    IERC20 internal constant UST = IERC20(0xa47c8bf37f92aBed4A126BDA807A7b7498661acD);
 
     constructor(
         address _token,
@@ -26,34 +23,16 @@ contract NeuronPoolCurveMIMUST is NeuronPoolBase {
         address _timelock,
         address _controller,
         address _masterchef
-    )
-        NeuronPoolBase(
-            _token,
-            _governance,
-            _timelock,
-            _controller,
-            _masterchef
-        )
-    {}
+    ) NeuronPoolBase(_token, _governance, _timelock, _controller, _masterchef) {}
 
-    
-    function getSupportedTokens()
-        external
-        view
-        override
-        returns (address[] memory tokens)
-    {
+    function getSupportedTokens() external view override returns (address[] memory tokens) {
         tokens = new address[](3);
         tokens[0] = address(token);
         tokens[1] = address(MIM);
         tokens[2] = address(UST);
     }
 
-    function depositBaseToken(address _enterToken, uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
+    function depositBaseToken(address _enterToken, uint256 _amount) internal override returns (uint256) {
         address self = address(this);
         IERC20 tokenMem = token;
         IERC20 enterToken = IERC20(_enterToken);
@@ -77,18 +56,12 @@ contract NeuronPoolCurveMIMUST is NeuronPoolBase {
 
         uint256 resultLpTokenBalance = tokenMem.balanceOf(self);
 
-        require(
-            resultLpTokenBalance > initialLpTokenBalance,
-            "Tokens were not received from the liquidity pool"
-        );
+        require(resultLpTokenBalance > initialLpTokenBalance, "Tokens were not received from the liquidity pool");
 
         return resultLpTokenBalance - initialLpTokenBalance;
     }
 
-    function withdrawBaseToken(
-        address _withdrawableToken,
-        uint256 _userLpTokensAmount
-    ) internal override {
+    function withdrawBaseToken(address _withdrawableToken, uint256 _userLpTokensAmount) internal override {
         address self = address(this);
         IERC20 withdrawableToken = IERC20(_withdrawableToken);
 
@@ -107,9 +80,6 @@ contract NeuronPoolCurveMIMUST is NeuronPoolBase {
 
         require(resultLpTokenBalance > initialLpTokenBalance, "!base_amount");
 
-        withdrawableToken.safeTransfer(
-            msg.sender,
-            resultLpTokenBalance - initialLpTokenBalance
-        );
+        withdrawableToken.safeTransfer(msg.sender, resultLpTokenBalance - initialLpTokenBalance);
     }
 }

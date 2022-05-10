@@ -1,12 +1,7 @@
 pragma solidity 0.8.2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-
-import "../interfaces/IController.sol";
+import {ERC20, IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {NeuronPoolCommon} from "./NeuronPoolCommon.sol";
 
 abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
@@ -20,64 +15,39 @@ abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
         address _masterchef
     )
         ERC20(
-            string(abi.encodePacked("neuroned", ERC20(_token).name())),
-            string(abi.encodePacked("neur", ERC20(_token).symbol()))
+            string(abi.encodePacked("neuroned", IERC20Metadata(_token).name())),
+            string(abi.encodePacked("neur", IERC20Metadata(_token).symbol()))
         )
     {
-        _decimals = ERC20(_token).decimals();
-        token = IERC20(_token);
+        _decimals = IERC20Metadata(_token).decimals();
+        token = IERC20Metadata(_token);
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
         masterchef = _masterchef;
     }
 
-    function deposit(address _enterToken, uint256 _amount)
-        public
-        override
-        nonReentrant
-        returns (uint256)
-    {
+    function deposit(address _enterToken, uint256 _amount) public override nonReentrant returns (uint256) {
         return super.deposit(_enterToken, _amount);
     }
 
-    function withdraw(address _withdrawableToken, uint256 _shares)
-        public
-        override
-        nonReentrant
-    {
+    function withdraw(address _withdrawableToken, uint256 _shares) public override nonReentrant {
         super.withdraw(_withdrawableToken, _shares);
     }
 
-    function _burn(address account, uint256 amount)
-        internal
-        override(NeuronPoolCommon, ERC20)
-    {
+    function _burn(address account, uint256 amount) internal override(NeuronPoolCommon, ERC20) {
         ERC20._burn(account, amount);
     }
 
-    function _mint(address account, uint256 amount)
-        internal
-        override(NeuronPoolCommon, ERC20)
-    {
+    function _mint(address account, uint256 amount) internal override(NeuronPoolCommon, ERC20) {
         ERC20._mint(account, amount);
     }
 
-    function decimals()
-        public
-        view
-        override(NeuronPoolCommon, ERC20)
-        returns (uint8)
-    {
+    function decimals() public view override(NeuronPoolCommon, ERC20) returns (uint8) {
         return NeuronPoolCommon.decimals();
     }
 
-    function totalSupply()
-        public
-        view
-        override(NeuronPoolCommon, ERC20)
-        returns (uint256)
-    {
+    function totalSupply() public view override(NeuronPoolCommon, ERC20) returns (uint256) {
         return ERC20.totalSupply();
     }
 }
