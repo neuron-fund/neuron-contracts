@@ -27,7 +27,6 @@ abstract contract NeuronPoolBaseInitialize is
         );
         __ReentrancyGuard_init_unchained();
 
-        _decimals = IERC20Metadata(_token).decimals();
         token = IERC20Metadata(_token);
         governance = _governance;
         timelock = _timelock;

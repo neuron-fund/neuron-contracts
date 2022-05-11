@@ -17,8 +17,6 @@ abstract contract NeuronPoolCommon {
     uint256 public min = 9500;
     uint256 public constant max = 10000;
 
-    uint8 public _decimals;
-
     address public governance;
     address public timelock;
     address public controller;
@@ -98,7 +96,7 @@ abstract contract NeuronPoolCommon {
     }
 
     function decimals() public view virtual returns (uint8) {
-        return _decimals;
+        return 18;
     }
 
     // Balance = pool's balance + pool's token controller contract balance
@@ -150,6 +148,6 @@ abstract contract NeuronPoolCommon {
 
     function pricePerShare() public view returns (uint256) {
         uint256 total = totalSupply();
-        return total == 0 ? 0 : (balance() * 1e18) / total;
+        return total == 0 ? 0 : (balance() * 10**decimals()) / total;
     }
 }

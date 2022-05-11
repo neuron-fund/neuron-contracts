@@ -19,7 +19,6 @@ abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
             string(abi.encodePacked("neur", IERC20Metadata(_token).symbol()))
         )
     {
-        _decimals = IERC20Metadata(_token).decimals();
         token = IERC20Metadata(_token);
         governance = _governance;
         timelock = _timelock;

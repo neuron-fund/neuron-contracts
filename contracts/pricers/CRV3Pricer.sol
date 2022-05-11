@@ -31,6 +31,6 @@ contract CRV3Pricer is IPricer {
             ? usdcPrice
             : usdtPrice;
         
-        return CURVE_POOL.get_virtual_price() * uint256(minPrice) / 1e8;
+        return CURVE_POOL.get_virtual_price() * uint256(minPrice) / 1e18;
     }
 }
