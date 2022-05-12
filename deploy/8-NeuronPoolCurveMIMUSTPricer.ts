@@ -14,7 +14,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await deploy<DeployArgs<NeuronPoolCurveMIMUSTPricer__factory>>('NeuronPoolCurveMIMUSTPricer', {
     from: deployer.address,
     args: [
-      NeuronPoolCurveMIMUSTDeployment.address
+      NeuronPoolCurveMIMUSTDeployment.address,
+      18
     ],
   });
 };

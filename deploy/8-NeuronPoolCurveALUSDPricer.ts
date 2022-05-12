@@ -17,7 +17,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     NeuronPoolCurveALUSDDeployment.address,
     CRV3PricerDeployment.address,
     '0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c',
-    '0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9'
+    '0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9',
+    18
   ]);
 
   await deploy('NeuronPoolCurveALUSDPricer', {
@@ -25,7 +26,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     contract: 'ERC1967Proxy',
     args: [
       NeuronPoolCurve3crvExtendsPricerDeployment.address,
-      data,
+      data
     ],
   });
 };

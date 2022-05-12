@@ -3,7 +3,6 @@ pragma solidity 0.8.2;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {IPricer} from "../interfaces/IPricer.sol";
 import {ICurvePool} from "../interfaces/ICurve.sol";
@@ -21,13 +20,14 @@ contract NeuronPoolCurve3crvExtendsPricer is IPricer, Initializable {
         address _neuronPool,
         address _crv3Pricer,
         address _curvePool,
-        address _tokenPriceFeed
+        address _tokenPriceFeed,
+        uint8 _pricePerShareDecimals
     ) external initializer {
         neuronPool = INeuronPool(_neuronPool);
         crv3Pricer = IPricer(_crv3Pricer);
         curvePool = ICurvePool(_curvePool);
         tokenPriceFeed = AggregatorV3Interface(_tokenPriceFeed);
-        pricePerShareDecimals = IERC20Metadata(neuronPool.token()).decimals();
+        pricePerShareDecimals = _pricePerShareDecimals;
     }
 
     function getPrice() external view override returns (uint256) {

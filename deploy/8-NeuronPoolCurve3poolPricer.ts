@@ -17,6 +17,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     args: [
       NeuronPoolCurve3poolDeployment.address,
       CRV3PricerDeployment.address,
+      18
     ],
   });
 };

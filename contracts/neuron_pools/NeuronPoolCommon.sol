@@ -148,6 +148,6 @@ abstract contract NeuronPoolCommon {
 
     function pricePerShare() public view returns (uint256) {
         uint256 total = totalSupply();
-        return total == 0 ? 0 : (balance() * 10**decimals()) / total;
+        return total == 0 ? 0 : (balance() * 1e18) / total;
     }
 }
