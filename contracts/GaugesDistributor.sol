@@ -4,7 +4,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "./Gauge.sol";
+import {GaugeImplementation} from "./GaugeImplementation.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 interface IMinter {
     function collect() external;
@@ -13,6 +14,9 @@ interface IMinter {
 contract GaugesDistributor {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    uint256 public constant MIN_DURATION = 1 days;
+    uint256 public constant MAX_DURATION = 12 weeks;
 
     IERC20 public immutable NEURON;
     IERC20 public immutable AXON;
@@ -46,10 +50,7 @@ contract GaugesDistributor {
     }
 
     function setMinter(address _minter) public {
-        require(
-            msg.sender == governance,
-            "!admin and !governance"
-        );
+        require(msg.sender == governance, "!admin and !governance");
         minter = IMinter(_minter);
     }
 
@@ -121,9 +122,7 @@ contract GaugesDistributor {
         for (uint256 i = 0; i < _tokenCnt; i++) {
             address _token = _tokenVote[i];
             address _gauge = gauges[_token];
-            uint256 _tokenWeight = _weights[i].mul(_weight).div(
-                _totalVoteWeight
-            );
+            uint256 _tokenWeight = _weights[i].mul(_weight).div(_totalVoteWeight);
 
             if (_gauge != address(0x0)) {
                 _usedWeight = _usedWeight.add(_tokenWeight);
@@ -137,20 +136,14 @@ contract GaugesDistributor {
         usedWeights[_owner] = _usedWeight;
     }
 
-    function setWeights(
-        address[] memory _tokensToVote,
-        uint256[] memory _weights
-    ) external {
+    function setWeights(address[] memory _tokensToVote, uint256[] memory _weights) external {
         require(
             msg.sender == admin || msg.sender == governance,
             "Set weights function can only be executed by admin or governance"
         );
         require(isManualWeights, "Manual weights mode is off");
 
-        require(
-            _tokensToVote.length == _weights.length,
-            "Number Tokens to vote should be the same as weights number"
-        );
+        require(_tokensToVote.length == _weights.length, "Number Tokens to vote should be the same as weights number");
 
         uint256 _tokensCnt = _tokensToVote.length;
         uint256 _totalWeight = 0;
@@ -174,19 +167,21 @@ contract GaugesDistributor {
     }
 
     // Vote with AXON on a gauge
-    function vote(address[] calldata _tokenVote, uint256[] calldata _weights)
-        external
-    {
+    function vote(address[] calldata _tokenVote, uint256[] calldata _weights) external {
         require(_tokenVote.length == _weights.length);
         require(!isManualWeights, "isManualWeights should be false");
         _vote(msg.sender, _tokenVote, _weights);
     }
 
-    function addGauge(address _token) external {
+    function addGauge(address _token, address _gaugeImplementation) external {
         require(msg.sender == governance, "!governance");
         require(gauges[_token] == address(0x0), "exists");
+
         gauges[_token] = address(
-            new Gauge(_token, address(NEURON), address(AXON))
+            new ERC1967Proxy(
+                _gaugeImplementation,
+                abi.encodeWithSelector(GaugeImplementation.initialize.selector, _token, address(NEURON), address(AXON))
+            )
         );
         _tokens.push(_token);
     }
@@ -200,34 +195,33 @@ contract GaugesDistributor {
         return _tokens.length;
     }
 
-    function distribute() external {
+    function distribute(uint256 _duration) external {
         require(
             msg.sender == admin || msg.sender == governance,
             "Distribute function can only be executed by admin or governance"
         );
-        collect();
+        require(_duration >= MIN_DURATION && _duration <= MAX_DURATION, "!duration");
+
         uint256 _balance = NEURON.balanceOf(address(this));
-        if (_balance > 0 && totalWeight > 0) {
+
+        require(_balance > 0, "!balance");
+
+        if (totalWeight > 0) {
             for (uint256 i = 0; i < _tokens.length; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint256 _reward = _balance.mul(weights[_token]).div(
-                    totalWeight
-                );
+                uint256 _reward = _balance.mul(weights[_token]).div(totalWeight);
                 if (_reward > 0) {
                     NEURON.safeApprove(_gauge, 0);
                     NEURON.safeApprove(_gauge, _reward);
-                    Gauge(_gauge).notifyRewardAmount(_reward);
+                    GaugeImplementation(_gauge).notifyRewardAmount(_reward, _duration);
                 }
             }
         }
     }
 
     function setAdmin(address _admin) external {
-        require(
-            msg.sender == admin || msg.sender == governance,
-            "Only governance or admin can set admin"
-        );
+        require(msg.sender == admin || msg.sender == governance, "Only governance or admin can set admin");
 
         admin = _admin;
     }
