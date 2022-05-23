@@ -1,10 +1,11 @@
-import { config as dontenvConfig } from 'dotenv'
+import {config as dontenvConfig} from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
 const env = dontenvConfig()
 dotenvExpand(env)
-import { testPrivateKeys } from './utils/testPrivateKeys'
+import {testPrivateKeys} from './utils/testPrivateKeys'
 
-import { HardhatUserConfig } from 'hardhat/config'
+
+import {HardhatUserConfig} from 'hardhat/config'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-vyper'
@@ -15,6 +16,7 @@ import 'hardhat-abi-exporter'
 import '@typechain/hardhat'
 import 'hardhat-gas-reporter'
 import '@nomiclabs/hardhat-etherscan'
+import '@openzeppelin/hardhat-upgrades'
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -46,8 +48,9 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: process.env.POLYGON ? 1339 : 1337,
       forking: {
-        url: process.env.POLYGON ? process.env.ALCHEMY_POLYGON : process.env.ALCHEMY,
-        blockNumber: Number(process.env.FORK_BLOCK_NUMBER) || undefined,
+        url: process.env.POLYGON
+          ? process.env.ALCHEMY_POLYGON
+          : process.env.ALCHEMY,
       },
       loggingEnabled: true,
       blockGasLimit: 0x1fffffffffffff,
@@ -57,19 +60,22 @@ const config: HardhatUserConfig = {
     // prodMainnet: {
     //   url: process.env.PROD_MAINNET_RPC,
     //   gasPrice: 40e9,
-    //   blockGasLimit: 5e6
+    //   blockGasLimit: 5e6,
     // },
     // prodPolygon: {
     //   url: process.env.PROD_POLYGON_RPC,
     // },
-    // localPolygon: {
-    //   url: 'http://127.0.0.1:8546/',
-    //   accounts: getHardhatAccounts(20).map(x => x.privateKey)
-    // },
-    // testnet: {
-    //   url: 'https://neurontestnet.xyz/',
-    //   accounts: getHardhatAccounts(20).map(x => x.privateKey)
-    // }
+    localPolygon: {
+      url: 'http://127.0.0.1:8546/',
+      accounts: getHardhatAccounts(20).map(x => x.privateKey),
+    },
+    testnet: {
+      url: 'https://neurontestnet.xyz/',
+      accounts: getHardhatAccounts(20).map(x => x.privateKey),
+    },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API,
   },
   // etherscan: {
   //   apiKey: process.env.ETHERSCAN_API

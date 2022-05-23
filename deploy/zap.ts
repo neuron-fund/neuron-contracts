@@ -5,7 +5,7 @@ import { NeuronZap__factory } from '../typechain-types'
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
-  const { deploy, } = deployments
+  const { deploy } = deployments
   const signer = (await ethers.getSigners())[0]
 
   await deploy<DeployArgs<NeuronZap__factory>>('NeuronZap', {
