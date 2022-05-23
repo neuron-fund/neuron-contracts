@@ -9,34 +9,29 @@ import {INeuronPool} from "../interfaces/INeuronPool.sol";
 import {ITroveManager} from "../interfaces/ITroveManager.sol";
 
 contract NeuronPoolCurveLUSDPricer is IPricer {
-
     INeuronPool public immutable NEURON_POOL;
-
     IPricer public immutable CRV3_PRICER;
+    ITroveManager public constant TROVE_MANAGER = ITroveManager(0xA39739EF8b0231DbFA0DcdA07d7e29faAbCf4bb2);
+    ICurvePool public constant CURVE_POOL = ICurvePool(0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA);
+    uint8 public pricePerShareDecimals;
 
-    AggregatorV3Interface public constant DAI_PRICER =
-        AggregatorV3Interface(0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9);
-
-    ITroveManager public constant TROVE_MANAGER =
-        ITroveManager(0xA39739EF8b0231DbFA0DcdA07d7e29faAbCf4bb2);
-
-    ICurvePool public constant CURVE_POOL =
-        ICurvePool(0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA);
-
-    constructor(address _neuronPool, address _crv3Pricer) {
+    constructor(
+        address _neuronPool,
+        address _crv3Pricer,
+        uint8 _pricePerShareDecimals
+    ) {
         NEURON_POOL = INeuronPool(_neuronPool);
         CRV3_PRICER = IPricer(_crv3Pricer);
+        pricePerShareDecimals = _pricePerShareDecimals;
     }
 
     function getPrice() external view override returns (uint256) {
-        uint256 crv3Price = CRV3_PRICER.getPrice();
-        (, int256 daiPrice, , , ) = DAI_PRICER.latestRoundData();
-        uint256 lusdPrice = (uint256(daiPrice) *
-            (1e18 - TROVE_MANAGER.getRedemptionRate())) / 1e8;
+        uint256 crv3Price = CRV3_PRICER.getPrice() * 1e10;
+        uint256 lusdPrice = 1e18 - TROVE_MANAGER.getRedemptionRate();
 
         return
             (NEURON_POOL.pricePerShare() *
                 CURVE_POOL.get_virtual_price() *
-                (crv3Price < lusdPrice ? crv3Price : lusdPrice)) / 1e36;
+                (crv3Price < lusdPrice ? crv3Price : lusdPrice)) / (10**(pricePerShareDecimals + 28));
     }
 }

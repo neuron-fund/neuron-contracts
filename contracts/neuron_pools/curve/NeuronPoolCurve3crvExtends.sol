@@ -1,32 +1,22 @@
 pragma solidity 0.8.2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"; // use in deploy
-
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ICurveFi_2, ICurveFi_3} from "../../interfaces/ICurve.sol";
-import {NeuronPoolCurveBaseInitialize} from "../NeuronPoolCurveBaseInitialize.sol";
+import {NeuronPoolBaseInitialize} from "../NeuronPoolBaseInitialize.sol";
 
-contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
+contract NeuronPoolCurve3crvExtends is NeuronPoolBaseInitialize {
     using SafeERC20 for IERC20;
 
-    ICurveFi_2 public BASE_POOL;
+    ICurveFi_2 internal BASE_POOL;
 
-    ICurveFi_3 internal constant THREE_POOL =
-        ICurveFi_3(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
+    ICurveFi_3 internal constant THREE_POOL = ICurveFi_3(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
 
-    IERC20 public FIRST_TOKEN_IN_BASE_POOL;
-    IERC20 public constant CRV3 =
-        IERC20(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
-    IERC20 public constant DAI =
-        IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    IERC20 public constant USDC =
-        IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    IERC20 public constant USDT =
-        IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    IERC20 internal FIRST_TOKEN_IN_BASE_POOL;
+    IERC20 internal constant CRV3 = IERC20(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
+    IERC20 internal constant DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    IERC20 internal constant USDC = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    IERC20 internal constant USDT = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
     function initialize(
         address _token,
@@ -37,15 +27,19 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
         address _basePool,
         address _firstTokenInBasePool
     ) external initializer {
-        __NeuronPoolCurveBaseInitialize_init(
-            _token,
-            _governance,
-            _timelock,
-            _controller,
-            _masterchef
-        );
+        __NeuronPoolBaseInitialize_init(_token, _governance, _timelock, _controller, _masterchef);
         BASE_POOL = ICurveFi_2(_basePool);
         FIRST_TOKEN_IN_BASE_POOL = IERC20(_firstTokenInBasePool);
+    }
+
+    function getSupportedTokens() external view override returns (address[] memory tokens) {
+        tokens = new address[](6);
+        tokens[0] = address(token);
+        tokens[1] = address(FIRST_TOKEN_IN_BASE_POOL);
+        tokens[2] = address(CRV3);
+        tokens[3] = address(DAI);
+        tokens[4] = address(USDC);
+        tokens[5] = address(USDT);
     }
 
     function deposit3poolToken(
@@ -64,19 +58,12 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
 
         uint256 result3crvTokenBalance = CRV3.balanceOf(self);
 
-        require(
-            result3crvTokenBalance > initial3crvBalance,
-            "Tokens were not received from the 3pool"
-        );
+        require(result3crvTokenBalance > initial3crvBalance, "Tokens were not received from the 3pool");
 
         return result3crvTokenBalance - initial3crvBalance;
     }
 
-    function depositBaseToken(address _enterToken, uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
+    function depositBaseToken(address _enterToken, uint256 _amount) internal override returns (uint256) {
         address self = address(this);
         IERC20 tokenMem = token;
         IERC20 enterToken = IERC20(_enterToken);
@@ -113,18 +100,12 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
 
         uint256 resultLpTokenBalance = tokenMem.balanceOf(self);
 
-        require(
-            resultLpTokenBalance > initialLpTokenBalance,
-            "Tokens were not received from the base pool"
-        );
+        require(resultLpTokenBalance > initialLpTokenBalance, "Tokens were not received from the base pool");
 
         return resultLpTokenBalance - initialLpTokenBalance;
     }
 
-    function withdrawBaseToken(address _withdrawableToken, uint256 _userLpTokensAmount)
-        internal
-        override
-    {
+    function withdrawBaseToken(address _withdrawableToken, uint256 _userLpTokensAmount) internal override {
         address self = address(this);
         IERC20 withdrawableToken = IERC20(_withdrawableToken);
 
@@ -149,41 +130,21 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolCurveBaseInitialize {
 
         IERC20 firstLevelToken = isTwoLevel ? CRV3 : withdrawableToken;
         uint256 initialFirstLevelTokenBalance = firstLevelToken.balanceOf(self);
-        BASE_POOL.remove_liquidity_one_coin(
-            _userLpTokensAmount,
-            isTwoLevel ? int128(1) : firstLevelTokenIndex,
-            0
-        );
+        BASE_POOL.remove_liquidity_one_coin(_userLpTokensAmount, isTwoLevel ? int128(1) : firstLevelTokenIndex, 0);
         uint256 resultFirstLevelTokenBalance = firstLevelToken.balanceOf(self);
 
-        require(
-            resultFirstLevelTokenBalance > initialFirstLevelTokenBalance,
-            "!firstLevelTokensAmount"
-        );
+        require(resultFirstLevelTokenBalance > initialFirstLevelTokenBalance, "!firstLevelTokensAmount");
 
-        uint256 withdrawAmount = resultFirstLevelTokenBalance -
-            initialFirstLevelTokenBalance;
+        uint256 withdrawAmount = resultFirstLevelTokenBalance - initialFirstLevelTokenBalance;
 
         if (isTwoLevel) {
-            uint256 initialSecondLevelTokenBalance = withdrawableToken
-                .balanceOf(self);
-            THREE_POOL.remove_liquidity_one_coin(
-                withdrawAmount,
-                secondLevelTokenIndex,
-                0
-            );
-            uint256 resultSecondLevelTokenBalance = withdrawableToken.balanceOf(
-                self
-            );
+            uint256 initialSecondLevelTokenBalance = withdrawableToken.balanceOf(self);
+            THREE_POOL.remove_liquidity_one_coin(withdrawAmount, secondLevelTokenIndex, 0);
+            uint256 resultSecondLevelTokenBalance = withdrawableToken.balanceOf(self);
 
-            require(
-                resultSecondLevelTokenBalance > initialSecondLevelTokenBalance,
-                "!secondLevelTokensAmount"
-            );
+            require(resultSecondLevelTokenBalance > initialSecondLevelTokenBalance, "!secondLevelTokensAmount");
 
-            withdrawAmount =
-                resultSecondLevelTokenBalance -
-                initialSecondLevelTokenBalance;
+            withdrawAmount = resultSecondLevelTokenBalance - initialSecondLevelTokenBalance;
         }
 
         withdrawableToken.safeTransfer(msg.sender, withdrawAmount);

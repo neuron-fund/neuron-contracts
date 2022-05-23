@@ -9,27 +9,25 @@ import {INeuronPool} from "../interfaces/INeuronPool.sol";
 
 contract NeuronPoolCurveMIMUSTPricer is IPricer {
     INeuronPool public immutable NEURON_POOL;
-
-    ICurvePool public constant CURVE_POOL =
-        ICurvePool(0x55A8a39bc9694714E2874c1ce77aa1E599461E18);
-
+    ICurvePool public constant CURVE_POOL = ICurvePool(0x55A8a39bc9694714E2874c1ce77aa1E599461E18);
     AggregatorV3Interface public constant MIM_PRICER =
         AggregatorV3Interface(0x7A364e8770418566e3eb2001A96116E6138Eb32F);
-
     AggregatorV3Interface public constant UST_PRICER =
         AggregatorV3Interface(0x8b6d9085f310396C6E4f0012783E9f850eaa8a82);
+    uint8 public pricePerShareDecimals;
 
-    constructor(address _neuronPool) {
+    constructor(address _neuronPool, uint8 _pricePerShareDecimals) {
         NEURON_POOL = INeuronPool(_neuronPool);
+        pricePerShareDecimals = _pricePerShareDecimals;
     }
 
     function getPrice() external view override returns (uint256) {
         (, int256 mimPrice, , , ) = MIM_PRICER.latestRoundData();
         (, int256 ustPrice, , , ) = UST_PRICER.latestRoundData();
-        
+
         return
             (NEURON_POOL.pricePerShare() *
                 CURVE_POOL.get_virtual_price() *
-                uint256(mimPrice < ustPrice ? mimPrice : ustPrice)) / 1e26;
+                uint256(mimPrice < ustPrice ? mimPrice : ustPrice)) / (10**(pricePerShareDecimals + 18));
     }
 }
