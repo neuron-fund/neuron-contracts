@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { DeployArgs } from '../types'
-import { MockStrategy__factory } from '../typechain-types'
+import { StrategyConvexCurveFrax__factory } from '../typechain-types'
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
@@ -9,11 +9,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const [deployer, dev, treasury] = await ethers.getSigners();
 
 
-  await deploy<DeployArgs<MockStrategy__factory>>('MockStrategyCurve3pool', {
-    contract: 'MockStrategy',
+  await deploy<DeployArgs<StrategyConvexCurveFrax__factory>>('StrategyConvexCurveFrax', {
+    contract: 'StrategyConvexCurveFrax',
     from: deployer.address,
     args: [
-      '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490',
       await deployer.getAddress(),
       await deployer.getAddress(),
       await deployer.getAddress(),
@@ -23,5 +22,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 }
 
-deploy.tags = ['MockStrategyCurve3pool']
+deploy.tags = ['StrategyConvexCurveFrax']
 export default deploy

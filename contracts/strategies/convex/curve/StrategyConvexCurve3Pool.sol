@@ -5,7 +5,7 @@ import "../StrategyConvexFarmBase.sol";
 import "../../../interfaces/ICurve.sol";
 import "../../../interfaces/IConvexFarm.sol";
 
-contract StrategyConvexCurve3Lp is StrategyConvexFarmBase {
+contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
 
