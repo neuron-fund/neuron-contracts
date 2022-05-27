@@ -1,8 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { DeployArgs } from '../types'
-import { NeuronPoolCurveMIMUST__factory } from '../typechain-types/factories/contracts/neuron_pools/curve';
-import { Controller, MockStrategy } from '../typechain-types';
+import { Controller, IStrategy, NeuronPoolCurveMIMUST__factory } from '../typechain-types';
 
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -14,7 +13,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ControllerDeployment = await get('Controller');
   const controller = await ethers.getContractAt('Controller', ControllerDeployment.address) as Controller;
   const MockStrategyCurveMIMUSTDeployment = await get('MockStrategyCurveMIMUST');
-  const mockStrategyCurveMIMUST = await ethers.getContractAt('MockStrategy', MockStrategyCurveMIMUSTDeployment.address) as MockStrategy;
+  const mockStrategyCurveMIMUST = await ethers.getContractAt('IStrategy', MockStrategyCurveMIMUSTDeployment.address) as IStrategy;
 
   const NeuronPoolDeployment = await deploy<DeployArgs<NeuronPoolCurveMIMUST__factory>>('NeuronPoolCurveMIMUST', {
     contract: 'NeuronPoolCurveMIMUST',
