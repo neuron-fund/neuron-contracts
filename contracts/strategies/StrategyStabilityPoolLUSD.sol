@@ -14,16 +14,18 @@ import {ISortedTroves} from "../interfaces/ISortedTroves.sol";
 
 contract StrategyStabilityPoolLUSD is StrategyBase {
     address public constant LUSD = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
+    address public constant LQTY = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
     address payable public constant STABILITY_POOL = payable(0x66017D22b0f8556afDd19FC67041899Eb65a21bb);
 
+    event Deposited(uint256 amount);
+
     constructor(
-        address _want,
         address _governance,
         address _strategist,
         address _controller,
         address _neuronTokenAddress,
         address _timelock
-    ) StrategyBase(_want, _governance, _strategist, _controller, _neuronTokenAddress, _timelock) {}
+    ) StrategyBase(LUSD, _governance, _strategist, _controller, _neuronTokenAddress, _timelock) {}
 
     function balanceOfPool() public view override returns (uint256 balance_) {
         (balance_, ) = IStabilityPool(STABILITY_POOL).deposits(address(this));
@@ -33,23 +35,25 @@ contract StrategyStabilityPoolLUSD is StrategyBase {
         return "StrategyStabilityPoolLUSD";
     }
 
-    function deposit() public override {}
-
-    function needLiquidateTrove() internal returns (bool) {
-        IStabilityPool stabilityPool = IStabilityPool(STABILITY_POOL);
-        address lowestTrove = ISortedTroves(stabilityPool.sortedTroves()).getLast();
-        uint256 price = ILiquityPriceFeed(stabilityPool.priceFeed()).fetchPrice();
-
-        return ITroveManager(stabilityPool.troveManager()).getCurrentICR(lowestTrove, price) < 1100000000000000000;
+    function deposit() public override {
+        IERC20 lusd = IERC20(LUSD);
+        uint256 lusdBalance = lusd.balanceOf(address(this));
+        if (lusdBalance > 0) {
+            IStabilityPool(STABILITY_POOL).provideToSP(lusdBalance, address(0));
+            emit Deposited(lusdBalance);
+        }
     }
 
     function _withdrawSome(uint256 _amount) internal override returns (uint256) {
-        if(needLiquidateTrove()) {
-            
-        }
+        address self = address(this);
         IStabilityPool(STABILITY_POOL).withdrawFromSP(_amount);
-        // return
+        _swapUniswapETHExactETHForTokens(LUSD, self.balance);
+        _swapUniswap(LQTY, LUSD, IERC20(LQTY).balanceOf(self));
+        return IERC20(LUSD).balanceOf(self);
     }
 
-    function harvest() public override {}
+    function harvest() public override {
+        _withdrawSome(0);
+        deposit();
+    }
 }

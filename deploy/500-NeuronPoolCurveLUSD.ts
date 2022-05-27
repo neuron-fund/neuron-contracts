@@ -12,15 +12,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MasterChefDeployment = await get('MasterChef');
   const ControllerDeployment = await get('Controller');
   const controller = await ethers.getContractAt('Controller', ControllerDeployment.address) as Controller;
-  const MockStrategyCurveLUSDDeployment = await get('MockStrategyCurveLUSD');
-  const mockStrategyCurveLUSD = await ethers.getContractAt('IStrategy', MockStrategyCurveLUSDDeployment.address) as IStrategy;
+  const StrategyStabilityPoolLUSDDeployment = await get('StrategyStabilityPoolLUSD');
+  const strategyStabilityPoolLUSD = await ethers.getContractAt('IStrategy', StrategyStabilityPoolLUSDDeployment.address) as IStrategy;
 
   const NeuronPoolCurve3crvExtendsRealizationDeployment = await get('NeuronPoolCurve3crvExtendsRealization');
 
   const factory = await ethers.getContractFactory('NeuronPoolCurve3crvExtends') as NeuronPoolCurve3crvExtends__factory;
 
   const data = factory.interface.encodeFunctionData('initialize', [
-    await mockStrategyCurveLUSD.want(),
+    await strategyStabilityPoolLUSD.want(),
     deployer.address,
     deployer.address,
     ControllerDeployment.address,
@@ -38,11 +38,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ],
   });
 
-  await controller.setNPool(await mockStrategyCurveLUSD.want(), mockStrategyCurveLUSD.address);
-  await controller.approveStrategy(await mockStrategyCurveLUSD.want(), mockStrategyCurveLUSD.address);
-  await controller.setStrategy(await mockStrategyCurveLUSD.want(), mockStrategyCurveLUSD.address);
+  await controller.setNPool(await strategyStabilityPoolLUSD.want(), strategyStabilityPoolLUSD.address);
+  await controller.approveStrategy(await strategyStabilityPoolLUSD.want(), strategyStabilityPoolLUSD.address);
+  await controller.setStrategy(await strategyStabilityPoolLUSD.want(), strategyStabilityPoolLUSD.address);
 };
 
 deploy.tags = ['NeuronPoolCurveLUSD']
-deploy.dependencies = ['MasterChef', 'Controller', 'MockStrategyCurveLUSD', 'NeuronPoolCurve3crvExtendsRealization'];
+deploy.dependencies = ['MasterChef', 'Controller', 'StrategyStabilityPoolLUSD', 'NeuronPoolCurve3crvExtendsRealization'];
 export default deploy
