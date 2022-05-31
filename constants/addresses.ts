@@ -35,6 +35,11 @@ export const MIM = '0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3';
 export const UST = '0xa47c8bf37f92aBed4A126BDA807A7b7498661acD';
 export const MIMUST = '0x55A8a39bc9694714E2874c1ce77aa1E599461E18';
 export const MIM3CRV = '0x5a6A4D54456819380173272A5E8E9B9904BdF41B';
+export const FXS = '0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0';
+export const SPELL = '0x090185f2135308BaD17527004364eBcC2D37e5F6';
+export const USDN = '0x674C6Ad92Fd080e4004b2312b45f796a192D27a0';
+export const USDN3CRV = '0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1';
+export const USDP_CURVE_POOL = '0x42d7025938bEc20B69cBae5A77421082407f053A';
 
 // This contract works both as pool and token itself. 
 // Also this contract is Proxy contract. It's implementation is on '0x20dc62d5904633cc6a5e34bec87a048e80c92e97' address currently

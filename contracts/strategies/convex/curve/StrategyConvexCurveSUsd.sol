@@ -19,10 +19,6 @@ contract StrategyConvexCurveSUSD is StrategyConvexFarmBase {
     // reward tokens
     address public constant snx = 0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F;
 
-    event CvxHarvested(uint256 amout);
-    event CrvHarvested(uint256 amout);
-    event SnxHarvested(uint256 amout);
-
     constructor(
         address _governance,
         address _strategist,
@@ -51,13 +47,13 @@ contract StrategyConvexCurveSUSD is StrategyConvexFarmBase {
 
          // Check rewards
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
-        emit CvxHarvested(_cvx);
+        emit RewardToken(cvx, _cvx);
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
-        emit CrvHarvested(_crv);
+        emit RewardToken(crv, _crv);
 
         uint256 _snx = IERC20(snx).balanceOf(address(this));
-        emit SnxHarvested(_snx);
+        emit RewardToken(snx, _snx);
 
         // Swap cvx to crv
         if (_cvx > 0) {
@@ -100,6 +96,7 @@ contract StrategyConvexCurveSUSD is StrategyConvexFarmBase {
             liquidity[toIndex] = _to;
             ICurveFi_4(curvePool).add_liquidity(liquidity, 0);
         }
+        emit Harvest();
         deposit();
     }
 

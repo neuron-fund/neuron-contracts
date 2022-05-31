@@ -14,9 +14,6 @@ contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
     address public constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address public constant usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
-    event CvxHarvested(uint256 amout);
-    event CrvHarvested(uint256 amout);
-
     constructor(
         address _governance,
         address _strategist,
@@ -37,7 +34,7 @@ contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
     {}
 
     function getName() external pure override returns (string memory) {
-        return "StrategyConvexCurve3Lp";
+        return "StrategyConvexCurve3Pool";
     }
 
     function harvest() public override onlyBenevolent {
@@ -45,10 +42,10 @@ contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
 
         // Check rewards
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
-        emit CvxHarvested(_cvx);
+        emit RewardToken(cvx, _cvx);
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
-        emit CrvHarvested(_crv);
+        emit RewardToken(crv, _crv);
 
         // Swap cvx to crv
         if (_cvx > 0) {
@@ -83,6 +80,7 @@ contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
             liquidity[toIndex] = _to;
             ICurveFi_3(curvePool).add_liquidity(liquidity, 0);
         }
+        emit Harvest();
         deposit();
     }
 

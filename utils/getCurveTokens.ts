@@ -21,7 +21,7 @@ import {
   UNI_FEI_TRIBE_LP,
   CURVE_CRV_ETH_POOL,
 } from '../constants/addresses'
-import { IWETH, IUniswapRouterV2, ICurveFi3, ICurveFi4, IERC20, ICurveFi2, IStEth, ICurveFi, ERC20 } from '../typechain'
+import { IWETH, IUniswapRouterV2, IERC20, IStEth, ICurveFi, ERC20, ICurveFi_4, ICurveFi_2, ICurveFi_3 } from '../typechain-types'
 
 export const getToken = async (address: string, signer: Signer) => {
   return (await ethers.getContractAt('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20', address, signer)) as ERC20
@@ -46,9 +46,9 @@ export const get3Crv = async (recipient: Signer) => {
 
   const ethBalanceAfter = ethers.utils.formatEther(await recipient.getBalance())
   const daiBalanceAfter = await dai.balanceOf(accAddress)
-  const curve3CrvPool = (await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient)) as ICurveFi3
+  const curve3CrvPool = (await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient)) as ICurveFi_3
   await dai.connect(recipient).approve(curve3CrvPool.address, daiBalanceAfter)
-  await curve3CrvPool.add_liquidity([daiBalanceAfter, 0, 0], 0)
+  await curve3CrvPool['add_liquidity(uint256[3],uint256)']([daiBalanceAfter, 0, 0], 0)
   const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, recipient)
   const threeCrvBalance = await threeCrv.balanceOf(accAddress)
 }
@@ -72,9 +72,9 @@ export const getPolygon3Crv = async (recipient: Signer) => {
 
   const ethBalanceAfter = ethers.utils.formatEther(await recipient.getBalance())
   const daiBalanceAfter = await dai.balanceOf(accAddress)
-  const curve3CrvPool = (await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient)) as ICurveFi3
+  const curve3CrvPool = (await ethers.getContractAt('ICurveFi_3', CURVE_3CRV_POOL, recipient)) as ICurveFi_3
   await dai.connect(recipient).approve(curve3CrvPool.address, daiBalanceAfter)
-  await curve3CrvPool.add_liquidity([daiBalanceAfter, 0, 0], 0)
+  await curve3CrvPool['add_liquidity(uint256[3],uint256)']([daiBalanceAfter, 0, 0], 0)
   const threeCrv = await getToken(CURVE_3CRV_LP_TOKEN, recipient)
   const threeCrvBalance = await threeCrv.balanceOf(accAddress)
 }
@@ -98,7 +98,7 @@ export const getRenCrv = async (recipient: Signer) => {
 
   const ethBalanceAfter = ethers.utils.formatEther(await recipient.getBalance())
   const wbtcBalanceAfter = await wbtc.balanceOf(accAddress)
-  const curveRenCrvPool = (await ethers.getContractAt('ICurveFi_2', CURVE_REN_CRV_POOL, recipient)) as ICurveFi2
+  const curveRenCrvPool = (await ethers.getContractAt('ICurveFi_2', CURVE_REN_CRV_POOL, recipient)) as ICurveFi_2
   await wbtc.connect(recipient).approve(curveRenCrvPool.address, wbtcBalanceAfter)
   await curveRenCrvPool.add_liquidity([0, wbtcBalanceAfter], 0)
   const renCrv = await getToken(REN_CRV, recipient)
@@ -181,7 +181,7 @@ export const getSUsdLp = async (recipient: Signer) => {
 
   const ethBalanceAfter = ethers.utils.formatEther(await recipient.getBalance())
   const daiBalanceAfter = await dai.balanceOf(accAddress)
-  const curveSUSDPool = (await ethers.getContractAt('ICurveFi_4', CURVE_SUSD_POOL, recipient)) as ICurveFi4
+  const curveSUSDPool = (await ethers.getContractAt('ICurveFi_4', CURVE_SUSD_POOL, recipient)) as ICurveFi_4
   await dai.connect(recipient).approve(curveSUSDPool.address, daiBalanceAfter)
   await curveSUSDPool.add_liquidity([daiBalanceAfter, 0, 0, 0], 0)
   const sUsdCrv = await getToken(CURVE_SUSD_LP_TOKEN, recipient)
@@ -199,7 +199,7 @@ export const getCrvEth = async (recipient: Signer) => {
 
   const wethBalance = await weth.balanceOf(accAddress)
 
-  const curvCrvEthPool = (await ethers.getContractAt('ICurveFi_2', CURVE_CRV_ETH_POOL, recipient)) as ICurveFi2
+  const curvCrvEthPool = (await ethers.getContractAt('ICurveFi_2', CURVE_CRV_ETH_POOL, recipient)) as ICurveFi_2
   await weth.connect(recipient).approve(curvCrvEthPool.address, wethBalance)
   await curvCrvEthPool.add_liquidity([wethBalance, 0], 0)
 }

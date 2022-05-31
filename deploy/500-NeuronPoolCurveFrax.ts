@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { IStrategy, Controller, NeuronPoolCurve3crvExtends__factory } from '../typechain-types';
+import { FRAX, FRAX3CRV } from '../constants/addresses';
 
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -17,14 +18,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const factory = await ethers.getContractFactory('NeuronPoolCurve3crvExtends') as NeuronPoolCurve3crvExtends__factory;
 
+  console.log(`await strategyConvexCurveFrax.want() ${await strategyConvexCurveFrax.want()}`)
   const data = factory.interface.encodeFunctionData('initialize', [
     await strategyConvexCurveFrax.want(),
-      deployer.address,
-      deployer.address,
-      ControllerDeployment.address,
-      MasterChefDeployment.address,
-      '0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B',
-      '0x853d955aCEf822Db058eb8505911ED77F175b99e'
+    deployer.address,
+    deployer.address,
+    ControllerDeployment.address,
+    MasterChefDeployment.address,
+    FRAX3CRV,
+    FRAX
   ]);
 
   const NeuronPoolDeployment = await deploy('NeuronPoolCurveFrax', {

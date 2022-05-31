@@ -17,8 +17,6 @@ contract StrategyStabilityPoolLUSD is StrategyBase {
     address public constant LQTY = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
     address payable public constant STABILITY_POOL = payable(0x66017D22b0f8556afDd19FC67041899Eb65a21bb);
 
-    event Deposited(uint256 amount);
-
     constructor(
         address _governance,
         address _strategist,
@@ -40,20 +38,32 @@ contract StrategyStabilityPoolLUSD is StrategyBase {
         uint256 lusdBalance = lusd.balanceOf(address(this));
         if (lusdBalance > 0) {
             IStabilityPool(STABILITY_POOL).provideToSP(lusdBalance, address(0));
-            emit Deposited(lusdBalance);
+            emit Deposit(lusdBalance);
         }
     }
 
     function _withdrawSome(uint256 _amount) internal override returns (uint256) {
         address self = address(this);
         IStabilityPool(STABILITY_POOL).withdrawFromSP(_amount);
-        _swapUniswapETHExactETHForTokens(LUSD, self.balance);
-        _swapUniswap(LQTY, LUSD, IERC20(LQTY).balanceOf(self));
+
+        uint256 ethBalance = self.balance;
+        if (ethBalance > 0) {
+            _swapUniswapETHExactETHForTokens(LUSD, ethBalance);
+            emit RewardToken(weth, ethBalance);
+        }
+
+        uint256 lqtyBalance = IERC20(LQTY).balanceOf(self);
+        if (lqtyBalance > 0) {
+            _swapUniswap(LQTY, LUSD, lqtyBalance);
+            emit RewardToken(LQTY, lqtyBalance);
+        }
+
         return IERC20(LUSD).balanceOf(self);
     }
 
     function harvest() public override {
         _withdrawSome(0);
+        emit Harvest();
         deposit();
     }
 }

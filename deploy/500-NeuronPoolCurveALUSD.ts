@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { Controller, NeuronPoolCurve3crvExtends__factory, IStrategy } from '../typechain-types';
+import { ALUSD, ALUSD3CRV } from '../constants/addresses';
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre;
@@ -22,8 +23,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer.address,
     ControllerDeployment.address,
     MasterChefDeployment.address,
-    '0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c',
-    '0xBC6DA0FE9aD5f3b0d58160288917AA56653660E9'
+    ALUSD3CRV,
+    ALUSD,
   ]);
 
   const NeuronPoolDeployment = await deploy('NeuronPoolCurveALUSD', {
@@ -35,7 +36,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ],
   });
 
-  await controller.setNPool(await mockStrategyCurveALUSD.want(), mockStrategyCurveALUSD.address);
+  await controller.setNPool(await mockStrategyCurveALUSD.want(), NeuronPoolDeployment.address);
   await controller.approveStrategy(await mockStrategyCurveALUSD.want(), mockStrategyCurveALUSD.address);
   await controller.setStrategy(await mockStrategyCurveALUSD.want(), mockStrategyCurveALUSD.address);
 };

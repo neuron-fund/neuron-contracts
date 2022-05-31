@@ -48,6 +48,11 @@ abstract contract StrategyBase {
 
     mapping(address => bool) public harvesters;
 
+    event Deposit(uint256 amount);
+    event Withdraw(uint256 claimedAmount, uint256 totalAmount);
+    event Harvest();
+    event RewardToken(address indexed token, uint256 amount);
+
     constructor(
         // Input token accepted by the contract
         address _want,
@@ -169,7 +174,10 @@ abstract contract StrategyBase {
         address _nPool = IController(controller).nPools(address(want));
         require(_nPool != address(0), "!nPool"); // additional protection so we don't burn the funds
 
-        IERC20(want).safeTransfer(_nPool, _amount.sub(_feeDev).sub(_feeTreasury));
+        uint256 total = _amount.sub(_feeDev).sub(_feeTreasury);
+        IERC20(want).safeTransfer(_nPool, total);
+        
+        emit Withdraw(_amount, total);
     }
 
     // Withdraw funds, used to swap between strategies

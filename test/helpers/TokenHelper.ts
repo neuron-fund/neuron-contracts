@@ -39,7 +39,7 @@ export default class TokenHelper {
         } else {
             // INITIAL BLOCK NUMBER = 14560420
             const holders = {
-                [FRAX3CRV]: '0x47bc10781e8f71c0e7cf97b0a5a88f4cfff21309',
+                [FRAX3CRV]: '0xdca313c4df33c2142b2adf202d6abf4fa56e1d41',
                 [LUSD3CRV]: '0xc64844d9b3db280a6e46c1431e2229cd62dd2d69',
                 [ALUSD3CRV]: '0x613d9871c25721e8f90acf8cc4341bb145f29c23',
                 [ALUSD]: '0x50acc1281845be0ac6936b4d7ad6a14ae613c1c9',

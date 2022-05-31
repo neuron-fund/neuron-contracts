@@ -5,6 +5,7 @@ import "../StrategyConvexFarmBase.sol";
 import "../../../interfaces/ICurve.sol";
 import "../../../interfaces/IConvexFarm.sol";
 
+import "hardhat/console.sol";
 contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -41,8 +42,16 @@ contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
 
         // Check rewards
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
+        console.log("_cvx", _cvx);
+        emit RewardToken(cvx, _cvx);
+
         uint256 _crv = IERC20(crv).balanceOf(address(this));
+        console.log("_crv", _crv);
+        emit RewardToken(crv, _crv);
+
         uint256 _spell = IERC20(SPELL).balanceOf(address(this));
+        console.log("_spell", _spell);
+        emit RewardToken(SPELL, _spell);
 
         // Swap cvx to crv
         if (_cvx > 0) {
@@ -73,6 +82,7 @@ contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
             liquidity[1] = _crv;
             ICurveFi_2(curvePool).add_liquidity(liquidity, 0);
         }
+        emit Harvest();
         deposit();
     }
 }

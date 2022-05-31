@@ -9,9 +9,6 @@ contract StrategyConvexCurveCrvEth is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    event CvxHarvested(uint256 amout);
-    event CrvHarvested(uint256 amout);
-
     constructor(
         address _governance,
         address _strategist,
@@ -40,10 +37,10 @@ contract StrategyConvexCurveCrvEth is StrategyConvexFarmBase {
 
         // Check rewards
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
-        emit CvxHarvested(_cvx);
+        emit RewardToken(cvx, _cvx);
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
-        emit CrvHarvested(_crv);
+        emit RewardToken(crv, _crv);
 
         // Swap cvx to crv
         if (_cvx > 0) {
@@ -66,6 +63,7 @@ contract StrategyConvexCurveCrvEth is StrategyConvexFarmBase {
             IERC20(crv).safeApprove(curvePool, _crv);
             ICurveFi_2(curvePool).add_liquidity([0, _crv], 0);
         }
+        emit Harvest();
         deposit();
     }
 }

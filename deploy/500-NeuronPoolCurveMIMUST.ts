@@ -27,7 +27,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ],
   });
 
-  await controller.setNPool(await mockStrategyCurveMIMUST.want(), mockStrategyCurveMIMUST.address);
+  await controller.setNPool(await mockStrategyCurveMIMUST.want(), NeuronPoolDeployment.address);
   await controller.approveStrategy(await mockStrategyCurveMIMUST.want(), mockStrategyCurveMIMUST.address);
   await controller.setStrategy(await mockStrategyCurveMIMUST.want(), mockStrategyCurveMIMUST.address);
 };

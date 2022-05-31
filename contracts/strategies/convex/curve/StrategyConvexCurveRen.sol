@@ -13,9 +13,6 @@ contract StrategyConvexCurveRen is StrategyConvexFarmBase {
     address public constant renBtc = 0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D;
     address public constant wBtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
-    event CvxHarvested(uint256 amout);
-    event CrvHarvested(uint256 amout);
-
     constructor(
         address _governance,
         address _strategist,
@@ -44,10 +41,10 @@ contract StrategyConvexCurveRen is StrategyConvexFarmBase {
 
         // Check rewards
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
-        emit CvxHarvested(_cvx);
+        emit RewardToken(cvx, _cvx);
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
-        emit CrvHarvested(_crv);
+        emit RewardToken(crv, _crv);
 
         // Swap cvx to crv
         if (_cvx > 0) {
@@ -82,6 +79,7 @@ contract StrategyConvexCurveRen is StrategyConvexFarmBase {
             liquidity[toIndex] = _to;
             ICurveFi_2(curvePool).add_liquidity(liquidity, 0);
         }
+        emit Harvest();
         deposit();
     }
 

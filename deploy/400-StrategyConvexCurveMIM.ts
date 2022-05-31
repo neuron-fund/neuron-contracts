@@ -5,8 +5,11 @@ import { StrategyConvexCurveMIM__factory } from '../typechain-types/factories/co
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
-  const { deploy } = deployments
+  const { deploy, get } = deployments
   const [deployer, dev, treasury] = await ethers.getSigners();
+
+  const ControllerDeployment = await get('Controller');
+  const NeuronTokenDeployment = await get('NeuronToken');
 
   await deploy<DeployArgs<StrategyConvexCurveMIM__factory>>('StrategyConvexCurveMIM', {
     contract: 'StrategyConvexCurveMIM',
@@ -14,12 +17,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     args: [
       await deployer.getAddress(),
       await deployer.getAddress(),
-      await deployer.getAddress(),
-      await dev.getAddress(),
+      ControllerDeployment.address,
+      NeuronTokenDeployment.address,
       await treasury.getAddress(),
     ]
   });
 };
 
 deploy.tags = ['StrategyConvexCurveMIM'];
+deploy.dependencies = ['Controller', 'NeuronToken'];
 export default deploy;
