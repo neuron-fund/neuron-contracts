@@ -36,7 +36,14 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
     }
 
     function harvest() public override onlyBenevolent {
-        IBaseRewardPool(getCrvRewardContract()).getReward(address(this), true);
+        IBaseRewardPool rewardContract = IBaseRewardPool(getCrvRewardContract());
+        rewardContract.getReward(address(this), true);
+        address[] memory rewardContracts = new address[](0);
+        address[] memory extraRewardContracts = new address[](1);
+        extraRewardContracts[0] = rewardContract.extraRewards(0);
+        address[] memory tokenRewardContracts = new address[](0);
+        address[] memory tokenRewardTokens = new address[](0);
+        CLAIM_ZAP.claimRewards(rewardContracts, extraRewardContracts, tokenRewardContracts, tokenRewardTokens, 0, 0, 0, 0, 0);
 
         address self = address(this);
         IERC20 cvxIERC20 = IERC20(cvx);

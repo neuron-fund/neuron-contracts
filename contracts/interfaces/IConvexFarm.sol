@@ -359,3 +359,40 @@ interface IConvexMasterChef {
 
     function withdraw(uint256 _pid, uint256 _amount) external;
 }
+
+
+interface IConvexClaimZap {
+    function claimRewards(
+        address[] memory rewardContracts,
+        address[] memory extraRewardContracts,
+        address[] memory tokenRewardContracts,
+        address[] memory tokenRewardTokens,
+        uint256 depositCrvMaxAmount,
+        uint256 minAmountOut,
+        uint256 depositCvxMaxAmount,
+        uint256 spendCvxAmount,
+        uint256 options
+    ) external;
+
+    function crv() external view returns (address);
+
+    function crvDeposit() external view returns (address);
+
+    function cvx() external view returns (address);
+
+    function cvxCrv() external view returns (address);
+
+    function cvxCrvRewards() external view returns (address);
+
+    function cvxRewards() external view returns (address);
+
+    function exchange() external view returns (address);
+
+    function getName() external pure returns (string memory);
+
+    function locker() external view returns (address);
+
+    function owner() external view returns (address);
+
+    function setApprovals() external;
+}

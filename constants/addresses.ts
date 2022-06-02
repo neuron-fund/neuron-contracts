@@ -40,6 +40,8 @@ export const SPELL = '0x090185f2135308BaD17527004364eBcC2D37e5F6';
 export const USDN = '0x674C6Ad92Fd080e4004b2312b45f796a192D27a0';
 export const USDN3CRV = '0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1';
 export const USDP_CURVE_POOL = '0x42d7025938bEc20B69cBae5A77421082407f053A';
+export const LQTY = '0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D';
+export const STABILITY_POOL = '0x66017D22b0f8556afDd19FC67041899Eb65a21bb';
 
 // This contract works both as pool and token itself. 
 // Also this contract is Proxy contract. It's implementation is on '0x20dc62d5904633cc6a5e34bec87a048e80c92e97' address currently
