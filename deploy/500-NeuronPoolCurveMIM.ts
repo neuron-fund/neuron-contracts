@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
-import { DeployArgs } from '../types'
-import { Controller, MockStrategy, NeuronPoolCurve3crvExtends__factory } from '../typechain-types';
+import { Controller, IStrategy, NeuronPoolCurve3crvExtends__factory } from '../typechain-types';
+import { MIM, MIM3CRV } from '../constants/addresses';
 
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -12,20 +12,20 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MasterChefDeployment = await get('MasterChef');
   const ControllerDeployment = await get('Controller');
   const controller = await ethers.getContractAt('Controller', ControllerDeployment.address) as Controller;
-  const MockStrategyCurveMIMDeployment = await get('MockStrategyCurveMIM');
-  const mockStrategyCurveMIM = await ethers.getContractAt('MockStrategy', MockStrategyCurveMIMDeployment.address) as MockStrategy;
+  const StrategyConvexCurveMIMDeployment = await get('StrategyConvexCurveMIM');
+  const strategyConvexCurveMIM = await ethers.getContractAt('IStrategy', StrategyConvexCurveMIMDeployment.address) as IStrategy;
   const NeuronPoolCurve3crvExtendsRealizationDeployment = await get('NeuronPoolCurve3crvExtendsRealization');
 
   const factory = await ethers.getContractFactory('NeuronPoolCurve3crvExtends') as NeuronPoolCurve3crvExtends__factory;
 
   const data = factory.interface.encodeFunctionData('initialize', [
-    await mockStrategyCurveMIM.want(),
+    await strategyConvexCurveMIM.want(),
     deployer.address,
     deployer.address,
     ControllerDeployment.address,
     MasterChefDeployment.address,
-    '0x5a6A4D54456819380173272A5E8E9B9904BdF41B',
-    '0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3',
+    MIM3CRV,
+    MIM,
   ]);
 
   const NeuronPoolDeployment = await deploy('NeuronPoolCurveMIM', {
@@ -37,11 +37,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ],
   });
 
-  await controller.setNPool(await mockStrategyCurveMIM.want(), mockStrategyCurveMIM.address);
-  await controller.approveStrategy(await mockStrategyCurveMIM.want(), mockStrategyCurveMIM.address);
-  await controller.setStrategy(await mockStrategyCurveMIM.want(), mockStrategyCurveMIM.address);
+  await controller.setNPool(await strategyConvexCurveMIM.want(), NeuronPoolDeployment.address);
+  await controller.approveStrategy(await strategyConvexCurveMIM.want(), strategyConvexCurveMIM.address);
+  await controller.setStrategy(await strategyConvexCurveMIM.want(), strategyConvexCurveMIM.address);
 };
 
 deploy.tags = ['NeuronPoolCurveMIM']
-deploy.dependencies = ['MasterChef', 'Controller', 'MockStrategyCurveMIM', 'NeuronPoolCurve3crvExtendsRealization'];
+deploy.dependencies = ['MasterChef', 'Controller', 'StrategyConvexCurveMIM', 'NeuronPoolCurve3crvExtendsRealization'];
 export default deploy

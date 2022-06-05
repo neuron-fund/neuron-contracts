@@ -5,7 +5,7 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../interfaces/IController.sol";
-
+import "hardhat/console.sol";
 abstract contract NeuronPoolCommon {
     using SafeERC20 for IERC20Metadata;
     using SafeMath for uint256;
@@ -29,6 +29,8 @@ abstract contract NeuronPoolCommon {
     function _mint(address account, uint256 amount) internal virtual;
 
     function _burn(address account, uint256 amount) internal virtual;
+
+    function balanceOf(address account) public view virtual returns (uint256); 
 
     function depositAll(address _enterToken) external returns (uint256) {
         return deposit(_enterToken, IERC20Metadata(_enterToken).balanceOf(msg.sender));
@@ -61,7 +63,7 @@ abstract contract NeuronPoolCommon {
     }
 
     function withdrawAll(address _withdrawableToken) external {
-        withdraw(_withdrawableToken, IERC20Metadata(_withdrawableToken).balanceOf(msg.sender));
+        withdraw(_withdrawableToken, balanceOf(msg.sender));
     }
 
     function withdrawBaseToken(address _token, uint256 _userLpTokensAmount) internal virtual;
@@ -135,6 +137,8 @@ abstract contract NeuronPoolCommon {
     // Usually called manually in tests
     function earn() public {
         uint256 _bal = available();
+        console.log("_bal", _bal);
+        console.log("token", address(token));
         token.safeTransfer(controller, _bal);
         IController(controller).earn(address(token), _bal);
     }

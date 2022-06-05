@@ -43,12 +43,15 @@ abstract contract StrategyBase {
     address public timelock;
 
     // Dex
-    address public constant univ2Router2 =
-        0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public constant sushiRouter =
-        0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    address public constant univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address public constant sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
     mapping(address => bool) public harvesters;
+
+    event Deposit(uint256 amount);
+    event Withdraw(uint256 claimedAmount, uint256 totalAmount);
+    event Harvest();
+    event RewardToken(address indexed token, uint256 amount);
 
     constructor(
         // Input token accepted by the contract
@@ -77,11 +80,7 @@ abstract contract StrategyBase {
     // **** Modifiers **** //
 
     modifier onlyBenevolent() {
-        require(
-            harvesters[msg.sender] ||
-                msg.sender == governance ||
-                msg.sender == strategist
-        );
+        require(harvesters[msg.sender] || msg.sender == governance || msg.sender == strategist);
         _;
     }
 
@@ -102,18 +101,12 @@ abstract contract StrategyBase {
     // **** Setters **** //
 
     function whitelistHarvester(address _harvester) external {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "not authorized"
-        );
+        require(msg.sender == governance || msg.sender == strategist, "not authorized");
         harvesters[_harvester] = true;
     }
 
     function revokeHarvester(address _harvester) external {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "not authorized"
-        );
+        require(msg.sender == governance || msg.sender == strategist, "not authorized");
         harvesters[_harvester] = false;
     }
 
@@ -127,9 +120,7 @@ abstract contract StrategyBase {
         withdrawalTreasuryFee = _withdrawalTreasuryFee;
     }
 
-    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee)
-        external
-    {
+    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee) external {
         require(msg.sender == timelock, "!timelock");
         performanceTreasuryFee = _performanceTreasuryFee;
     }
@@ -174,33 +165,23 @@ abstract contract StrategyBase {
             _amount = _amount.add(_balance);
         }
 
-        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(
-            withdrawalDevFundMax
-        );
+        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
         IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
 
-        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(
-            withdrawalTreasuryMax
-        );
-        IERC20(want).safeTransfer(
-            IController(controller).treasury(),
-            _feeTreasury
-        );
+        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
+        IERC20(want).safeTransfer(IController(controller).treasury(), _feeTreasury);
 
         address _nPool = IController(controller).nPools(address(want));
         require(_nPool != address(0), "!nPool"); // additional protection so we don't burn the funds
 
-        IERC20(want).safeTransfer(
-            _nPool,
-            _amount.sub(_feeDev).sub(_feeTreasury)
-        );
+        uint256 total = _amount.sub(_feeDev).sub(_feeTreasury);
+        IERC20(want).safeTransfer(_nPool, total);
+        
+        emit Withdraw(_amount, total);
     }
 
     // Withdraw funds, used to swap between strategies
-    function withdrawForSwap(uint256 _amount)
-        external
-        returns (uint256 balance)
-    {
+    function withdrawForSwap(uint256 _amount) external returns (uint256 balance) {
         require(msg.sender == controller, "!controller");
         _withdrawSome(_amount);
 
@@ -233,31 +214,17 @@ abstract contract StrategyBase {
 
     // **** Emergency functions ****
 
-    function execute(address _target, bytes memory _data)
-        public
-        payable
-        returns (bytes memory response)
-    {
+    function execute(address _target, bytes memory _data) public payable returns (bytes memory response) {
         require(msg.sender == timelock, "!timelock");
         require(_target != address(0), "!target");
 
         // call contract in current context
         assembly {
-            let succeeded := delegatecall(
-                sub(gas(), 5000),
-                _target,
-                add(_data, 0x20),
-                mload(_data),
-                0,
-                0
-            )
+            let succeeded := delegatecall(sub(gas(), 5000), _target, add(_data, 0x20), mload(_data), 0, 0)
             let size := returndatasize()
 
             response := mload(0x40)
-            mstore(
-                0x40,
-                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
-            )
+            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
             mstore(response, size)
             returndatacopy(add(response, 0x20), 0, size)
 
@@ -299,9 +266,25 @@ abstract contract StrategyBase {
         );
     }
 
-    function _swapUniswapWithPath(address[] memory path, uint256 _amount)
-        internal
-    {
+    function _swapUniswapETHExactETHForTokens(
+        address _to,
+        uint256 _amount
+    ) internal {
+        require(_to != address(0));
+
+        address[] memory path;
+        path[0] = weth;
+        path[1] = _to;
+
+        IUniswapRouterV2(univ2Router2).swapExactETHForTokens{value: _amount}(
+            0,
+            path,
+            address(this),
+            block.timestamp.add(60)
+        );
+    }
+
+    function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
 
         IUniswapRouterV2(univ2Router2).swapExactTokensForTokens(
@@ -349,10 +332,7 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal returns (bool) {
         require(_to != address(0));
-        require(
-            routerAddress != address(0),
-            "_swapWithUniLikeRouter routerAddress cant be zero"
-        );
+        require(routerAddress != address(0), "_swapWithUniLikeRouter routerAddress cant be zero");
 
         address[] memory path;
 
@@ -382,9 +362,7 @@ abstract contract StrategyBase {
         }
     }
 
-    function _swapSushiswapWithPath(address[] memory path, uint256 _amount)
-        internal
-    {
+    function _swapSushiswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
 
         IUniswapRouterV2(sushiRouter).swapExactTokensForTokens(
@@ -396,23 +374,16 @@ abstract contract StrategyBase {
         );
     }
 
-    function _swapToNeurAndDistributePerformanceFees(
-        address swapToken,
-        address swapRouterAddress
-    ) internal {
+    function _swapToNeurAndDistributePerformanceFees(address swapToken, address swapRouterAddress) internal {
         uint256 swapTokenBalance = IERC20(swapToken).balanceOf(address(this));
 
         if (swapTokenBalance > 0 && performanceTreasuryFee > 0) {
-            uint256 performanceTreasuryFeeAmount = swapTokenBalance
-                .mul(performanceTreasuryFee)
-                .div(performanceTreasuryMax);
+            uint256 performanceTreasuryFeeAmount = swapTokenBalance.mul(performanceTreasuryFee).div(
+                performanceTreasuryMax
+            );
             uint256 totalFeeAmout = performanceTreasuryFeeAmount;
 
-            _swapAmountToNeurAndDistributePerformanceFees(
-                swapToken,
-                totalFeeAmout,
-                swapRouterAddress
-            );
+            _swapAmountToNeurAndDistributePerformanceFees(swapToken, totalFeeAmout, swapRouterAddress);
         }
     }
 
@@ -423,43 +394,27 @@ abstract contract StrategyBase {
     ) internal {
         uint256 swapTokenBalance = IERC20(swapToken).balanceOf(address(this));
 
-        require(
-            swapTokenBalance >= amount,
-            "Amount is bigger than token balance"
-        );
+        require(swapTokenBalance >= amount, "Amount is bigger than token balance");
 
         IERC20(swapToken).safeApprove(swapRouterAddress, 0);
         IERC20(weth).safeApprove(swapRouterAddress, 0);
         IERC20(swapToken).safeApprove(swapRouterAddress, amount);
         IERC20(weth).safeApprove(swapRouterAddress, type(uint256).max);
-        bool isSuccesfullSwap = _swapWithUniLikeRouter(
-            swapRouterAddress,
-            swapToken,
-            neuronTokenAddress,
-            amount
-        );
+        bool isSuccesfullSwap = _swapWithUniLikeRouter(swapRouterAddress, swapToken, neuronTokenAddress, amount);
 
         if (isSuccesfullSwap) {
-            uint256 neuronTokenBalance = IERC20(neuronTokenAddress).balanceOf(
-                address(this)
-            );
+            uint256 neuronTokenBalance = IERC20(neuronTokenAddress).balanceOf(address(this));
 
             if (neuronTokenBalance > 0) {
                 // Treasury fees
                 // Sending strategy's tokens to treasury. Initially @ 30% (set by performanceTreasuryFee constant) of strategy's assets
-                IERC20(neuronTokenAddress).safeTransfer(
-                    IController(controller).treasury(),
-                    neuronTokenBalance
-                );
+                IERC20(neuronTokenAddress).safeTransfer(IController(controller).treasury(), neuronTokenBalance);
             }
         } else {
             // If failed swap to Neuron just transfer swap token to treasury
             IERC20(swapToken).safeApprove(IController(controller).treasury(), 0);
             IERC20(swapToken).safeApprove(IController(controller).treasury(), amount);
-            IERC20(swapToken).safeTransfer(
-                IController(controller).treasury(),
-                amount
-            );
+            IERC20(swapToken).safeTransfer(IController(controller).treasury(), amount);
         }
     }
 }

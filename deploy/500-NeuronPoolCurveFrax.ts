@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
-import { Controller, MockStrategy, NeuronPoolCurve3crvExtends__factory } from '../typechain-types';
+import { IStrategy, Controller, NeuronPoolCurve3crvExtends__factory } from '../typechain-types';
+import { FRAX, FRAX3CRV } from '../constants/addresses';
 
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -11,20 +12,21 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MasterChefDeployment = await get('MasterChef');
   const ControllerDeployment = await get('Controller');
   const controller = await ethers.getContractAt('Controller', ControllerDeployment.address) as Controller;
-  const MockStrategyCurveFraxDeployment = await get('MockStrategyCurveFrax');
-  const mockStrategyCurveFrax = await ethers.getContractAt('MockStrategy', MockStrategyCurveFraxDeployment.address) as MockStrategy;
+  const StrategyConvexCurveFraxDeployment = await get('StrategyConvexCurveFrax');
+  const strategyConvexCurveFrax = await ethers.getContractAt('IStrategy', StrategyConvexCurveFraxDeployment.address) as IStrategy;
   const NeuronPoolCurve3crvExtendsRealizationDeployment = await get('NeuronPoolCurve3crvExtendsRealization');
 
   const factory = await ethers.getContractFactory('NeuronPoolCurve3crvExtends') as NeuronPoolCurve3crvExtends__factory;
 
+  console.log(`await strategyConvexCurveFrax.want() ${await strategyConvexCurveFrax.want()}`)
   const data = factory.interface.encodeFunctionData('initialize', [
-    await mockStrategyCurveFrax.want(),
-      deployer.address,
-      deployer.address,
-      ControllerDeployment.address,
-      MasterChefDeployment.address,
-      '0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B',
-      '0x853d955aCEf822Db058eb8505911ED77F175b99e'
+    await strategyConvexCurveFrax.want(),
+    deployer.address,
+    deployer.address,
+    ControllerDeployment.address,
+    MasterChefDeployment.address,
+    FRAX3CRV,
+    FRAX
   ]);
 
   const NeuronPoolDeployment = await deploy('NeuronPoolCurveFrax', {
@@ -36,11 +38,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ],
   });
 
-  await controller.setNPool(await mockStrategyCurveFrax.want(), NeuronPoolDeployment.address);
-  await controller.approveStrategy(await mockStrategyCurveFrax.want(), mockStrategyCurveFrax.address);
-  await controller.setStrategy(await mockStrategyCurveFrax.want(), mockStrategyCurveFrax.address);
+  await controller.setNPool(await strategyConvexCurveFrax.want(), NeuronPoolDeployment.address);
+  await controller.approveStrategy(await strategyConvexCurveFrax.want(), strategyConvexCurveFrax.address);
+  await controller.setStrategy(await strategyConvexCurveFrax.want(), strategyConvexCurveFrax.address);
 };
 
 deploy.tags = ['NeuronPoolCurveFrax']
-deploy.dependencies = ['MasterChef', 'Controller', 'MockStrategyCurveFrax', 'NeuronPoolCurve3crvExtendsRealization'];
+deploy.dependencies = ['MasterChef', 'Controller', 'StrategyConvexCurveFrax', 'NeuronPoolCurve3crvExtendsRealization'];
 export default deploy
