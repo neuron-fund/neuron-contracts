@@ -6,6 +6,7 @@ import "../../../interfaces/ICurve.sol";
 import "../../../interfaces/IConvexFarm.sol";
 
 import "hardhat/console.sol";
+
 contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -77,7 +78,7 @@ contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
 
         _crv = crvIERC20.balanceOf(self);
 
-        if(_crv > 0) {
+        if (_crv > 0) {
             crvIERC20.safeApprove(univ2Router2, 0);
             crvIERC20.safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, MIM, _crv);

@@ -1,7 +1,7 @@
 import { deploy } from './deployPolygon'
 import { writeConstantsFile } from './writeConstantsFile'
 
-async function main () {
+async function main() {
   const deployedAddresses = await deploy()
   writeConstantsFile(deployedAddresses, 'polygonAddresses')
 }

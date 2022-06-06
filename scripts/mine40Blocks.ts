@@ -1,8 +1,7 @@
+import '@nomiclabs/hardhat-ethers'
+import { network } from 'hardhat'
 
-import "@nomiclabs/hardhat-ethers"
-import { network } from "hardhat"
-
-async function main () {
+async function main() {
   for (let i = 1; i <= 40; i++) {
     await network.provider.send('evm_mine')
   }

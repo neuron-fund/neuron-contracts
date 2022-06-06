@@ -1,8 +1,7 @@
+import '@nomiclabs/hardhat-ethers'
+import { ethers, network } from 'hardhat'
 
-import "@nomiclabs/hardhat-ethers"
-import { ethers, network } from "hardhat"
-
-async function main () {
+async function main() {
   const oneWeekInSeconds = 60 * 60 * 24 * 7
   await network.provider.send('evm_increaseTime', [oneWeekInSeconds])
   await network.provider.send('evm_mine')

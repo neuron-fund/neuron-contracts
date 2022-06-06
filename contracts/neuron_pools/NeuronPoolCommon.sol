@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import "../interfaces/IController.sol";
 import "hardhat/console.sol";
+
 abstract contract NeuronPoolCommon {
     using SafeERC20 for IERC20Metadata;
     using SafeMath for uint256;
@@ -30,7 +31,7 @@ abstract contract NeuronPoolCommon {
 
     function _burn(address account, uint256 amount) internal virtual;
 
-    function balanceOf(address account) public view virtual returns (uint256); 
+    function balanceOf(address account) public view virtual returns (uint256);
 
     function depositAll(address _enterToken) external returns (uint256) {
         return deposit(_enterToken, IERC20Metadata(_enterToken).balanceOf(msg.sender));

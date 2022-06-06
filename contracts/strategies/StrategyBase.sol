@@ -176,7 +176,7 @@ abstract contract StrategyBase {
 
         uint256 total = _amount.sub(_feeDev).sub(_feeTreasury);
         IERC20(want).safeTransfer(_nPool, total);
-        
+
         emit Withdraw(_amount, total);
     }
 
@@ -266,10 +266,7 @@ abstract contract StrategyBase {
         );
     }
 
-    function _swapUniswapETHExactETHForTokens(
-        address _to,
-        uint256 _amount
-    ) internal {
+    function _swapUniswapETHExactETHForTokens(address _to, uint256 _amount) internal {
         require(_to != address(0));
 
         address[] memory path;

@@ -22,8 +22,5 @@ interface INeuronPool is IERC20 {
 
     function decimals() external view returns (uint8);
 
-    function getSupportedTokens()
-        external
-        view
-        returns (address[] memory tokens);
+    function getSupportedTokens() external view returns (address[] memory tokens);
 }

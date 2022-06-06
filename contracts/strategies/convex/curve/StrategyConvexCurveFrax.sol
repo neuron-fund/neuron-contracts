@@ -5,6 +5,7 @@ import "../StrategyConvexFarmBase.sol";
 import "../../../interfaces/ICurve.sol";
 import "../../../interfaces/IConvexFarm.sol";
 import "hardhat/console.sol";
+
 contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -43,7 +44,17 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
         extraRewardContracts[0] = rewardContract.extraRewards(0);
         address[] memory tokenRewardContracts = new address[](0);
         address[] memory tokenRewardTokens = new address[](0);
-        CLAIM_ZAP.claimRewards(rewardContracts, extraRewardContracts, tokenRewardContracts, tokenRewardTokens, 0, 0, 0, 0, 0);
+        CLAIM_ZAP.claimRewards(
+            rewardContracts,
+            extraRewardContracts,
+            tokenRewardContracts,
+            tokenRewardTokens,
+            0,
+            0,
+            0,
+            0,
+            0
+        );
 
         address self = address(this);
         IERC20 cvxIERC20 = IERC20(cvx);
@@ -55,7 +66,7 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
         uint256 _cvx = cvxIERC20.balanceOf(self);
         console.log("_cvx", _cvx);
         emit RewardToken(cvx, _cvx);
-        
+
         uint256 _crv = crvIERC20.balanceOf(self);
         console.log("_crv", _crv);
         emit RewardToken(crv, _crv);
@@ -86,7 +97,7 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
 
         _crv = crvIERC20.balanceOf(self);
 
-        if(_crv > 0) {
+        if (_crv > 0) {
             crvIERC20.safeApprove(univ2Router2, 0);
             crvIERC20.safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, FRAX, _crv);

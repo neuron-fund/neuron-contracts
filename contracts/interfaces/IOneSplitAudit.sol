@@ -7,10 +7,7 @@ interface IOneSplitAudit {
         uint256 amount,
         uint256 parts,
         uint256 featureFlags
-    )
-        external
-        view
-        returns (uint256 returnAmount, uint256[] memory distribution);
+    ) external view returns (uint256 returnAmount, uint256[] memory distribution);
 
     function swap(
         address fromToken,

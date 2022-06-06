@@ -2,48 +2,15 @@ pragma solidity 0.8.2;
 pragma experimental ABIEncoderV2;
 
 interface IPolygonSushiMiniChef {
-    event Deposit(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount,
-        address indexed to
-    );
-    event EmergencyWithdraw(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount,
-        address indexed to
-    );
+    event Deposit(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
     event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
-    event LogPoolAddition(
-        uint256 indexed pid,
-        uint256 allocPoint,
-        address indexed lpToken,
-        address indexed rewarder
-    );
-    event LogSetPool(
-        uint256 indexed pid,
-        uint256 allocPoint,
-        address indexed rewarder,
-        bool overwrite
-    );
+    event LogPoolAddition(uint256 indexed pid, uint256 allocPoint, address indexed lpToken, address indexed rewarder);
+    event LogSetPool(uint256 indexed pid, uint256 allocPoint, address indexed rewarder, bool overwrite);
     event LogSushiPerSecond(uint256 sushiPerSecond);
-    event LogUpdatePool(
-        uint256 indexed pid,
-        uint64 lastRewardTime,
-        uint256 lpSupply,
-        uint256 accSushiPerShare
-    );
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
-    event Withdraw(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount,
-        address indexed to
-    );
+    event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 lpSupply, uint256 accSushiPerShare);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
 
     function SUSHI() external view returns (address);
 
@@ -82,10 +49,7 @@ interface IPolygonSushiMiniChef {
 
     function pendingOwner() external view returns (address);
 
-    function pendingSushi(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256 pending);
+    function pendingSushi(uint256 _pid, address _user) external view returns (uint256 pending);
 
     function permitToken(
         address token,
@@ -132,14 +96,9 @@ interface IPolygonSushiMiniChef {
         bool renounce
     ) external;
 
-    function updatePool(uint256 pid)
-        external
-        returns (MiniChefV2.PoolInfo memory pool);
+    function updatePool(uint256 pid) external returns (MiniChefV2.PoolInfo memory pool);
 
-    function userInfo(uint256, address)
-        external
-        view
-        returns (uint256 amount, int256 rewardDebt);
+    function userInfo(uint256, address) external view returns (uint256 amount, int256 rewardDebt);
 
     function withdraw(
         uint256 pid,

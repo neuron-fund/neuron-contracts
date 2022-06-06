@@ -1,7 +1,7 @@
 import { deploy } from './deployProd'
 import { writeConstantsFile } from './writeConstantsFile'
 
-async function main () {
+async function main() {
   const deployedAddresses = await deploy()
   writeConstantsFile(deployedAddresses, 'mainnetAddresses')
 }

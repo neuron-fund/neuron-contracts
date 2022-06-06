@@ -4,6 +4,7 @@ import { assert } from 'chai'
 import { INeuronPool, IPricer } from '../typechain-types'
 import TokenHelper from './helpers/TokenHelper'
 import NetworkHelper from './helpers/NetworkHelper'
+import ERC20Minter from './helpers/ERC20Minter'
 
 interface IConfig {
   name: string
@@ -24,20 +25,8 @@ const configs: IConfig[] = [
     neuronPool: 'NeuronPoolCurveLUSD',
   },
   {
-    name: 'NeuronPoolCurveALUSDPricer',
-    neuronPool: 'NeuronPoolCurveALUSD',
-  },
-  {
     name: 'NeuronPoolCurveMIMPricer',
     neuronPool: 'NeuronPoolCurveMIM',
-  },
-  {
-    name: 'NeuronPoolCurveUSDPPricer',
-    neuronPool: 'NeuronPoolCurveUSDP',
-  },
-  {
-    name: 'NeuronPoolCurveMIMUSTPricer',
-    neuronPool: 'NeuronPoolCurveMIMUST',
   },
 ]
 
@@ -73,7 +62,7 @@ function testNeuronPoolPricers(config: IConfig) {
         NeuronPoolCurveDeployment.address
       )) as INeuronPool
       const tokenAddress = await neuronPoolCurve.token()
-      await TokenHelper.createTokens(tokenAddress, user)
+      await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('10'), await user.getAddress());
       const token = await TokenHelper.getToken(tokenAddress)
       const tokenBalance = await token.balanceOf(await user.getAddress())
       await token.connect(user).approve(neuronPoolCurve.address, tokenBalance)

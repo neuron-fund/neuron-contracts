@@ -3,25 +3,12 @@ pragma experimental ABIEncoderV2;
 
 interface IPolygonSushiRewarder {
     event LogInit();
-    event LogOnReward(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount,
-        address indexed to
-    );
+    event LogOnReward(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
     event LogPoolAddition(uint256 indexed pid, uint256 allocPoint);
     event LogRewardPerSecond(uint256 rewardPerSecond);
     event LogSetPool(uint256 indexed pid, uint256 allocPoint);
-    event LogUpdatePool(
-        uint256 indexed pid,
-        uint64 lastRewardTime,
-        uint256 lpSupply,
-        uint256 accSushiPerShare
-    );
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 lpSupply, uint256 accSushiPerShare);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     function add(uint256 allocPoint, uint256 _pid) external;
 
@@ -41,19 +28,13 @@ interface IPolygonSushiRewarder {
 
     function pendingOwner() external view returns (address);
 
-    function pendingToken(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256 pending);
+    function pendingToken(uint256 _pid, address _user) external view returns (uint256 pending);
 
     function pendingTokens(
         uint256 pid,
         address user,
         uint256
-    )
-        external
-        view
-        returns (address[] memory rewardTokens, uint256[] memory rewardAmounts);
+    ) external view returns (address[] memory rewardTokens, uint256[] memory rewardAmounts);
 
     function poolIds(uint256) external view returns (uint256);
 
@@ -80,14 +61,9 @@ interface IPolygonSushiRewarder {
         bool renounce
     ) external;
 
-    function updatePool(uint256 pid)
-        external
-        returns (ComplexRewarderTime.PoolInfo memory pool);
+    function updatePool(uint256 pid) external returns (ComplexRewarderTime.PoolInfo memory pool);
 
-    function userInfo(uint256, address)
-        external
-        view
-        returns (uint256 amount, uint256 rewardDebt);
+    function userInfo(uint256, address) external view returns (uint256 amount, uint256 rewardDebt);
 }
 
 interface ComplexRewarderTime {

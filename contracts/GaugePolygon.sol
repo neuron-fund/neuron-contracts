@@ -21,10 +21,7 @@ contract GaugePolygon is ReentrancyGuard {
     uint256 public rewardPerTokenStored;
 
     modifier onlyDistribution() {
-        require(
-            msg.sender == DISTRIBUTION,
-            "Caller is not RewardsDistribution contract"
-        );
+        require(msg.sender == DISTRIBUTION, "Caller is not RewardsDistribution contract");
         _;
     }
 
@@ -59,20 +56,15 @@ contract GaugePolygon is ReentrancyGuard {
         }
         return
             rewardPerTokenStored.add(
-                lastTimeRewardApplicable()
-                    .sub(lastUpdateTime)
-                    .mul(rewardRate)
-                    .mul(1e18)
-                    .div(_totalSupply)
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply)
             );
     }
 
     function earned(address account) public view returns (uint256) {
         return
-            _balances[account]
-                .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
-                .div(1e18)
-                .add(rewards[account]);
+            _balances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
+                rewards[account]
+            );
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -95,10 +87,7 @@ contract GaugePolygon is ReentrancyGuard {
         _deposit(amount, msg.sender, account);
     }
 
-    function depositStateUpdate(address holder, uint256 amount)
-        internal
-        updateReward(holder)
-    {
+    function depositStateUpdate(address holder, uint256 amount) internal updateReward(holder) {
         require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
         _balances[holder] = _balances[holder].add(amount);
@@ -106,10 +95,7 @@ contract GaugePolygon is ReentrancyGuard {
     }
 
     function depositStateUpdateByPool(address holder, uint256 amount) external {
-        require(
-            msg.sender == address(TOKEN),
-            "State update without transfer can only be called by pool"
-        );
+        require(msg.sender == address(TOKEN), "State update without transfer can only be called by pool");
         depositStateUpdate(holder, amount);
     }
 
@@ -135,10 +121,7 @@ contract GaugePolygon is ReentrancyGuard {
         TOKEN.safeTransfer(msg.sender, amount);
     }
 
-    function withdrawStateUpdate(address holder, uint256 amount)
-        internal
-        updateReward(msg.sender)
-    {
+    function withdrawStateUpdate(address holder, uint256 amount) internal updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply = _totalSupply.sub(amount);
         _balances[holder] = _balances[holder].sub(amount);
@@ -146,15 +129,8 @@ contract GaugePolygon is ReentrancyGuard {
     }
 
     // We use this function when withdraw right from pool. No transfer because after that we burn this amount from contract.
-    function withdrawAllStateUpdateByPool(address holder)
-        external
-        nonReentrant
-        returns (uint256)
-    {
-        require(
-            msg.sender == address(TOKEN),
-            "Only corresponding pool can withdraw tokens for someone"
-        );
+    function withdrawAllStateUpdateByPool(address holder) external nonReentrant returns (uint256) {
+        require(msg.sender == address(TOKEN), "Only corresponding pool can withdraw tokens for someone");
         uint256 amount = _balances[holder];
         withdrawStateUpdate(holder, amount);
         return amount;
@@ -174,11 +150,7 @@ contract GaugePolygon is ReentrancyGuard {
         getReward();
     }
 
-    function notifyRewardAmount(uint256 reward)
-        external
-        onlyDistribution
-        updateReward(address(0))
-    {
+    function notifyRewardAmount(uint256 reward) external onlyDistribution updateReward(address(0)) {
         NEURON.safeTransferFrom(DISTRIBUTION, address(this), reward);
         if (block.timestamp >= periodFinish) {
             rewardRate = reward.div(DURATION);
@@ -193,10 +165,7 @@ contract GaugePolygon is ReentrancyGuard {
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
         uint256 balance = NEURON.balanceOf(address(this));
-        require(
-            rewardRate <= balance.div(DURATION),
-            "Provided reward too high"
-        );
+        require(rewardRate <= balance.div(DURATION), "Provided reward too high");
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(DURATION);

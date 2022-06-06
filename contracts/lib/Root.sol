@@ -1,9 +1,8 @@
 pragma solidity 0.8.2;
 
-import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 library Root {
-
     using SafeMath for uint256;
 
     /**
@@ -11,8 +10,8 @@ library Root {
      * @param x Input
      * @return y Square root of Input
      */
-    function sqrt(uint x) internal pure returns (uint y) {
-        uint z = (x.add(1)).div(2);
+    function sqrt(uint256 x) internal pure returns (uint256 y) {
+        uint256 z = (x.add(1)).div(2);
         y = x;
         while (z < y) {
             y = z;

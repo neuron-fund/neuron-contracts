@@ -2,14 +2,18 @@ import { BigNumber, BigNumberish, Signer, constants as ethersConstants } from 'e
 import { SUSHISWAP_ROUTER, WETH } from '../constants/addresses'
 import { IERC20__factory, IUniswapRouterV2__factory, IUniswapV2Pair__factory, IWETH__factory } from '../typechain'
 
-
-export async function sushiGetLpToken (
-  { signer, ethAmount, lpTokenAddress }: { signer: Signer, lpTokenAddress: string, ethAmount: BigNumber }
-) {
+export async function sushiGetLpToken({
+  signer,
+  ethAmount,
+  lpTokenAddress,
+}: {
+  signer: Signer
+  lpTokenAddress: string
+  ethAmount: BigNumber
+}) {
   const lpTokenContract = await IUniswapV2Pair__factory.connect(lpTokenAddress, signer)
   const wethContract = await IWETH__factory.connect(WETH, signer)
-  const sushiRouter =await  IUniswapRouterV2__factory.connect(SUSHISWAP_ROUTER, signer)
-
+  const sushiRouter = await IUniswapRouterV2__factory.connect(SUSHISWAP_ROUTER, signer)
 
   const token0 = await lpTokenContract.token0()
   const token1 = await lpTokenContract.token1()
@@ -42,14 +46,19 @@ export async function sushiGetLpToken (
     0,
     0,
     await signer.getAddress(),
-    deadline,
+    deadline
   )
 }
 
-
-export async function sushiGetERC20WithEth (
-  { signer, tokenAddress, ethAmount }: { signer: Signer, tokenAddress: string, ethAmount: BigNumber }
-) {
+export async function sushiGetERC20WithEth({
+  signer,
+  tokenAddress,
+  ethAmount,
+}: {
+  signer: Signer
+  tokenAddress: string
+  ethAmount: BigNumber
+}) {
   const sushiRouter = await IUniswapRouterV2__factory.connect(SUSHISWAP_ROUTER, signer)
   const path = [WETH, tokenAddress]
   const deadline = Math.floor(Date.now() / 1000) + 20000000

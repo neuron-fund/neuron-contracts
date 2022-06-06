@@ -22,19 +22,13 @@ interface ISushiChef {
 
     function emergencyWithdraw(uint256 _pid) external;
 
-    function getMultiplier(uint256 _from, uint256 _to)
-        external
-        view
-        returns (uint256);
+    function getMultiplier(uint256 _from, uint256 _to) external view returns (uint256);
 
     function massUpdatePools() external;
 
     function owner() external view returns (address);
 
-    function pendingSushi(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
+    function pendingSushi(uint256 _pid, address _user) external view returns (uint256);
 
     function sushi() external view returns (address);
 
@@ -74,10 +68,7 @@ interface ISushiChef {
 
     function updatePool(uint256 _pid) external;
 
-    function userInfo(uint256, address)
-        external
-        view
-        returns (uint256 amount, uint256 rewardDebt);
+    function userInfo(uint256, address) external view returns (uint256 amount, uint256 rewardDebt);
 
     function withdraw(uint256 _pid, uint256 _amount) external;
 }

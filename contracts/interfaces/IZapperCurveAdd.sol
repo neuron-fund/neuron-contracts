@@ -1,10 +1,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 interface IZapperCurveAdd {
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event zapIn(address sender, address pool, uint256 tokensRec);
 
     function ZapIn(
@@ -37,10 +34,7 @@ interface IZapperCurveAdd {
 
     function renounceOwnership() external;
 
-    function setApprovedTargets(
-        address[] memory targets,
-        bool[] memory isApproved
-    ) external;
+    function setApprovedTargets(address[] memory targets, bool[] memory isApproved) external;
 
     function set_affiliate(address _affiliate, bool _status) external;
 

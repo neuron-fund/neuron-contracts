@@ -6,6 +6,7 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NeuronPoolCommon} from "./NeuronPoolCommon.sol";
 import "hardhat/console.sol";
+
 abstract contract NeuronPoolBaseInitialize is
     NeuronPoolCommon,
     Initializable,
@@ -27,7 +28,6 @@ abstract contract NeuronPoolBaseInitialize is
         );
         __ReentrancyGuard_init_unchained();
 
-        
         console.log("Constructor", "NeuronPoolBaseProxy");
         console.log("_token", _token);
 
@@ -48,7 +48,13 @@ abstract contract NeuronPoolBaseInitialize is
         super.withdraw(_withdrawableToken, _shares);
     }
 
-    function balanceOf(address account) public view virtual override(ERC20Upgradeable, NeuronPoolCommon) returns (uint256) {
+    function balanceOf(address account)
+        public
+        view
+        virtual
+        override(ERC20Upgradeable, NeuronPoolCommon)
+        returns (uint256)
+    {
         return ERC20Upgradeable.balanceOf(account);
     }
 

@@ -52,18 +52,12 @@ contract GaugesDistributorPolygon {
         return gauges[_token];
     }
 
-    function setWeights(
-        address[] memory _tokensToVote,
-        uint256[] memory _weights
-    ) external {
+    function setWeights(address[] memory _tokensToVote, uint256[] memory _weights) external {
         require(
             msg.sender == admin || msg.sender == governance,
             "Set weights function can only be executed by admin or governance"
         );
-        require(
-            _tokensToVote.length == _weights.length,
-            "Number Tokens to vote should be the same as weights number"
-        );
+        require(_tokensToVote.length == _weights.length, "Number Tokens to vote should be the same as weights number");
 
         uint256 _tokensCnt = _tokensToVote.length;
         uint256 _totalWeight = 0;
@@ -107,9 +101,7 @@ contract GaugesDistributorPolygon {
             for (uint256 i = 0; i < _tokens.length; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint256 _reward = _balance.mul(weights[_token]).div(
-                    totalWeight
-                );
+                uint256 _reward = _balance.mul(weights[_token]).div(totalWeight);
                 if (_reward > 0) {
                     NEURON.safeApprove(_gauge, 0);
                     NEURON.safeApprove(_gauge, _reward);
@@ -120,10 +112,7 @@ contract GaugesDistributorPolygon {
     }
 
     function setAdmin(address _admin) external {
-        require(
-            msg.sender == admin || msg.sender == governance,
-            "Only governance or admin can set admin"
-        );
+        require(msg.sender == admin || msg.sender == governance, "Only governance or admin can set admin");
 
         admin = _admin;
     }

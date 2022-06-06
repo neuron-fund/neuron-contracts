@@ -4,6 +4,7 @@ import {ERC20, IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/ERC20.s
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {NeuronPoolCommon} from "./NeuronPoolCommon.sol";
 import "hardhat/console.sol";
+
 abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
     constructor(
         // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool

@@ -3,18 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-
 interface IConvexBooster {
-    event Deposited(
-        address indexed user,
-        uint256 indexed poolid,
-        uint256 amount
-    );
-    event Withdrawn(
-        address indexed user,
-        uint256 indexed poolid,
-        uint256 amount
-    );
+    event Deposited(address indexed user, uint256 indexed poolid, uint256 amount);
+    event Withdrawn(address indexed user, uint256 indexed poolid, uint256 amount);
 
     function FEE_DENOMINATOR() external view returns (uint256);
 
@@ -121,8 +112,7 @@ interface IConvexBooster {
 
     function setPoolManager(address _poolM) external;
 
-    function setRewardContracts(address _rewards, address _stakerRewards)
-        external;
+    function setRewardContracts(address _rewards, address _stakerRewards) external;
 
     function setTreasury(address _treasury) external;
 
@@ -152,9 +142,7 @@ interface IConvexBooster {
 
     function voteDelegate() external view returns (address);
 
-    function voteGaugeWeight(address[] memory _gauge, uint256[] memory _weight)
-        external
-        returns (bool);
+    function voteGaugeWeight(address[] memory _gauge, uint256[] memory _weight) external returns (bool);
 
     function voteOwnership() external view returns (address);
 
@@ -197,9 +185,7 @@ interface IBaseRewardPool {
 
     function getReward() external returns (bool);
 
-    function getReward(address _account, bool _claimExtras)
-        external
-        returns (bool);
+    function getReward(address _account, bool _claimExtras) external returns (bool);
 
     function historicalRewards() external view returns (uint256);
 
@@ -249,9 +235,7 @@ interface IBaseRewardPool {
 
     function withdrawAllAndUnwrap(bool claim) external;
 
-    function withdrawAndUnwrap(uint256 amount, bool claim)
-        external
-        returns (bool);
+    function withdrawAndUnwrap(uint256 amount, bool claim) external returns (bool);
 }
 
 interface IVirtualBalanceRewardPool {
@@ -274,15 +258,8 @@ interface IConvexToken is IERC20 {
 
 interface IConvexMasterChef {
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
-    event EmergencyWithdraw(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount
-    );
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event RewardPaid(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
@@ -305,19 +282,13 @@ interface IConvexMasterChef {
 
     function emergencyWithdraw(uint256 _pid) external;
 
-    function getMultiplier(uint256 _from, uint256 _to)
-        external
-        view
-        returns (uint256);
+    function getMultiplier(uint256 _from, uint256 _to) external view returns (uint256);
 
     function massUpdatePools() external;
 
     function owner() external view returns (address);
 
-    function pendingCvx(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
+    function pendingCvx(uint256 _pid, address _user) external view returns (uint256);
 
     function poolInfo(uint256)
         external
@@ -352,14 +323,10 @@ interface IConvexMasterChef {
 
     function updatePool(uint256 _pid) external;
 
-    function userInfo(uint256, address)
-        external
-        view
-        returns (uint256 amount, uint256 rewardDebt);
+    function userInfo(uint256, address) external view returns (uint256 amount, uint256 rewardDebt);
 
     function withdraw(uint256 _pid, uint256 _amount) external;
 }
-
 
 interface IConvexClaimZap {
     function claimRewards(
