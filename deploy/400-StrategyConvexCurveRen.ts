@@ -6,10 +6,10 @@ import { StrategyConvexCurveRen__factory } from '../typechain-types'
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
   const { deploy, get } = deployments
-  const [deployer, dev, treasury] = await ethers.getSigners();
+  const [deployer, dev, treasury] = await ethers.getSigners()
 
-  const ControllerDeployment = await get('Controller');
-  const NeuronTokenDeployment = await get('NeuronToken');
+  const ControllerDeployment = await get('Controller')
+  const NeuronTokenDeployment = await get('NeuronToken')
 
   await deploy<DeployArgs<StrategyConvexCurveRen__factory>>('StrategyConvexCurveRen', {
     contract: 'StrategyConvexCurveRen',
@@ -20,10 +20,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ControllerDeployment.address,
       NeuronTokenDeployment.address,
       await treasury.getAddress(),
-    ]
-  });
+    ],
+  })
 }
 
 deploy.tags = ['StrategyConvexCurveRen']
-deploy.dependencies = ['Controller', 'NeuronToken'];
+deploy.dependencies = ['Controller', 'NeuronToken']
 export default deploy

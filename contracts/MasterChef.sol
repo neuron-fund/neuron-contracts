@@ -1,10 +1,10 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {AnyswapV5ERC20} from "./lib/AnyswapV5ERC20.sol";
 
@@ -39,17 +39,10 @@ contract MasterChef is Ownable {
     event Recovered(address token, uint256 amount);
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event EmergencyWithdraw(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount
-    );
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     modifier onlyGovernance() {
-        require(
-            governance == _msgSender(),
-            "Governance: caller is not the governance"
-        );
+        require(governance == _msgSender(), "Governance: caller is not the governance");
         _;
     }
 
@@ -67,9 +60,7 @@ contract MasterChef is Ownable {
         devaddr = _devaddr;
         treasuryAddress = _treasuryAddress;
 
-        distributorLastRewardBlock = block.number > startBlock
-            ? block.number
-            : startBlock;
+        distributorLastRewardBlock = block.number > startBlock ? block.number : startBlock;
 
         neuronTokenPerBlock = _neuronTokenPerBlock;
         startBlock = _startBlock;
@@ -77,29 +68,19 @@ contract MasterChef is Ownable {
     }
 
     // Return reward multiplier over the given _from to _to block.
-    function getMultiplier(uint256 _from, uint256 _to)
-        public
-        view
-        returns (uint256)
-    {
+    function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
         if (_to <= bonusEndBlock) {
             return _to.sub(_from).mul(BONUS_MULTIPLIER);
         } else if (_from >= bonusEndBlock) {
             return _to.sub(_from);
         } else {
-            return
-                bonusEndBlock.sub(_from).mul(BONUS_MULTIPLIER).add(
-                    _to.sub(bonusEndBlock)
-                );
+            return bonusEndBlock.sub(_from).mul(BONUS_MULTIPLIER).add(_to.sub(bonusEndBlock));
         }
     }
 
     function collect() external {
         require(msg.sender == distributor, "Only distributor can collect");
-        uint256 multiplier = getMultiplier(
-            distributorLastRewardBlock,
-            block.number
-        );
+        uint256 multiplier = getMultiplier(distributorLastRewardBlock, block.number);
         distributorLastRewardBlock = block.number;
         uint256 neuronTokenReward = multiplier.mul(neuronTokenPerBlock);
         neuronToken.mint(devaddr, neuronTokenReward.div(100).mul(devFundPercentage));
@@ -125,10 +106,7 @@ contract MasterChef is Ownable {
 
     // **** Additional functions separate from the original masterchef contract ****
 
-    function setNeuronTokenPerBlock(uint256 _neuronTokenPerBlock)
-        external
-        onlyGovernance
-    {
+    function setNeuronTokenPerBlock(uint256 _neuronTokenPerBlock) external onlyGovernance {
         require(_neuronTokenPerBlock > 0, "!neuronTokenPerBlock-0");
 
         neuronTokenPerBlock = _neuronTokenPerBlock;
@@ -138,26 +116,18 @@ contract MasterChef is Ownable {
         bonusEndBlock = _bonusEndBlock;
     }
 
-    function setDevFundPercentage(uint256 _devFundPercentage)
-        external
-        onlyGovernance
-    {
+    function setDevFundPercentage(uint256 _devFundPercentage) external onlyGovernance {
         require(_devFundPercentage > 0, "!devFundPercentage-0");
         devFundPercentage = _devFundPercentage;
     }
 
-    function setTreasuryPercentage(uint256 _treasuryPercentage)
-        external
-        onlyGovernance
-    {
+    function setTreasuryPercentage(uint256 _treasuryPercentage) external onlyGovernance {
         require(_treasuryPercentage > 0, "!treasuryPercentage-0");
         treasuryPercentage = _treasuryPercentage;
     }
 
     function setDistributor(address _distributor) external onlyGovernance {
         distributor = _distributor;
-        distributorLastRewardBlock = block.number > startBlock
-            ? block.number
-            : startBlock;
+        distributorLastRewardBlock = block.number > startBlock ? block.number : startBlock;
     }
 }

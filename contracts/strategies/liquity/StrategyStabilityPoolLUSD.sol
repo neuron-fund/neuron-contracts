@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import {IERC20} from  "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from  "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from  "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import {StrategyBase} from "./StrategyBase.sol";
-import {IStabilityPool} from "../interfaces/IStabilityPool.sol";
-import {ITroveManager} from "../interfaces/ITroveManager.sol";
-import {ILiquityPriceFeed} from "../interfaces/ILiquityPriceFeed.sol";
-import {ISortedTroves} from "../interfaces/ISortedTroves.sol";
+import {StrategyBase} from "../StrategyBase.sol";
+import {IStabilityPool} from "../../interfaces/IStabilityPool.sol";
+import {ITroveManager} from "../../interfaces/ITroveManager.sol";
+import {ILiquityPriceFeed} from "../../interfaces/ILiquityPriceFeed.sol";
+import {ISortedTroves} from "../../interfaces/ISortedTroves.sol";
 
 contract StrategyStabilityPoolLUSD is StrategyBase {
     using SafeERC20 for IERC20;
-    
+
     address public constant LUSD = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
     address public constant LQTY = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
     address payable public constant STABILITY_POOL = payable(0x66017D22b0f8556afDd19FC67041899Eb65a21bb);
@@ -56,7 +56,7 @@ contract StrategyStabilityPoolLUSD is StrategyBase {
 
         uint256 lqtyBalance = IERC20(LQTY).balanceOf(self);
 
-        if(lqtyBalance > 0) {
+        if (lqtyBalance > 0) {
             IERC20(LQTY).safeApprove(univ2Router2, 0);
             IERC20(LQTY).safeApprove(univ2Router2, lqtyBalance);
             _swapUniswap(LQTY, LUSD, lqtyBalance);

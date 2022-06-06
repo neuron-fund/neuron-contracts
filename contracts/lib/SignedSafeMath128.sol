@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 /**
  * @title SignedSafeMath128
@@ -9,7 +9,7 @@ pragma solidity 0.8.2;
  *      Reverted to solc 0.5.16 & updated from int256 to int128
  */
 library SignedSafeMath128 {
-    int128 constant private _INT128_MIN = -2**127;
+    int128 private constant _INT128_MIN = -2**127;
 
     /**
      * @dev Returns the multiplication of two signed integers, reverting on

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -175,7 +175,7 @@ abstract contract YearnAffiliateWrapper {
      *  Used to get the most revent vault for the token using the registry.
      * @return An instance of a VaultAPI
      */
-    function bestVault() public virtual view returns (VaultAPI) {
+    function bestVault() public view virtual returns (VaultAPI) {
         return VaultAPI(registry.latestVault(address(token)));
     }
 
@@ -184,7 +184,7 @@ abstract contract YearnAffiliateWrapper {
      *  Used to get all vaults from the registery for the token
      * @return An array containing instances of VaultAPI
      */
-    function allVaults() public virtual view returns (VaultAPI[] memory) {
+    function allVaults() public view virtual returns (VaultAPI[] memory) {
         uint256 cache_length = _cachedVaults.length;
         uint256 num_vaults = registry.numVaults(address(token));
 
@@ -226,7 +226,9 @@ abstract contract YearnAffiliateWrapper {
         VaultAPI[] memory vaults = allVaults();
 
         for (uint256 id = 0; id < vaults.length; id++) {
-            balance = balance.add(vaults[id].balanceOf(account).mul(vaults[id].pricePerShare()).div(10**uint256(vaults[id].decimals())));
+            balance = balance.add(
+                vaults[id].balanceOf(account).mul(vaults[id].pricePerShare()).div(10**uint256(vaults[id].decimals()))
+            );
         }
     }
 
@@ -327,9 +329,7 @@ abstract contract YearnAffiliateWrapper {
                 if (amount != WITHDRAW_EVERYTHING) {
                     // Compute amount to withdraw fully to satisfy the request
                     uint256 estimatedShares = amount
-                        .sub(withdrawn) // NOTE: Changes every iteration
-                        .mul(10**uint256(vaults[id].decimals()))
-                        .div(vaults[id].pricePerShare()); // NOTE: Every Vault is different
+                    .sub(withdrawn).mul(10**uint256(vaults[id].decimals())).div(vaults[id].pricePerShare()); // NOTE: Changes every iteration // NOTE: Every Vault is different
 
                     // Limit amount to withdraw to the maximum made available to this contract
                     // NOTE: Avoid corner case where `estimatedShares` isn't precise enough

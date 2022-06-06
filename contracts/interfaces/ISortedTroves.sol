@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 interface ISortedTroves {
     event BorrowerOperationsAddressChanged(address _borrowerOperationsAddress);
     event NodeAdded(address _id, uint256 _NICR);
     event NodeRemoved(address _id);
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event SortedTrovesAddressChanged(address _sortedDoublyLLAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
 

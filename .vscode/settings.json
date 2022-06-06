@@ -3,5 +3,5 @@
   "solidity.enableLocalNodeCompiler": false,
   "solidity.enabledAsYouTypeCompilationErrorCheck": true,
   "solidity.defaultCompiler": "localFile",
-  "solidity.compileUsingLocalVersion": "/Users/a/Work/Neuron-Contracts/.vscode/soljson-v0.8.2+commit.661d1103.js"
+  "solidity.compileUsingLocalVersion": "c:\\Users\\User\\Desktop\\smart\\Neuron-Contracts\\soljson-v0.8.2+commit.661d1103.js"
 }

@@ -21,7 +21,17 @@ import {
   UNI_FEI_TRIBE_LP,
   CURVE_CRV_ETH_POOL,
 } from '../constants/addresses'
-import { IWETH, IUniswapRouterV2, IERC20, IStEth, ICurveFi, ERC20, ICurveFi_4, ICurveFi_2, ICurveFi_3 } from '../typechain-types'
+import {
+  IWETH,
+  IUniswapRouterV2,
+  IERC20,
+  IStEth,
+  ICurveFi,
+  ERC20,
+  ICurveFi_4,
+  ICurveFi_2,
+  ICurveFi_3,
+} from '../typechain-types'
 
 export const getToken = async (address: string, signer: Signer) => {
   return (await ethers.getContractAt('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20', address, signer)) as ERC20

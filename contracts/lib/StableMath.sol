@@ -1,4 +1,4 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -88,11 +88,7 @@ library StableMath {
      * @return      Result after multiplying the two inputs and then dividing by the shared
      *              scale unit, rounded up to the closest base unit.
      */
-    function mulTruncateCeil(uint256 x, uint256 y)
-        internal
-        pure
-        returns (uint256)
-    {
+    function mulTruncateCeil(uint256 x, uint256 y) internal pure returns (uint256) {
         // e.g. 8e17 * 17268172638 = 138145381104e17
         uint256 scaled = x.mul(y);
         // e.g. 138145381104e17 + 9.99...e17 = 138145381113.99...e17
@@ -109,11 +105,7 @@ library StableMath {
      * @return      Result after multiplying the left operand by the scale, and
      *              executing the division on the right hand input.
      */
-    function divPrecisely(uint256 x, uint256 y)
-        internal
-        pure
-        returns (uint256)
-    {
+    function divPrecisely(uint256 x, uint256 y) internal pure returns (uint256) {
         // e.g. 8e18 * 1e18 = 8e36
         uint256 z = x.mul(FULL_SCALE);
         // e.g. 8e36 / 10e18 = 8e17
@@ -123,11 +115,7 @@ library StableMath {
     /***************************************
                   RATIO FUNCS
     ****************************************/
-    function mulRatioTruncate(uint256 x, uint256 ratio)
-        internal
-        pure
-        returns (uint256 c)
-    {
+    function mulRatioTruncate(uint256 x, uint256 ratio) internal pure returns (uint256 c) {
         return mulTruncateScale(x, ratio, RATIO_SCALE);
     }
 
@@ -139,11 +127,7 @@ library StableMath {
      * @return      Result after multiplying the two inputs and then dividing by the shared
      *              ratio scale, rounded up to the closest base unit.
      */
-    function mulRatioTruncateCeil(uint256 x, uint256 ratio)
-        internal
-        pure
-        returns (uint256)
-    {
+    function mulRatioTruncateCeil(uint256 x, uint256 ratio) internal pure returns (uint256) {
         // e.g. How much mAsset should I burn for this bAsset (x)?
         // 1e18 * 1e8 = 1e26
         uint256 scaled = x.mul(ratio);
@@ -152,11 +136,8 @@ library StableMath {
         // return 100..00.999e8 / 1e8 = 1e18
         return ceil.div(RATIO_SCALE);
     }
-    function divRatioPrecisely(uint256 x, uint256 ratio)
-        internal
-        pure
-        returns (uint256 c)
-    {
+
+    function divRatioPrecisely(uint256 x, uint256 ratio) internal pure returns (uint256 c) {
         // e.g. 1e14 * 1e8 = 1e22
         uint256 y = x.mul(RATIO_SCALE);
         // return 1e22 / 1e12 = 1e10
@@ -193,11 +174,7 @@ library StableMath {
      * @param upperBound  Maximum possible value to return
      * @return            Input x clamped to a maximum value, upperBound
      */
-    function clamp(uint256 x, uint256 upperBound)
-        internal
-        pure
-        returns (uint256)
-    {
+    function clamp(uint256 x, uint256 upperBound) internal pure returns (uint256) {
         return x > upperBound ? upperBound : x;
     }
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -12,14 +12,9 @@ interface IERC20 {
 
     function balanceOf(address account) external view returns (uint256);
 
-    function transfer(address recipient, uint256 amount)
-        external
-        returns (bool);
+    function transfer(address recipient, uint256 amount) external returns (bool);
 
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
 
     function approve(address spender, uint256 amount) external returns (bool);
 
@@ -50,11 +45,7 @@ interface IERC20 {
     ) external returns (bool);
 
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
 /**
@@ -127,8 +118,7 @@ library Address {
     function isContract(address account) internal view returns (bool) {
         bytes32 codehash;
 
-            bytes32 accountHash
-         = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             codehash := extcodehash(account)
@@ -145,10 +135,7 @@ library SafeERC20 {
         address to,
         uint256 value
     ) internal {
-        callOptionalReturn(
-            token,
-            abi.encodeWithSelector(token.transfer.selector, to, value)
-        );
+        callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
     }
 
     function safeTransferFrom(
@@ -157,10 +144,7 @@ library SafeERC20 {
         address to,
         uint256 value
     ) internal {
-        callOptionalReturn(
-            token,
-            abi.encodeWithSelector(token.transferFrom.selector, from, to, value)
-        );
+        callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
     }
 
     function safeApprove(
@@ -172,10 +156,7 @@ library SafeERC20 {
             (value == 0) || (token.allowance(address(this), spender) == 0),
             "SafeERC20: approve from non-zero to non-zero allowance"
         );
-        callOptionalReturn(
-            token,
-            abi.encodeWithSelector(token.approve.selector, spender, value)
-        );
+        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
     }
 
     function callOptionalReturn(IERC20 token, bytes memory data) private {
@@ -188,10 +169,7 @@ library SafeERC20 {
         if (returndata.length > 0) {
             // Return data is optional
             // solhint-disable-next-line max-line-length
-            require(
-                abi.decode(returndata, (bool)),
-                "SafeERC20: ERC20 operation did not succeed"
-            );
+            require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
         }
     }
 }
@@ -205,13 +183,9 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
     address public immutable underlying;
 
     bytes32 public constant PERMIT_TYPEHASH =
-        keccak256(
-            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-        );
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     bytes32 public constant TRANSFER_TYPEHASH =
-        keccak256(
-            "Transfer(address owner,address to,uint256 value,uint256 nonce,uint256 deadline)"
-        );
+        keccak256("Transfer(address owner,address to,uint256 value,uint256 nonce,uint256 deadline)");
     bytes32 public immutable DOMAIN_SEPARATOR;
 
     /// @dev Records amount of AnyswapV3ERC20 token owned by account.
@@ -331,11 +305,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         return true;
     }
 
-    function burn(address from, uint256 amount)
-        external
-        onlyAuth
-        returns (bool)
-    {
+    function burn(address from, uint256 amount) external onlyAuth returns (bool) {
         require(from != address(0), "AnyswapV3ERC20: address(0x0)");
         _burn(from, amount);
         return true;
@@ -366,26 +336,10 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
     /// @dev Records number of AnyswapV3ERC20 token that account (second) will be allowed to spend on behalf of another account (first) through {transferFrom}.
     mapping(address => mapping(address => uint256)) public override allowance;
 
-    event LogChangeVault(
-        address indexed oldVault,
-        address indexed newVault,
-        uint256 indexed effectiveTime
-    );
-    event LogChangeMPCOwner(
-        address indexed oldOwner,
-        address indexed newOwner,
-        uint256 indexed effectiveHeight
-    );
-    event LogSwapin(
-        bytes32 indexed txhash,
-        address indexed account,
-        uint256 amount
-    );
-    event LogSwapout(
-        address indexed account,
-        address indexed bindaddr,
-        uint256 amount
-    );
+    event LogChangeVault(address indexed oldVault, address indexed newVault, uint256 indexed effectiveTime);
+    event LogChangeMPCOwner(address indexed oldOwner, address indexed newOwner, uint256 indexed effectiveHeight);
+    event LogSwapin(bytes32 indexed txhash, address indexed account, uint256 amount);
+    event LogSwapout(address indexed account, address indexed bindaddr, uint256 amount);
     event LogAddAuth(address indexed auth, uint256 timestamp);
 
     constructor(
@@ -419,9 +373,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         }
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
-                keccak256(
-                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-                ),
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
                 keccak256(bytes(name)),
                 keccak256(bytes("1")),
                 chainId,
@@ -444,15 +396,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         bytes32 s,
         address to
     ) external returns (uint256) {
-        IERC20(underlying).permit(
-            target,
-            address(this),
-            value,
-            deadline,
-            v,
-            r,
-            s
-        );
+        IERC20(underlying).permit(target, address(this), value, deadline, v, r, s);
         IERC20(underlying).safeTransferFrom(target, address(this), value);
         return _deposit(value, to);
     }
@@ -466,15 +410,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         bytes32 s,
         address to
     ) external returns (uint256) {
-        IERC20(underlying).transferWithPermit(
-            target,
-            address(this),
-            value,
-            deadline,
-            v,
-            r,
-            s
-        );
+        IERC20(underlying).transferWithPermit(target, address(this), value, deadline, v, r, s);
         return _deposit(value, to);
     }
 
@@ -494,11 +430,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         return _deposit(amount, to);
     }
 
-    function depositVault(uint256 amount, address to)
-        external
-        onlyVault
-        returns (uint256)
-    {
+    function depositVault(uint256 amount, address to) external onlyVault returns (uint256) {
         return _deposit(amount, to);
     }
 
@@ -577,11 +509,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
     /// @dev Sets `value` as allowance of `spender` account over caller account's AnyswapV3ERC20 token.
     /// Emits {Approval} event.
     /// Returns boolean value indicating whether operation succeeded.
-    function approve(address spender, uint256 value)
-        external
-        override
-        returns (bool)
-    {
+    function approve(address spender, uint256 value) external override returns (bool) {
         // _approve(msg.sender, spender, value);
         allowance[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
@@ -603,8 +531,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         allowance[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
 
-        return
-            IApprovalReceiver(spender).onTokenApproval(msg.sender, value, data);
+        return IApprovalReceiver(spender).onTokenApproval(msg.sender, value, data);
     }
 
     /// @dev Sets `value` as allowance of `spender` account over `owner` account's AnyswapV3ERC20 token, given `owner` account's signed approval.
@@ -627,21 +554,9 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
     ) external override {
         require(block.timestamp <= deadline, "AnyswapV3ERC20: Expired permit");
 
-        bytes32 hashStruct = keccak256(
-            abi.encode(
-                PERMIT_TYPEHASH,
-                target,
-                spender,
-                value,
-                nonces[target]++,
-                deadline
-            )
-        );
+        bytes32 hashStruct = keccak256(abi.encode(PERMIT_TYPEHASH, target, spender, value, nonces[target]++, deadline));
 
-        require(
-            verifyEIP712(target, hashStruct, v, r, s) ||
-                verifyPersonalSign(target, hashStruct, v, r, s)
-        );
+        require(verifyEIP712(target, hashStruct, v, r, s) || verifyPersonalSign(target, hashStruct, v, r, s));
 
         // _approve(owner, spender, value);
         allowance[target][spender] = value;
@@ -659,29 +574,14 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
     ) external override returns (bool) {
         require(block.timestamp <= deadline, "AnyswapV3ERC20: Expired permit");
 
-        bytes32 hashStruct = keccak256(
-            abi.encode(
-                TRANSFER_TYPEHASH,
-                target,
-                to,
-                value,
-                nonces[target]++,
-                deadline
-            )
-        );
+        bytes32 hashStruct = keccak256(abi.encode(TRANSFER_TYPEHASH, target, to, value, nonces[target]++, deadline));
 
-        require(
-            verifyEIP712(target, hashStruct, v, r, s) ||
-                verifyPersonalSign(target, hashStruct, v, r, s)
-        );
+        require(verifyEIP712(target, hashStruct, v, r, s) || verifyPersonalSign(target, hashStruct, v, r, s));
 
         require(to != address(0) || to != address(this));
 
         uint256 balance = balanceOf[target];
-        require(
-            balance >= value,
-            "AnyswapV3ERC20: transfer amount exceeds balance"
-        );
+        require(balance >= value, "AnyswapV3ERC20: transfer amount exceeds balance");
 
         balanceOf[target] = balance - value;
         balanceOf[to] += value;
@@ -697,9 +597,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         bytes32 r,
         bytes32 s
     ) internal view returns (bool) {
-        bytes32 hash = keccak256(
-            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, hashStruct)
-        );
+        bytes32 hash = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, hashStruct));
         address signer = ecrecover(hash, v, r, s);
         return (signer != address(0) && signer == target);
     }
@@ -718,14 +616,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
 
     // Builds a prefixed hash to mimic the behavior of eth_sign.
     function prefixed(bytes32 hash) internal view returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    "\x19Ethereum Signed Message:\n32",
-                    DOMAIN_SEPARATOR,
-                    hash
-                )
-            );
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", DOMAIN_SEPARATOR, hash));
     }
 
     /// @dev Moves `value` AnyswapV3ERC20 token from caller's account to account (`to`).
@@ -734,17 +625,10 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
     /// Returns boolean value indicating whether operation succeeded.
     /// Requirements:
     ///   - caller account must have at least `value` AnyswapV3ERC20 token.
-    function transfer(address to, uint256 value)
-        external
-        override
-        returns (bool)
-    {
+    function transfer(address to, uint256 value) external override returns (bool) {
         require(to != address(0) || to != address(this));
         uint256 balance = balanceOf[msg.sender];
-        require(
-            balance >= value,
-            "AnyswapV3ERC20: transfer amount exceeds balance"
-        );
+        require(balance >= value, "AnyswapV3ERC20: transfer amount exceeds balance");
 
         balanceOf[msg.sender] = balance - value;
         balanceOf[to] += value;
@@ -773,10 +657,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
             // _decreaseAllowance(from, msg.sender, value);
             uint256 allowed = allowance[from][msg.sender];
             if (allowed != type(uint256).max) {
-                require(
-                    allowed >= value,
-                    "AnyswapV3ERC20: request exceeds allowance"
-                );
+                require(allowed >= value, "AnyswapV3ERC20: request exceeds allowance");
                 uint256 reduced = allowed - value;
                 allowance[from][msg.sender] = reduced;
                 emit Approval(from, msg.sender, reduced);
@@ -784,10 +665,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         }
 
         uint256 balance = balanceOf[from];
-        require(
-            balance >= value,
-            "AnyswapV3ERC20: transfer amount exceeds balance"
-        );
+        require(balance >= value, "AnyswapV3ERC20: transfer amount exceeds balance");
 
         balanceOf[from] = balance - value;
         balanceOf[to] += value;
@@ -812,10 +690,7 @@ contract AnyswapV5ERC20 is IAnyswapV3ERC20 {
         require(to != address(0) || to != address(this));
 
         uint256 balance = balanceOf[msg.sender];
-        require(
-            balance >= value,
-            "AnyswapV3ERC20: transfer amount exceeds balance"
-        );
+        require(balance >= value, "AnyswapV3ERC20: transfer amount exceeds balance");
 
         balanceOf[msg.sender] = balance - value;
         balanceOf[to] += value;

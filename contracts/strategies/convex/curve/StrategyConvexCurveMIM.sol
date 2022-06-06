@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
-import "../StrategyConvexFarmBase.sol";
-import "../../../interfaces/ICurve.sol";
-import "../../../interfaces/IConvexFarm.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import "hardhat/console.sol";
+import {StrategyConvexFarmBase} from "../StrategyConvexFarmBase.sol";
+import {ICurveFi_2} from "../../../interfaces/ICurve.sol";
+import {IBaseRewardPool} from "../../../interfaces/IConvexFarm.sol";
+
 contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -77,7 +81,7 @@ contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
 
         _crv = crvIERC20.balanceOf(self);
 
-        if(_crv > 0) {
+        if (_crv > 0) {
             crvIERC20.safeApprove(univ2Router2, 0);
             crvIERC20.safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, MIM, _crv);

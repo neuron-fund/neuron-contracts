@@ -1,27 +1,27 @@
 import { Wallet } from 'ethers'
 import { formatEther, parseEther } from 'ethers/lib/utils'
-import { ethers, network } from "hardhat"
+import { ethers, network } from 'hardhat'
 import { AxonAddress, FeeDistributorAddress, NeuronTokenAddress } from '../frontend/mainnetAddresses'
 import { AxonVyper, FeeDistributor, NeuronToken } from '../typechain'
 import { waitNDays, waitWeek } from '../utils/time'
 
 const AdminPrivateKey = process.env.PROD_ADMIN_PRIVATE_KEY
 const GovernancePrivateKey = process.env.PROD_GOVERNANCE_PRIVATE_KEY
-async function main () {
+async function main() {
   const [testAcc] = await ethers.getSigners()
   const admin = new Wallet(AdminPrivateKey, ethers.provider)
   const deployer = new Wallet(GovernancePrivateKey, ethers.provider)
   await testAcc.sendTransaction({
     to: admin.address,
-    value: parseEther('10000')
+    value: parseEther('10000'),
   })
   await testAcc.sendTransaction({
     to: deployer.address,
-    value: parseEther('10000')
+    value: parseEther('10000'),
   })
-  const feeDistributor = await ethers.getContractAt('FeeDistributor', FeeDistributorAddress, admin) as FeeDistributor
-  const axon = await ethers.getContractAt('AxonVyper', AxonAddress, admin) as AxonVyper
-  const neuronToken = await ethers.getContractAt('NeuronToken', NeuronTokenAddress, deployer) as NeuronToken
+  const feeDistributor = (await ethers.getContractAt('FeeDistributor', FeeDistributorAddress, admin)) as FeeDistributor
+  const axon = (await ethers.getContractAt('AxonVyper', AxonAddress, admin)) as AxonVyper
+  const neuronToken = (await ethers.getContractAt('NeuronToken', NeuronTokenAddress, deployer)) as NeuronToken
   const tokensToDistribute = parseEther('3000')
   const isCheckpointAllowed = await feeDistributor.can_checkpoint_token()
   if (!isCheckpointAllowed) {
@@ -40,7 +40,6 @@ async function main () {
   console.log(`after main ~ checkpoint_token`)
   await waitNDays(4, network.provider)
 }
-
 
 main()
   .then(() => process.exit(0))

@@ -70,7 +70,5 @@ interface IGauge {
 
     function withdrawAll() external;
 
-    function withdrawAllStateUpdateByPool(address holder)
-        external
-        returns (uint256);
+    function withdrawAllStateUpdateByPool(address holder) external returns (uint256);
 }

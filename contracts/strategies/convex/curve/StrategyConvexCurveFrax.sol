@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
-import "../StrategyConvexFarmBase.sol";
-import "../../../interfaces/ICurve.sol";
-import "../../../interfaces/IConvexFarm.sol";
-import "hardhat/console.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+
+import {StrategyConvexFarmBase} from "../StrategyConvexFarmBase.sol";
+import {ICurveFi_2} from "../../../interfaces/ICurve.sol";
+import {IBaseRewardPool} from "../../../interfaces/IConvexFarm.sol";
+
 contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -36,14 +41,7 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
     }
 
     function harvest() public override onlyBenevolent {
-        IBaseRewardPool rewardContract = IBaseRewardPool(getCrvRewardContract());
-        rewardContract.getReward(address(this), true);
-        address[] memory rewardContracts = new address[](0);
-        address[] memory extraRewardContracts = new address[](1);
-        extraRewardContracts[0] = rewardContract.extraRewards(0);
-        address[] memory tokenRewardContracts = new address[](0);
-        address[] memory tokenRewardTokens = new address[](0);
-        CLAIM_ZAP.claimRewards(rewardContracts, extraRewardContracts, tokenRewardContracts, tokenRewardTokens, 0, 0, 0, 0, 0);
+        IBaseRewardPool(getCrvRewardContract()).getReward(address(this), true);
 
         address self = address(this);
         IERC20 cvxIERC20 = IERC20(cvx);
@@ -53,15 +51,12 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
 
         // Check rewards
         uint256 _cvx = cvxIERC20.balanceOf(self);
-        console.log("_cvx", _cvx);
         emit RewardToken(cvx, _cvx);
-        
+
         uint256 _crv = crvIERC20.balanceOf(self);
-        console.log("_crv", _crv);
         emit RewardToken(crv, _crv);
 
         uint256 _fxs = fxsIERC20.balanceOf(self);
-        console.log("_fxs", _fxs);
         emit RewardToken(FXS, _fxs);
 
         // Swap cvx to crv
@@ -86,7 +81,7 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
 
         _crv = crvIERC20.balanceOf(self);
 
-        if(_crv > 0) {
+        if (_crv > 0) {
             crvIERC20.safeApprove(univ2Router2, 0);
             crvIERC20.safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, FRAX, _crv);

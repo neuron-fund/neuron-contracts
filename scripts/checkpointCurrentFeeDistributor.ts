@@ -1,8 +1,27 @@
-
-import "@nomiclabs/hardhat-ethers"
-import { ethers, network } from "hardhat"
-import { ContractFactory, Signer, Wallet } from "ethers"
-import { Controller, Controller__factory, ERC20, MasterChef__factory, NeuronPool__factory, NeuronToken__factory, StrategyBase, StrategyCurveRenCrv__factory, StrategyFeiTribeLp__factory, StrategyCurve3Crv__factory, StrategyCurveSteCrv__factory, Gauge__factory, GaugesDistributor__factory, Axon__factory, AxonVyper__factory, FeeDistributor, FeeDistributor__factory, NeuronToken, AxonVyper } from '../typechain'
+import '@nomiclabs/hardhat-ethers'
+import { ethers, network } from 'hardhat'
+import { ContractFactory, Signer, Wallet } from 'ethers'
+import {
+  Controller,
+  Controller__factory,
+  ERC20,
+  MasterChef__factory,
+  NeuronPool__factory,
+  NeuronToken__factory,
+  StrategyBase,
+  StrategyCurveRenCrv__factory,
+  StrategyFeiTribeLp__factory,
+  StrategyCurve3Crv__factory,
+  StrategyCurveSteCrv__factory,
+  Gauge__factory,
+  GaugesDistributor__factory,
+  Axon__factory,
+  AxonVyper__factory,
+  FeeDistributor,
+  FeeDistributor__factory,
+  NeuronToken,
+  AxonVyper,
+} from '../typechain'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { getToken } from '../utils/getCurveTokens'
@@ -10,7 +29,7 @@ import { NeuronTokenAddress, FeeDistributorAddress, AxonAddress } from '../front
 
 const { formatEther, parseEther, parseUnits } = ethers.utils
 
-async function main () {
+async function main() {
   // TEST REWARDS DISTRIBUTION FOR AXON HOLDERS
 
   const accounts = await ethers.getSigners()
@@ -19,10 +38,13 @@ async function main () {
   const deployerAddress = await deployer.getAddress()
   const governanceAddress = deployerAddress
 
-  const neuronToken = await ethers.getContractAt('NeuronToken', NeuronTokenAddress, deployer) as NeuronToken
-  const axon = await ethers.getContractAt('AxonVyper', AxonAddress, deployer) as AxonVyper
-  const feeDistributor = await ethers.getContractAt('FeeDistributor', FeeDistributorAddress, deployer) as FeeDistributor
-
+  const neuronToken = (await ethers.getContractAt('NeuronToken', NeuronTokenAddress, deployer)) as NeuronToken
+  const axon = (await ethers.getContractAt('AxonVyper', AxonAddress, deployer)) as AxonVyper
+  const feeDistributor = (await ethers.getContractAt(
+    'FeeDistributor',
+    FeeDistributorAddress,
+    deployer
+  )) as FeeDistributor
 
   const premint = parseEther('100')
   // const oneYearSeconds = 60 * 60 * 24 * 365

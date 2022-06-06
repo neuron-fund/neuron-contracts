@@ -1,18 +1,18 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import "./interfaces/IController.sol";
-import "./interfaces/INeuronPool.sol";
-import "./interfaces/INeuronPoolConverter.sol";
-import "./interfaces/IOneSplitAudit.sol";
-import "./interfaces/IStrategy.sol";
-import "./interfaces/IConverter.sol";
+import {IController} from "./interfaces/IController.sol";
+import {INeuronPool} from "./interfaces/INeuronPool.sol";
+import {INeuronPoolConverter} from "./interfaces/INeuronPoolConverter.sol";
+import {IOneSplitAudit} from "./interfaces/IOneSplitAudit.sol";
+import {IStrategy} from "./interfaces/IStrategy.sol";
+import {IConverter} from "./interfaces/IConverter.sol";
 
 // Deployed once (in contrast with nPools - those are created individually for each strategy).
 // Then new nPools are added via setNPool function
@@ -94,10 +94,7 @@ contract Controller {
     }
 
     function setNPool(address _token, address _nPool) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
         require(nPools[_token] == address(0), "nPool");
         nPools[_token] = _nPool;
     }
@@ -123,10 +120,7 @@ contract Controller {
     // Turns off/revokes strategy
     function revokeStrategy(address _token, address _strategy) public {
         require(msg.sender == governance, "!governance");
-        require(
-            strategies[_token] != _strategy,
-            "cannot revoke active strategy"
-        );
+        require(strategies[_token] != _strategy, "cannot revoke active strategy");
         approvedStrategies[_token][_strategy] = false;
     }
 
@@ -137,10 +131,7 @@ contract Controller {
 
     // Adding or updating a strategy
     function setStrategy(address _token, address _strategy) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
         require(approvedStrategies[_token][_strategy] == true, "!approved");
 
         address _current = strategies[_token];
@@ -174,28 +165,17 @@ contract Controller {
     }
 
     function withdrawAll(address _token) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
         IStrategy(strategies[_token]).withdrawAll();
     }
 
     function inCaseTokensGetStuck(address _token, uint256 _amount) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!governance"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!governance");
         IERC20(_token).safeTransfer(msg.sender, _amount);
     }
 
-    function inCaseStrategyTokenGetStuck(address _strategy, address _token)
-        public
-    {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!governance"
-        );
+    function inCaseStrategyTokenGetStuck(address _strategy, address _token) public {
+        require(msg.sender == strategist || msg.sender == governance, "!governance");
         IStrategy(_strategy).withdraw(_token);
     }
 
@@ -206,13 +186,7 @@ contract Controller {
     ) public view returns (uint256 expected) {
         uint256 _balance = IERC20(_token).balanceOf(_strategy);
         address _want = IStrategy(_strategy).want();
-        (expected, ) = IOneSplitAudit(onesplit).getExpectedReturn(
-            _token,
-            _want,
-            _balance,
-            parts,
-            0
-        );
+        (expected, ) = IOneSplitAudit(onesplit).getExpectedReturn(_token, _want, _balance, parts, 0);
     }
 
     // Only allows to withdraw non-core strategy tokens and send to treasury ~ this is over and above normal yield
@@ -221,10 +195,7 @@ contract Controller {
         address _token,
         uint256 parts
     ) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!governance"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!governance");
         // This contract should never have value in it, but just incase since this is a public call
         uint256 _before = IERC20(_token).balanceOf(address(this));
         IStrategy(_strategy).withdraw(_token);
@@ -237,16 +208,8 @@ contract Controller {
             _before = IERC20(_want).balanceOf(address(this));
             IERC20(_token).safeApprove(onesplit, 0);
             IERC20(_token).safeApprove(onesplit, _amount);
-            (_expected, _distribution) = IOneSplitAudit(onesplit)
-            .getExpectedReturn(_token, _want, _amount, parts, 0);
-            IOneSplitAudit(onesplit).swap(
-                _token,
-                _want,
-                _amount,
-                _expected,
-                _distribution,
-                0
-            );
+            (_expected, _distribution) = IOneSplitAudit(onesplit).getExpectedReturn(_token, _want, _amount, parts, 0);
+            IOneSplitAudit(onesplit).swap(_token, _want, _amount, _expected, _distribution, 0);
             _after = IERC20(_want).balanceOf(address(this));
             if (_after > _before) {
                 _amount = _after.sub(_before);
@@ -291,25 +254,19 @@ contract Controller {
         address _toNPoolToken = INeuronPool(_toNPool).token();
 
         // Get pTokens from msg.sender
-        IERC20(_fromNPool).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _fromNPoolAmount
-        );
+        IERC20(_fromNPool).safeTransferFrom(msg.sender, address(this), _fromNPoolAmount);
 
         // Calculate how much underlying
         // is the amount of pTokens worth
-        uint256 _fromNPoolUnderlyingAmount = _fromNPoolAmount
-        .mul(INeuronPool(_fromNPool).pricePerShare())
-        .div(10**uint256(INeuronPool(_fromNPool).decimals()));
+        uint256 _fromNPoolUnderlyingAmount = _fromNPoolAmount.mul(INeuronPool(_fromNPool).pricePerShare()).div(
+            10**uint256(INeuronPool(_fromNPool).decimals())
+        );
 
         // Call 'withdrawForSwap' on NPool's current strategy if NPool
         // doesn't have enough initial capital.
         // This has moves the funds from the strategy to the NPool's
         // 'earnable' amount. Enabling 'free' withdrawals
-        uint256 _fromNPoolAvailUnderlying = IERC20(_fromNPoolToken).balanceOf(
-            _fromNPool
-        );
+        uint256 _fromNPoolAvailUnderlying = IERC20(_fromNPoolToken).balanceOf(_fromNPool);
         if (_fromNPoolAvailUnderlying < _fromNPoolUnderlyingAmount) {
             IStrategy(strategies[_fromNPoolToken]).withdrawForSwap(
                 _fromNPoolUnderlyingAmount.sub(_fromNPoolAvailUnderlying)
@@ -324,22 +281,12 @@ contract Controller {
         INeuronPool(_fromNPool).withdraw(_toNPoolToken, _fromNPoolAmount);
 
         // Calculate fee
-        uint256 _fromUnderlyingBalance = IERC20(_fromNPoolToken).balanceOf(
-            address(this)
-        );
-        uint256 _convenienceFee = _fromUnderlyingBalance
-        .mul(convenienceFee)
-        .div(convenienceFeeMax);
+        uint256 _fromUnderlyingBalance = IERC20(_fromNPoolToken).balanceOf(address(this));
+        uint256 _convenienceFee = _fromUnderlyingBalance.mul(convenienceFee).div(convenienceFeeMax);
 
         if (_convenienceFee > 1) {
-            IERC20(_fromNPoolToken).safeTransfer(
-                devfund,
-                _convenienceFee.div(2)
-            );
-            IERC20(_fromNPoolToken).safeTransfer(
-                treasury,
-                _convenienceFee.div(2)
-            );
+            IERC20(_fromNPoolToken).safeTransfer(devfund, _convenienceFee.div(2));
+            IERC20(_fromNPoolToken).safeTransfer(treasury, _convenienceFee.div(2));
         }
 
         // Executes sequence of logic
@@ -364,29 +311,16 @@ contract Controller {
         return _toNPoolBal;
     }
 
-    function _execute(address _target, bytes memory _data)
-        internal
-        returns (bytes memory response)
-    {
+    function _execute(address _target, bytes memory _data) internal returns (bytes memory response) {
         require(_target != address(0), "!target");
 
         // Call contract in current context
         assembly {
-            let succeeded := delegatecall(
-                sub(gas(), 5000),
-                _target,
-                add(_data, 0x20),
-                mload(_data),
-                0,
-                0
-            )
+            let succeeded := delegatecall(sub(gas(), 5000), _target, add(_data, 0x20), mload(_data), 0, 0)
             let size := returndatasize()
 
             response := mload(0x40)
-            mstore(
-                0x40,
-                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
-            )
+            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
             mstore(response, size)
             returndatacopy(add(response, 0x20), 0, size)
 

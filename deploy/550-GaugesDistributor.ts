@@ -7,11 +7,11 @@ import { BigNumber } from 'ethers'
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
   const { deploy, get } = deployments
-  const [deployer] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners()
 
-  const MasterChefDeployment = await get('MasterChef');
-  const NeuronTokenDeployment = await get('NeuronToken');
-  const AxonDeployment = await get('Axon');
+  const MasterChefDeployment = await get('MasterChef')
+  const NeuronTokenDeployment = await get('NeuronToken')
+  const AxonDeployment = await get('Axon')
 
   await deploy<DeployArgs<GaugesDistributor__factory>>('GaugesDistributor', {
     contract: 'GaugesDistributor',
@@ -22,10 +22,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       AxonDeployment.address,
       deployer.address,
       deployer.address,
-    ]
-  });
+    ],
+  })
 }
 
 deploy.tags = ['GaugesDistributor']
-deploy.dependencies = ['MasterChef', 'NeuronToken', 'Axon'];
+deploy.dependencies = ['MasterChef', 'NeuronToken', 'Axon']
 export default deploy

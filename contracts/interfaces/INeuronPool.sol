@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -22,8 +22,5 @@ interface INeuronPool is IERC20 {
 
     function decimals() external view returns (uint8);
 
-    function getSupportedTokens()
-        external
-        view
-        returns (address[] memory tokens);
+    function getSupportedTokens() external view returns (address[] memory tokens);
 }
