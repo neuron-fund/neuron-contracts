@@ -1,4 +1,4 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 import {AnyswapV5ERC20} from "./lib/AnyswapV5ERC20.sol";
 

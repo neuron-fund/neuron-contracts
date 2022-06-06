@@ -1,9 +1,8 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 import {ERC20, IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {NeuronPoolCommon} from "./NeuronPoolCommon.sol";
-import "hardhat/console.sol";
 
 abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
     constructor(
@@ -20,10 +19,7 @@ abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
             string(abi.encodePacked("neur", IERC20Metadata(_token).symbol()))
         )
     {
-        console.log("Constructor", "NeuronPoolBase");
-        console.log("_token", _token);
         token = IERC20Metadata(_token);
-        console.log("token", address(token));
         governance = _governance;
         timelock = _timelock;
         controller = _controller;

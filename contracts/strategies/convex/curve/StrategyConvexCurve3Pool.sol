@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
-import "../StrategyConvexFarmBase.sol";
-import "../../../interfaces/ICurve.sol";
-import "../../../interfaces/IConvexFarm.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+
+import {StrategyConvexFarmBase} from "../StrategyConvexFarmBase.sol";
+import {ICurveFi_3} from "../../../interfaces/ICurve.sol";
+import {IBaseRewardPool} from "../../../interfaces/IConvexFarm.sol";
 
 contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;

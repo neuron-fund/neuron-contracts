@@ -1,4 +1,4 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 interface IAxon {
     function balanceOf(address addr, uint256 _t) external view returns (uint256);

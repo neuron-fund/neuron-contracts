@@ -1,18 +1,19 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import "../interfaces/INeuronPool.sol";
-import "../interfaces/IStakingRewards.sol";
-import "../interfaces/IUniswapRouterV2.sol";
-import "../interfaces/IController.sol";
+import {INeuronPool} from "../interfaces/INeuronPool.sol";
+import {IStakingRewards} from "../interfaces/IStakingRewards.sol";
+import {IUniswapRouterV2} from "../interfaces/IUniswapRouterV2.sol";
+import {IController} from "../interfaces/IController.sol";
+import {IStrategy} from "../interfaces/IStrategy.sol";
 
 // Strategy Contract Basics
 
-abstract contract StrategyBase {
+abstract contract StrategyBase is IStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -47,11 +48,6 @@ abstract contract StrategyBase {
     address public constant sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
     mapping(address => bool) public harvesters;
-
-    event Deposit(uint256 amount);
-    event Withdraw(uint256 claimedAmount, uint256 totalAmount);
-    event Harvest();
-    event RewardToken(address indexed token, uint256 amount);
 
     constructor(
         // Input token accepted by the contract
@@ -149,11 +145,11 @@ abstract contract StrategyBase {
     function deposit() public virtual;
 
     // Controller only function for creating additional rewards from dust
-    function withdraw(IERC20 _asset) external returns (uint256 balance) {
+    function withdraw(address _asset) external returns (uint256 balance) {
         require(msg.sender == controller, "!controller");
-        require(want != address(_asset), "want");
-        balance = _asset.balanceOf(address(this));
-        _asset.safeTransfer(controller, balance);
+        require(want != _asset, "want");
+        balance = IERC20(_asset).balanceOf(address(this));
+        IERC20(_asset).safeTransfer(controller, balance);
     }
 
     // Withdraw partial funds, normally used with a pool withdrawal

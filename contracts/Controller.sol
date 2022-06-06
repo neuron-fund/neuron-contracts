@@ -1,18 +1,18 @@
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import "./interfaces/IController.sol";
-import "./interfaces/INeuronPool.sol";
-import "./interfaces/INeuronPoolConverter.sol";
-import "./interfaces/IOneSplitAudit.sol";
-import "./interfaces/IStrategy.sol";
-import "./interfaces/IConverter.sol";
+import {IController} from "./interfaces/IController.sol";
+import {INeuronPool} from "./interfaces/INeuronPool.sol";
+import {INeuronPoolConverter} from "./interfaces/INeuronPoolConverter.sol";
+import {IOneSplitAudit} from "./interfaces/IOneSplitAudit.sol";
+import {IStrategy} from "./interfaces/IStrategy.sol";
+import {IConverter} from "./interfaces/IConverter.sol";
 
 // Deployed once (in contrast with nPools - those are created individually for each strategy).
 // Then new nPools are added via setNPool function
