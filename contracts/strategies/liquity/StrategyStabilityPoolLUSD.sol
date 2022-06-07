@@ -50,7 +50,7 @@ contract StrategyStabilityPoolLUSD is StrategyBase {
 
         uint256 ethBalance = self.balance;
         if (ethBalance > 0) {
-            _swapUniswapETHExactETHForTokens(LUSD, ethBalance);
+            _swapUniswapExactETHForTokens(LUSD, ethBalance);
             emit RewardToken(weth, ethBalance);
         }
 

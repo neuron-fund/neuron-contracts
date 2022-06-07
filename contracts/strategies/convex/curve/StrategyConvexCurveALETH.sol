@@ -10,12 +10,13 @@ import {StrategyConvexFarmBase} from "../StrategyConvexFarmBase.sol";
 import {ICurveFi_2} from "../../../interfaces/ICurve.sol";
 import {IBaseRewardPool} from "../../../interfaces/IConvexFarm.sol";
 
-contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
+contract StrategyConvexCurveALETH is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address public constant FRAX = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
-    address public constant FXS = 0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0;
+    address public constant ALETH = 0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6;
+    address public constant ALETH_ETH = 0xC4C319E2D4d66CcA4464C0c2B32c9Bd23ebe784e;
+    address public constant CURVE_POOL = 0xC4C319E2D4d66CcA4464C0c2B32c9Bd23ebe784e;
 
     constructor(
         address _governance,
@@ -25,9 +26,9 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
         address _timelock
     )
         StrategyConvexFarmBase(
-            0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B, //frax3crv
-            0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B, //curvePool
-            32, // convexPoolId
+            ALETH_ETH, // want
+            CURVE_POOL, // curvePool
+            49, // convexPoolId
             _governance,
             _strategist,
             _controller,
@@ -37,17 +38,15 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
     {}
 
     function getName() external pure override returns (string memory) {
-        return "StrategyConvexCurveFrax";
+        return "StrategyConvexCurveALETH";
     }
 
     function harvest() public override onlyBenevolent {
-        IBaseRewardPool(getCrvRewardContract()).getReward(address(this), true);
-
         address self = address(this);
         IERC20 cvxIERC20 = IERC20(cvx);
         IERC20 crvIERC20 = IERC20(crv);
-        IERC20 fxsIERC20 = IERC20(FXS);
-        IERC20 fraxIERC20 = IERC20(FRAX);
+
+        IBaseRewardPool(getCrvRewardContract()).getReward(self, true);
 
         // Check rewards
         uint256 _cvx = cvxIERC20.balanceOf(self);
@@ -56,38 +55,17 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
         uint256 _crv = crvIERC20.balanceOf(self);
         emit RewardToken(crv, _crv);
 
-        uint256 _fxs = fxsIERC20.balanceOf(self);
-        emit RewardToken(FXS, _fxs);
-
-        // Swap cvx to crv
         if (_cvx > 0) {
             cvxIERC20.safeApprove(sushiRouter, 0);
             cvxIERC20.safeApprove(sushiRouter, _cvx);
-            _swapSushiswap(cvx, crv, _cvx);
+            _swapUniswapExactTokensForETH(cvx, _cvx);
         }
 
-        // Swap fxs to crv
-        if (_fxs > 0) {
-            fxsIERC20.safeApprove(sushiRouter, 0);
-            fxsIERC20.safeApprove(sushiRouter, _fxs);
-            _swapSushiswap(FXS, crv, _fxs);
-        }
-
-        _crv = crvIERC20.balanceOf(self);
-
-        if (_crv > 0) {
-            crvIERC20.safeApprove(univ2Router2, 0);
-            crvIERC20.safeApprove(univ2Router2, _crv);
-            _swapUniswap(crv, FRAX, _crv);
-        }
-
-        uint256 fraxBalance = fraxIERC20.balanceOf(self);
-
-        if (fraxBalance > 0) {
-            fraxIERC20.safeApprove(curvePool, 0);
-            fraxIERC20.safeApprove(curvePool, fraxBalance);
+        // reinvestment
+        uint256 _to = self.balance;
+        if (_to > 0) {
             uint256[2] memory liquidity;
-            liquidity[0] = fraxBalance;
+            liquidity[0] = _to;
             ICurveFi_2(curvePool).add_liquidity(liquidity, 0);
         }
         emit Harvest();

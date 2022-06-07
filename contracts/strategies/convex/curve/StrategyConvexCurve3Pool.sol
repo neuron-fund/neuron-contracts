@@ -65,12 +65,6 @@ contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
         _crv = IERC20(crv).balanceOf(address(this));
 
         if (_crv > 0) {
-            _swapToNeurAndDistributePerformanceFees(crv, sushiRouter);
-        }
-
-        _crv = IERC20(crv).balanceOf(address(this));
-
-        if (_crv > 0) {
             IERC20(crv).safeApprove(univ2Router2, 0);
             IERC20(crv).safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, to, _crv);
