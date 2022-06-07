@@ -4,7 +4,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ICurveFi_2, ICurveFi_3} from "../../interfaces/ICurve.sol";
 import {NeuronPoolBaseInitialize} from "../NeuronPoolBaseInitialize.sol";
-import "hardhat/console.sol";
 
 contract NeuronPoolCurve3crvExtends is NeuronPoolBaseInitialize {
     using SafeERC20 for IERC20;
@@ -97,9 +96,6 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolBaseInitialize {
 
         uint256 initialLpTokenBalance = tokenMem.balanceOf(self);
 
-        console.log("BASE_POOL_MEM", address(BASE_POOL_MEM));
-        console.log("addLiquidityPayload0", addLiquidityPayload[0]);
-        console.log("addLiquidityPayload1", addLiquidityPayload[1]);
         BASE_POOL_MEM.add_liquidity(addLiquidityPayload, 0);
 
         uint256 resultLpTokenBalance = tokenMem.balanceOf(self);

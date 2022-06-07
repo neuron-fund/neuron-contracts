@@ -42,6 +42,11 @@ export const USDN3CRV = '0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1'
 export const USDP_CURVE_POOL = '0x42d7025938bEc20B69cBae5A77421082407f053A'
 export const LQTY = '0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D'
 export const STABILITY_POOL = '0x66017D22b0f8556afDd19FC67041899Eb65a21bb'
+export const RENBTC = '0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D'
+export const CURVE_REN_POOL = '0x93054188d876f558f4a66B2EF1d97d16eDf0895B'
+export const CURVE_HBTC_POOL = '0x4CA9b3063Ec5866A4B82E437059D2C43d1be596F'
+export const HBTC = '0x0316EB71485b0Ab14103307bf65a021042c6d380'
+export const HCRV = '0xb19059ebb43466C323583928285a49f558E572Fd'
 
 // This contract works both as pool and token itself.
 // Also this contract is Proxy contract. It's implementation is on '0x20dc62d5904633cc6a5e34bec87a048e80c92e97' address currently
