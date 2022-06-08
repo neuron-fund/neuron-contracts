@@ -32,13 +32,13 @@ abstract contract NeuronPoolCommon {
 
     function balanceOf(address account) public view virtual returns (uint256);
 
-    function depositAll(address _enterToken) external returns (uint256) {
+    function depositAll(address _enterToken) external payable returns (uint256) {
         return deposit(_enterToken, IERC20Metadata(_enterToken).balanceOf(msg.sender));
     }
 
     function depositBaseToken(address _token, uint256 _amount) internal virtual returns (uint256);
 
-    function deposit(address _enterToken, uint256 _amount) public virtual returns (uint256) {
+    function deposit(address _enterToken, uint256 _amount) public payable virtual returns (uint256) {
         require(_amount > 0, "!amount");
 
         address self = address(this);

@@ -9,6 +9,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {StrategyConvexFarmBase} from "../StrategyConvexFarmBase.sol";
 import {ICurveFi_3} from "../../../interfaces/ICurve.sol";
 import {IBaseRewardPool} from "../../../interfaces/IConvexFarm.sol";
+import "hardhat/console.sol";
 
 contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
@@ -56,7 +57,9 @@ contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
         if (_cvx > 0) {
             IERC20(cvx).safeApprove(sushiRouter, 0);
             IERC20(cvx).safeApprove(sushiRouter, _cvx);
+            console.log("swap", 1);
             _swapSushiswap(cvx, crv, _cvx);
+            console.log("swap", 11);
         }
 
         // Swap crv to stable coins
@@ -67,7 +70,13 @@ contract StrategyConvexCurve3Pool is StrategyConvexFarmBase {
         if (_crv > 0) {
             IERC20(crv).safeApprove(univ2Router2, 0);
             IERC20(crv).safeApprove(univ2Router2, _crv);
+            
+            console.log("swap", 2);
+            console.log("crv", crv);
+            console.log("to", to);
+            console.log("_crv", _crv);
             _swapUniswap(crv, to, _crv);
+            console.log("swap", 22);
         }
 
         // reinvestment

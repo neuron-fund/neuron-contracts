@@ -2,7 +2,7 @@ import { ethers, deployments } from 'hardhat'
 import { Signer } from 'ethers'
 import { assert } from 'chai'
 import { INeuronPool } from '../typechain-types'
-import { CRV3, DAI, FRAX, FRAX3CRV, MIM, MIM3CRV, USDC, USDT } from '../constants/addresses'
+import { CRV3, DAI, FRAX, FRAX3CRV, HBTC, HCRV, LUSD, MIM, MIM3CRV, RENBTC, REN_CRV, USDC, USDT, WBTC } from '../constants/addresses'
 import NetworkHelper from './helpers/NetworkHelper'
 import { expectRevert } from '@openzeppelin/test-helpers'
 import ERC20Minter from './helpers/ERC20Minter'
@@ -26,8 +26,23 @@ const configs: Config[] = [
     errorToken: MIM3CRV,
   },
   {
+    name: 'NeuronPoolCurveHBTC',
+    tokens: [HCRV, HBTC, WBTC],
+    errorToken: FRAX3CRV,
+  },
+  {
     name: 'NeuronPoolCurveMIM',
     tokens: [MIM3CRV, MIM, CRV3, DAI, USDC, USDT],
+    errorToken: FRAX3CRV,
+  },
+  {
+    name: 'NeuronPoolCurveRen',
+    tokens: [REN_CRV, RENBTC, WBTC],
+    errorToken: FRAX3CRV,
+  },
+  {
+    name: 'NeuronPoolStabilityPoolLUSD',
+    tokens: [LUSD],
     errorToken: FRAX3CRV,
   },
 ]

@@ -1,8 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { DeployArgs } from '../types'
-import { NeuronPoolCurve3pool__factory } from '../typechain-types'
-import { Controller, IStrategy } from '../typechain-types'
+import { Controller, IStrategy, NeuronPoolStabilityPoolLUSD__factory } from '../typechain-types'
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
@@ -18,8 +17,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     StrategyStabilityPoolLUSDDeployment.address
   )) as IStrategy
 
-  const NeuronPoolDeployment = await deploy<DeployArgs<NeuronPoolCurve3pool__factory>>('NeuronPoolCurve3pool', {
-    contract: 'NeuronPoolCurve3pool',
+  const NeuronPoolDeployment = await deploy<DeployArgs<NeuronPoolStabilityPoolLUSD__factory>>('NeuronPoolStabilityPoolLUSD', {
+    contract: 'NeuronPoolStabilityPoolLUSD',
     from: deployer.address,
     args: [
       await strategyStabilityPoolLUSD.want(),
@@ -35,6 +34,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await controller.setStrategy(await strategyStabilityPoolLUSD.want(), strategyStabilityPoolLUSD.address)
 }
 
-deploy.tags = ['NeuronPoolCurve3pool']
+deploy.tags = ['NeuronPoolStabilityPoolLUSD']
 deploy.dependencies = ['MasterChef', 'Controller', 'StrategyStabilityPoolLUSD']
 export default deploy
