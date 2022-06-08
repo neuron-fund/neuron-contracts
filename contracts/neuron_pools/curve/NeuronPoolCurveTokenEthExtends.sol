@@ -43,19 +43,17 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
         IERC20 enterToken = IERC20(_enterToken);
         ICurveFi_2 _basePool = basePool;
 
-
         uint256[2] memory addLiquidityPayload;
         if (enterToken == WETH && msg.value == _amount) {
             addLiquidityPayload[0] = _amount;
         } else if (enterToken == secondTokenInBasePool) {
             addLiquidityPayload[1] = _amount;
+            enterToken.safeTransferFrom(msg.sender, self, _amount);
+            enterToken.safeApprove(address(_basePool), 0);
+            enterToken.safeApprove(address(_basePool), _amount);
         } else {
             revert("!token");
         }
-
-        enterToken.safeTransferFrom(msg.sender, self, _amount);
-        enterToken.safeApprove(address(_basePool), 0);
-        enterToken.safeApprove(address(_basePool), _amount);
 
         uint256 initialLpTokenBalance = _token.balanceOf(self);
 
@@ -84,7 +82,6 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
 
             (bool success, ) = payable(msg.sender).call{value: resultETHBalance - initialETHBalance}("");
             require(success, "Transfer ETH failed");
-
         } else if (withdrawableToken == secondTokenInBasePool) {
             tokenIndex = 1;
 
@@ -94,7 +91,10 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
 
             require(resultWithdrawableTokenBalance > initialWithdrawableTokenBalance, "!base_amount");
 
-            withdrawableToken.safeTransfer(msg.sender, resultWithdrawableTokenBalance - initialWithdrawableTokenBalance);
+            withdrawableToken.safeTransfer(
+                msg.sender,
+                resultWithdrawableTokenBalance - initialWithdrawableTokenBalance
+            );
         } else {
             revert("!token");
         }
