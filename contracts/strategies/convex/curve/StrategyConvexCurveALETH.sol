@@ -56,8 +56,8 @@ contract StrategyConvexCurveALETH is StrategyConvexFarmBase {
         emit RewardToken(crv, _crv);
 
         if (_cvx > 0) {
-            cvxIERC20.safeApprove(sushiRouter, 0);
-            cvxIERC20.safeApprove(sushiRouter, _cvx);
+            cvxIERC20.safeApprove(univ2Router2, 0);
+            cvxIERC20.safeApprove(univ2Router2, _cvx);
             _swapUniswapExactTokensForETH(cvx, _cvx);
         }
 
@@ -66,7 +66,7 @@ contract StrategyConvexCurveALETH is StrategyConvexFarmBase {
         if (_to > 0) {
             uint256[2] memory liquidity;
             liquidity[0] = _to;
-            ICurveFi_2(curvePool).add_liquidity(liquidity, 0);
+            ICurveFi_2(curvePool).add_liquidity{value: _to}(liquidity, 0);
         }
         emit Harvest();
         deposit();

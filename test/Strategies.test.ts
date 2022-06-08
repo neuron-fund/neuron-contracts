@@ -50,6 +50,18 @@ const CONFIGS: IConfig[] = [
     rewardTokens: [CRV, CVX],
     claimConvexRewards: true,
   },
+  {
+    startegy: 'StrategyConvexCurveALETH',
+    neuronPool: 'NeuronPoolCurveALETH',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
+  {
+    startegy: 'StrategyConvexCurveSTETH',
+    neuronPool: 'NeuronPoolCurveSTETH',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
 ]
 
 describe('Strategies tests', () => {
@@ -82,6 +94,7 @@ function startegyTests(CONFIG: IConfig) {
         await strategy.want()
       )) as IERC20
 
+      console.log(`wantToken.address ${wantToken.address}`)
       await ERC20Minter.mint(wantToken.address, ethers.utils.parseEther('100'), await user.getAddress())
 
       wantTokenBalance = await wantToken.balanceOf(await user.getAddress())

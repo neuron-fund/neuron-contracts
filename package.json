@@ -7,7 +7,8 @@
     "start": "npx hardhat node --hostname 0.0.0.0",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "node npm-postinstall/index.js",
-    "reset-test": "npx hardhat clean && npx hardhat compile && npx hardhat typechain && npx hardhat test"
+    "reset": "npx hardhat clean && npx hardhat compile && npx hardhat typechain",
+    "reset:test": "npm run reset && npx hardhat test"
   },
   "author": "",
   "license": "ISC",

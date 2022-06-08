@@ -73,6 +73,8 @@ abstract contract StrategyBase is IStrategy {
         timelock = _timelock;
     }
 
+    receive() external payable {}
+
     // **** Modifiers **** //
 
     modifier onlyBenevolent() {
@@ -265,7 +267,7 @@ abstract contract StrategyBase is IStrategy {
     function _swapUniswapExactETHForTokens(address _to, uint256 _amount) internal {
         require(_to != address(0));
 
-        address[] memory path;
+        address[] memory path = new address[](2);
         path[0] = weth;
         path[1] = _to;
 
@@ -276,21 +278,15 @@ abstract contract StrategyBase is IStrategy {
             block.timestamp.add(60)
         );
     }
-    
+
     function _swapUniswapExactTokensForETH(address _from, uint256 _amount) internal {
         require(_from != address(0));
 
-        address[] memory path;
+        address[] memory path = new address[](2);
         path[0] = _from;
         path[1] = weth;
 
-        IUniswapRouterV2(univ2Router2).swapExactTokensForETH(
-            _amount,
-            0,
-            path,
-            address(this),
-            block.timestamp.add(60)
-        );
+        IUniswapRouterV2(univ2Router2).swapExactTokensForETH(_amount, 0, path, address(this), block.timestamp.add(60));
     }
 
     function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {

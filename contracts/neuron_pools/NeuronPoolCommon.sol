@@ -22,6 +22,9 @@ abstract contract NeuronPoolCommon {
     address public controller;
     address public masterchef;
 
+    
+    receive() external payable {}
+
     function getSupportedTokens() external view virtual returns (address[] memory);
 
     function totalSupply() public view virtual returns (uint256);

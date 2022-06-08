@@ -1,6 +1,8 @@
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import {
+  ALETH,
+  ALETH_ETH,
   CRV3,
   DAI,
   FRAX,
@@ -12,6 +14,8 @@ import {
   MIM3CRV,
   RENBTC,
   REN_CRV,
+  STETH,
+  STE_CRV,
   UNISWAP_ROUTER_V2,
   USDC,
   USDT,
@@ -32,18 +36,23 @@ const SLOT_BY_TOKEN: { [key: string]: ((recipient: string) => [number, string] |
   [MIM]: recipient => [recipient, 0],
   [HCRV]: recipient => [3, recipient],
   [HBTC]: true, // balanceOf - field in struct, cant find storage slot
-  [WBTC]: recipient => [recipient, 0],
+  [WBTC]: true, //recipient => [recipient, 0],
   [REN_CRV]: recipient => [3, recipient],
-  [RENBTC]: recipient => [recipient, 0],
+  [RENBTC]: true, //recipient => [recipient, 0],
+  [ALETH_ETH]: recipient => [24, recipient],
+  [STE_CRV]: recipient => [2, recipient],
+  [WETH]: recipient => [recipient, 3],
+  [ALETH]: recipient => [recipient, 1],
+  [STETH]: true,
 }
 
 export default class ERC20Minter {
   public static async mint(tokenAddress: string, amount: BigNumber, recipient: string) {
-    if (!SLOT_BY_TOKEN[tokenAddress]) throw Error('Not implemented token')
+    if (!SLOT_BY_TOKEN[tokenAddress]) throw Error(`Not implemented token ${tokenAddress}`)
 
     if (SLOT_BY_TOKEN[tokenAddress] === true) {
       // if token not have standart balanceOf field slot, use uniswap
-      await this.swapETHForExactTokens(tokenAddress, amount, recipient)
+      await this.swapExactETHForTokens(tokenAddress, amount, recipient)
     } else {
       const index = ethers.utils
         .solidityKeccak256(['uint256', 'uint256'], (SLOT_BY_TOKEN[tokenAddress] as any)(recipient))
@@ -52,16 +61,16 @@ export default class ERC20Minter {
     }
   }
 
-  private static async swapETHForExactTokens(tokenAddress: string, amount: BigNumber, recipient: string) {
+  private static async swapExactETHForTokens(tokenAddress: string, amount: BigNumber, recipient: string) {
     const uniswapRouter = (await ethers.getContractAt('IUniswapRouterV2', UNISWAP_ROUTER_V2)) as IUniswapRouterV2
 
     const token = IERC20__factory.connect(tokenAddress, ethers.provider)
 
     const initialBalance = await token.balanceOf(recipient)
 
-    await uniswapRouter.swapETHForExactTokens(amount, [WETH, tokenAddress], recipient, Date.now() + 30000, {
+    await uniswapRouter.swapExactETHForTokens(0, [WETH, tokenAddress], recipient, Date.now() + 30000, {
       gasLimit: 4000000,
-      value: (await ethers.provider.getBalance(recipient)).mul(8).div(10), // 80%
+      value: amount, 
     })
 
     const resultBalance = await token.balanceOf(recipient)

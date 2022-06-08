@@ -43,8 +43,9 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
         IERC20 enterToken = IERC20(_enterToken);
         ICurveFi_2 _basePool = basePool;
 
+
         uint256[2] memory addLiquidityPayload;
-        if (enterToken == WETH) {
+        if (enterToken == WETH && msg.value == _amount) {
             addLiquidityPayload[0] = _amount;
         } else if (enterToken == secondTokenInBasePool) {
             addLiquidityPayload[1] = _amount;
@@ -81,7 +82,9 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
 
             require(resultETHBalance > initialETHBalance, "!base_amount");
 
-            withdrawableToken.safeTransfer(msg.sender, resultETHBalance - initialETHBalance);
+            (bool success, ) = payable(msg.sender).call{value: resultETHBalance - initialETHBalance}("");
+            require(success, "Transfer ETH failed");
+
         } else if (withdrawableToken == secondTokenInBasePool) {
             tokenIndex = 1;
 

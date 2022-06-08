@@ -55,7 +55,7 @@ contract NeuronPoolCurveDoublePoolExtends is NeuronPoolBaseInitialize {
         }
 
         enterToken.safeTransferFrom(msg.sender, self, _amount);
-        enterToken.safeApprove(address(_basePool), 0);
+        
         enterToken.safeApprove(address(_basePool), _amount);
 
         uint256 initialLpTokenBalance = _token.balanceOf(self);

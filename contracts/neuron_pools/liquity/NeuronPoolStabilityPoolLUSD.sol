@@ -22,10 +22,10 @@ contract NeuronPoolStabilityPoolLUSD is NeuronPoolBase {
     }
 
     function depositBaseToken(address _enterToken, uint256 _amount) internal pure override returns (uint256) {
-        require(false, "Not supported token");
+        require(false, "!token");
     }
 
     function withdrawBaseToken(address _withdrawableToken, uint256 _userLpTokensAmount) internal pure override {
-        require(false, "Not supported token");
+        require(false, "!token");
     }
 }
