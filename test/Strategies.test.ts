@@ -95,7 +95,7 @@ function startegyTests(CONFIG: IConfig) {
       )) as IERC20
 
       console.log(`wantToken.address ${wantToken.address}`)
-      await ERC20Minter.mint(wantToken.address, ethers.utils.parseEther('100'), await user.getAddress())
+      await ERC20Minter.mint(wantToken.address, ethers.utils.parseEther('1000'), await user.getAddress())
 
       wantTokenBalance = await wantToken.balanceOf(await user.getAddress())
       console.log(`wantTokenBalance ${wantTokenBalance}`)
