@@ -53,6 +53,11 @@ export const ALETH = '0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6'
 export const HBTC = '0x0316EB71485b0Ab14103307bf65a021042c6d380'
 export const HCRV = '0xb19059ebb43466C323583928285a49f558E572Fd'
 
+export const CHAINLINK_DAIUSD = '0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9'
+export const CHAINLINK_USDCUSD = '0x3E7d1eAB13ad0104d2750B8863b489D65364e32D'
+export const CHAINLINK_USDTUSD = '0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6'
+
+
 // This contract works both as pool and token itself.
 // Also this contract is Proxy contract. It's implementation is on '0x20dc62d5904633cc6a5e34bec87a048e80c92e97' address currently
 export const LIDO_ST_ETH = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'

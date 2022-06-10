@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npx hardhat node --hostname 0.0.0.0",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npx hardhat test --deploy-fixture",
     "postinstall": "node npm-postinstall/index.js",
     "reset": "npx hardhat clean && npx hardhat compile && npx hardhat typechain",
     "reset:test": "npm run reset && npx hardhat test"

@@ -34,4 +34,5 @@ contract NeuronPoolCurveLUSDPricer is IPricer {
                 CURVE_POOL.get_virtual_price() *
                 (crv3Price < lusdPrice ? crv3Price : lusdPrice)) / (10**(pricePerShareDecimals + 28));
     }
+    function setExpiryPriceInOracle(uint256 _expiryTimestamp) external {}
 }

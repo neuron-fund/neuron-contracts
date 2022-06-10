@@ -22,4 +22,5 @@ contract NeuronPoolCurve3poolPricer is IPricer {
     function getPrice() external view override returns (uint256) {
         return (NEURON_POOL.pricePerShare() * CRV3_PRICER.getPrice()) / 10**pricePerShareDecimals;
     }
+    function setExpiryPriceInOracle(uint256 _expiryTimestamp) external {}
 }

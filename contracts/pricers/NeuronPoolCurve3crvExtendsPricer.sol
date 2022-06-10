@@ -39,4 +39,7 @@ contract NeuronPoolCurve3crvExtendsPricer is IPricer, Initializable {
                 curvePool.get_virtual_price() *
                 (crv3Price < tokenPrice ? crv3Price : tokenPrice)) / (10**(pricePerShareDecimals + 18));
     }
+
+    
+    function setExpiryPriceInOracle(uint256 _expiryTimestamp) external {}
 }
