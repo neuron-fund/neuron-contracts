@@ -1,10 +1,6 @@
-import { config as dontenvConfig } from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
-const env = dontenvConfig()
-dotenvExpand(env)
+import 'dotenv/config'
 import { testPrivateKeys } from './utils/testPrivateKeys'
-
-import { HardhatUserConfig } from 'hardhat/config'
+import { HardhatUserConfig } from 'hardhat/types'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-vyper'
@@ -41,32 +37,16 @@ const config: HardhatUserConfig = {
       },
       loggingEnabled: true,
       blockGasLimit: 0x1fffffffffffff,
-      accounts: getHardhatAccounts(20),
+      accounts: {
+        count: 20,
+        accountsBalance: '100000000000000000000000000000000000000000',
+      },
       gas: 120e9,
-    },
-    // prodMainnet: {
-    //   url: process.env.PROD_MAINNET_RPC,
-    //   gasPrice: 40e9,
-    //   blockGasLimit: 5e6,
-    // },
-    // prodPolygon: {
-    //   url: process.env.PROD_POLYGON_RPC,
-    // },
-    localPolygon: {
-      url: 'http://127.0.0.1:8546/',
-      accounts: getHardhatAccounts(20).map(x => x.privateKey),
-    },
-    testnet: {
-      url: 'https://neurontestnet.xyz/',
-      accounts: getHardhatAccounts(20).map(x => x.privateKey),
     },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API,
   },
-  // etherscan: {
-  //   apiKey: process.env.ETHERSCAN_API
-  // },
   vyper: {
     version: '0.2.12',
   },
@@ -74,12 +54,6 @@ const config: HardhatUserConfig = {
     reporter: 'eth-gas-reporter',
     timeout: 300000,
   },
-  // namedAccounts: {
-  //   default: {
-  //     default: 0,
-
-  //   }
-  // }
 }
 
 function getHardhatAccounts(accountsNumber: number) {
