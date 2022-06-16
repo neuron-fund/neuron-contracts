@@ -9,6 +9,7 @@ import {INeuronPool} from "../interfaces/INeuronPool.sol";
 import {ITroveManager} from "../interfaces/ITroveManager.sol";
 
 contract NeuronPoolCurveLUSDPricer is IPricer {
+    address public immutable asset;
     INeuronPool public immutable NEURON_POOL;
     IPricer public immutable CRV3_PRICER;
     ITroveManager public constant TROVE_MANAGER = ITroveManager(0xA39739EF8b0231DbFA0DcdA07d7e29faAbCf4bb2);
@@ -20,6 +21,7 @@ contract NeuronPoolCurveLUSDPricer is IPricer {
         address _crv3Pricer,
         uint8 _pricePerShareDecimals
     ) {
+        asset = _neuronPool;
         NEURON_POOL = INeuronPool(_neuronPool);
         CRV3_PRICER = IPricer(_crv3Pricer);
         pricePerShareDecimals = _pricePerShareDecimals;

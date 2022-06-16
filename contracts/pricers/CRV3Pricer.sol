@@ -8,7 +8,7 @@ import {ICurvePool} from "../interfaces/ICurve.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 
 contract CRV3Pricer is IPricer {
-    address public constant CRV3 = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+    address public constant asset = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 
     address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
@@ -41,16 +41,16 @@ contract CRV3Pricer is IPricer {
     }
 
     function _getPrice(
-        uint256 daiPrice,
-        uint256 usdcPrice,
-        uint256 usdtPrice
+        uint256 _daiPrice,
+        uint256 _usdcPrice,
+        uint256 _usdtPrice
     ) private view returns (uint256) {
-        uint256 minPrice = daiPrice < usdcPrice && daiPrice < usdtPrice
-            ? daiPrice
-            : usdcPrice < daiPrice && usdcPrice < usdtPrice
-            ? usdcPrice
-            : usdtPrice;
-        return (CURVE_POOL.get_virtual_price() * uint256(minPrice)) / 1e18;
+        uint256 minPrice = _daiPrice < _usdcPrice && _daiPrice < _usdtPrice
+            ? _daiPrice
+            : _usdcPrice < _daiPrice && _usdcPrice < _usdtPrice
+            ? _usdcPrice
+            : _usdtPrice;
+        return (CURVE_POOL.get_virtual_price() * minPrice) / 1e18;
     }
 
     function setExpiryPriceInOracle(uint256 _expiryTimestamp) external {
@@ -65,6 +65,6 @@ contract CRV3Pricer is IPricer {
 
         uint256 price = _getPrice(usdcPriceExpiry, daiPriceExpiry, usdtPriceExpiry);
 
-        oracle.setExpiryPrice(CRV3, _expiryTimestamp, price);
+        oracle.setExpiryPrice(asset, _expiryTimestamp, price);
     }
 }
