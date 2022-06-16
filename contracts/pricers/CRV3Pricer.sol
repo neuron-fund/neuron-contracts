@@ -6,7 +6,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {IPricer} from "../interfaces/IPricer.sol";
 import {ICurvePool} from "../interfaces/ICurve.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
-import "hardhat/console.sol";
+
 contract CRV3Pricer is IPricer {
     address public constant CRV3 = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 
@@ -54,8 +54,6 @@ contract CRV3Pricer is IPricer {
     }
 
     function setExpiryPriceInOracle(uint256 _expiryTimestamp) external {
-        console.log("oracle", address(oracle));
-        console.log("_expiryTimestamp", _expiryTimestamp);
         (uint256 daiPriceExpiry, ) = oracle.getExpiryPrice(DAI, _expiryTimestamp);
         require(daiPriceExpiry > 0, "DAI price not set yet");
 

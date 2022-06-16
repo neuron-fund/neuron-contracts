@@ -6,7 +6,7 @@ pragma solidity 0.8.9;
 import {IPricer} from "./interfaces/IPricer.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+
 /**
  * @title Oracle Module
  * @notice The Oracle module sets, retrieves, and stores USD prices (USD per asset) for underlying, collateral, and strike assets
@@ -203,12 +203,6 @@ contract Oracle is Ownable {
         require(storedPrice[_asset][_expiryTimestamp].timestamp == 0, "Oracle: dispute period started");
 
         storedPrice[_asset][_expiryTimestamp] = Price(_price, block.timestamp);
-        console.log("storedPrice[_asset][_expiryTimestamp] price", storedPrice[_asset][_expiryTimestamp].price);
-        console.log("storedPrice[_asset][_expiryTimestamp] timestamp", storedPrice[_asset][_expiryTimestamp].timestamp);
-        console.log("_price", _price);
-        console.log("_asset", _asset);
-        console.log("_expiryTimestamp", _expiryTimestamp);
-        console.log("block.timestamp", block.timestamp);
         emit ExpiryPriceUpdated(_asset, _expiryTimestamp, _price, block.timestamp);
     }
 
@@ -240,12 +234,8 @@ contract Oracle is Ownable {
     function getExpiryPrice(address _asset, uint256 _expiryTimestamp) external view returns (uint256, bool) {
         uint256 price = stablePrice[_asset];
         bool isFinalized = true;
-        console.log("getExpiryPrice _asset", _asset);
-        console.log("getExpiryPrice price", price);
         if (price == 0) {
             price = storedPrice[_asset][_expiryTimestamp].price;
-            console.log("getExpiryPrice price == 0 _asset", _asset);
-            console.log("getExpiryPrice price == 0 price", price);
             isFinalized = isDisputePeriodOver(_asset, _expiryTimestamp);
         }
 

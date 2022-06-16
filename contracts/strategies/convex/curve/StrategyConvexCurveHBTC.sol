@@ -9,7 +9,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {StrategyConvexFarmBase} from "../StrategyConvexFarmBase.sol";
 import {ICurveFi_2_256} from "../../../interfaces/ICurve.sol";
 import {IBaseRewardPool} from "../../../interfaces/IConvexFarm.sol";
-import "hardhat/console.sol";
+
 contract StrategyConvexCurveHBTC is StrategyConvexFarmBase {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -91,18 +91,12 @@ contract StrategyConvexCurveHBTC is StrategyConvexFarmBase {
 
     function getMostPremium() internal view returns (address, uint256) {
         ICurveFi_2_256 curve = ICurveFi_2_256(curvePool);
-        console.log("getMostPremium", 1);
-        uint256 b1 = curve.balances(0);
-        console.log("b1", b1);
-        uint256 b2 = curve.balances(1);
-        console.log("b2", b2);
+
         uint256[2] memory balances = [
             curve.balances(0), // hbtc
             curve.balances(1)  * 1e10 // wBtc
         ];
 
-        console.log("balances0", balances[0]);
-        console.log("balances1", balances[1]);
         if (balances[0] < balances[1]) {
             return (HBTC, 0);
         }

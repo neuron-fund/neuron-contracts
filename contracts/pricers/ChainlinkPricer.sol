@@ -6,7 +6,6 @@ import {IOracle} from "../interfaces/IOracle.sol";
 import {IPricer} from "../interfaces/IPricer.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "hardhat/console.sol";
 /**
  * @notice A Pricer contract for one asset as reported by Chainlink
  */
@@ -73,12 +72,6 @@ contract ChainLinkPricer  {
 
         require(_expiryTimestamp <= roundTimestamp, "ChainLinkPricer: invalid roundId");
 
-        console.log("asset", asset);
-        console.log("_expiryTimestamp", _expiryTimestamp);
-        console.log("price", uint256(price));
-        console.log("_roundId", _roundId);
-        console.log("roundTimestamp", roundTimestamp);
-        console.log("ORACLE ADDRESS", address(oracle));
         oracle.setExpiryPrice(asset, _expiryTimestamp, uint256(price));
     }
 
