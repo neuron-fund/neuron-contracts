@@ -49,6 +49,7 @@ abstract contract NeuronPoolCommon {
         IERC20Metadata enterToken = IERC20Metadata(_enterToken);
 
         uint256 amount = _amount;
+        uint256 _balance = balance();
 
         if (enterToken == _token) {
             _token.safeTransferFrom(msg.sender, self, _amount);
@@ -58,7 +59,7 @@ abstract contract NeuronPoolCommon {
 
         uint256 _totalSupply = totalSupply();
 
-        uint256 shares = _totalSupply == 0 ? amount : (amount * _totalSupply) / balance();
+        uint256 shares = _totalSupply == 0 ? amount : (amount * _totalSupply) / _balance;
 
         _mint(msg.sender, shares);
 
