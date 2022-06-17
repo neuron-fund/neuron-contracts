@@ -47,10 +47,7 @@ contract NeuronPoolCurveTokenEthExtendsPricer is IPricer, Initializable {
 
     function getPrice() external view override returns (uint256) {
         (, int256 tokenPrice, , , ) = tokenPriceFeed.latestRoundData();
-
         (, int256 ethPrice, , , ) = ETH_PRICER.latestRoundData();
-
-
         return _getPrice(uint256(tokenPrice), uint256(ethPrice));
     }
 

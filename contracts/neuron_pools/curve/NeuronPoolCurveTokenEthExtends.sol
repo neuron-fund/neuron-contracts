@@ -14,7 +14,7 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
 
     ICurveFi_2 internal basePool;
     IERC20 internal secondTokenInBasePool;
-    IERC20 internal constant WETH = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    IERC20 internal constant ETH = IERC20(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
 
     function initialize(
         address _token,
@@ -33,7 +33,7 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
     function getSupportedTokens() external view override returns (address[] memory tokens) {
         tokens = new address[](3);
         tokens[0] = address(token);
-        tokens[1] = address(WETH);
+        tokens[1] = address(ETH);
         tokens[2] = address(secondTokenInBasePool);
     }
 
@@ -44,7 +44,7 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
         ICurveFi_2 _basePool = basePool;
 
         uint256[2] memory addLiquidityPayload;
-        if (enterToken == WETH && msg.value == _amount) {
+        if (enterToken == ETH && msg.value == _amount) {
             addLiquidityPayload[0] = _amount;
         } else if (enterToken == secondTokenInBasePool) {
             addLiquidityPayload[1] = _amount;
@@ -57,7 +57,7 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
 
         uint256 initialLpTokenBalance = _token.balanceOf(self);
 
-        _basePool.add_liquidity{value: enterToken == WETH ? _amount : 0}(addLiquidityPayload, 0);
+        _basePool.add_liquidity{value: enterToken == ETH ? _amount : 0}(addLiquidityPayload, 0);
 
         uint256 resultLpTokenBalance = _token.balanceOf(self);
 
@@ -71,7 +71,7 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
         IERC20 withdrawableToken = IERC20(_withdrawableToken);
 
         int128 tokenIndex;
-        if (withdrawableToken == WETH) {
+        if (withdrawableToken == ETH) {
             tokenIndex = 0;
 
             uint256 initialETHBalance = self.balance;

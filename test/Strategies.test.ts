@@ -1,7 +1,7 @@
 import { ethers, deployments, network } from 'hardhat'
 import { assert } from 'chai'
-import { INeuronPool, IERC20, IConvexBooster, StrategyConvexFarmBase, IStrategy, ICurveFi_2__factory, ICurveFi__factory } from '../typechain-types'
-import { CONVEX_BOOSTER, CRV, CVX, FXS, LQTY, SPELL, WETH } from '../constants/addresses'
+import { INeuronPool, IERC20, IConvexBooster, StrategyConvexFarmBase, IStrategy } from '../typechain-types'
+import { CONVEX_BOOSTER, CRV, CVX, FXS, LQTY, SPELL, ETH } from '../constants/addresses'
 import { waitNDays } from '../utils/time'
 import ERC20Minter from './helpers/ERC20Minter'
 import { BigNumber, Signer } from 'ethers'
@@ -35,7 +35,7 @@ const CONFIGS: IConfig[] = [
   {
     startegy: 'StrategyStabilityPoolLUSD',
     neuronPool: 'NeuronPoolStabilityPoolLUSD',
-    rewardTokens: [WETH, LQTY],
+    rewardTokens: [ETH, LQTY],
     claimConvexRewards: false,
   },
   {

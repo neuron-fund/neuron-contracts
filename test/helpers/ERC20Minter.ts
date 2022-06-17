@@ -5,6 +5,7 @@ import {
   ALETH_ETH,
   CRV3,
   DAI,
+  ETH,
   FRAX,
   FRAX3CRV,
   HBTC,
@@ -48,6 +49,7 @@ const SLOT_BY_TOKEN: { [key: string]: ((recipient: string) => [number, string] |
 
 export default class ERC20Minter {
   public static async mint(tokenAddress: string, amount: BigNumber, recipient: string) {
+    if(tokenAddress == ETH) return;
     if (!SLOT_BY_TOKEN[tokenAddress]) throw Error(`Not implemented token ${tokenAddress}`)
 
     if (SLOT_BY_TOKEN[tokenAddress] === true) {

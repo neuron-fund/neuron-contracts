@@ -79,8 +79,7 @@ contract StrategyConvexCurveHBTC is StrategyConvexFarmBase {
         IERC20 toIERC20 = IERC20(to);
         uint256 _to = toIERC20.balanceOf(self);
         if (_to > 0) {
-            toIERC20.safeApprove(curvePool, 0);
-            toIERC20.safeApprove(curvePool, _to);
+            toIERC20.approve(curvePool, _to);
             uint256[2] memory liquidity;
             liquidity[toIndex] = _to;
             ICurveFi_2_256(curvePool).add_liquidity(liquidity, 0);
