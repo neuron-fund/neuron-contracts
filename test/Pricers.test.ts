@@ -2,14 +2,10 @@ import { ethers, deployments } from 'hardhat'
 import { BigNumber, Signer } from 'ethers'
 import { assert } from 'chai'
 import {
-  AggregatorV3Interface,
-  AggregatorV3Interface__factory,
+  ChainLinkPricer,
   ChainLinkPricer__factory,
   IAggregator__factory,
-  INeuronPool,
   INeuronPool__factory,
-  IOracle,
-  IOracle__factory,
   IPricer,
   IPricer__factory,
   Oracle,
@@ -17,39 +13,73 @@ import {
 } from '../typechain-types'
 import TokenHelper from './helpers/TokenHelper'
 import ERC20Minter from './helpers/ERC20Minter'
-import { CRV3, DAI, USDC, USDT } from '../constants/addresses'
 
 interface IConfig {
   name: string
+  price: number
+  slippage: number
 }
 
 const configs: IConfig[] = [
   {
     name: 'ChainLinkPricerDAI',
+    price: 1,
+    slippage: 0.05,
   },
   {
     name: 'ChainLinkPricerUSDC',
+    price: 1,
+    slippage: 0.05,
   },
   {
     name: 'ChainLinkPricerUSDT',
+    price: 1,
+    slippage: 0.05,
   },
   {
     name: 'ChainLinkPricerFrax',
+    price: 1,
+    slippage: 0.05,
+  },
+  {
+    name: 'ChainLinkPricerETH',
+    price: 1200,
+    slippage: 0.9,
+  },
+  {
+    name: 'ChainLinkPricerSTETH',
+    price: 1200,
+    slippage: 0.9,
   },
   {
     name: 'ChainLinkPricerMIM',
+    price: 1,
+    slippage: 0.05,
   },
   {
     name: 'CRV3Pricer',
+    price: 1,
+    slippage: 0.05,
   },
   {
     name: 'NeuronPoolCurve3poolPricer',
+    price: 1,
+    slippage: 0.05,
   },
   {
     name: 'NeuronPoolCurveFraxPricer',
+    price: 1,
+    slippage: 0.05,
   },
   {
     name: 'NeuronPoolCurveMIMPricer',
+    price: 1,
+    slippage: 0.05,
+  },
+  {
+    name: 'NeuronPoolCurveSTETHPricer',
+    price: 1200,
+    slippage: 0.9,
   },
 ]
 
@@ -123,48 +153,41 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
         await token.connect(user).approve(neuronPool.address, tokenBalance)
         await neuronPool.connect(user).deposit(await neuronPool.token(), tokenBalance)
       }
-
-      // initSnapshot = await ethers.provider.send('evm_snapshot', [])
     })
-
-    // afterEach(async () => {
-    //   ethers.provider.send('evm_revert', [initSnapshot])
-    // })
 
     it(`Get price`, async () => {
       const price = await pricer.getPrice()
 
-      console.log(`${price}`)
-      assert(price.lt(ethers.utils.parseUnits('1.1', 8)), `Price more 1.1, = ${ethers.utils.parseUnits(`${price}`, 8)}`)
-      assert(price.gt(ethers.utils.parseUnits('0.9', 8)), `Price low 0.9 = ${ethers.utils.parseUnits(`${price}`, 8)}`)
+      const minPrice = config.price - config.price * config.slippage;
+      const maxPrice = config.price + config.price * config.slippage;
+      
+      assert(price.lt(ethers.utils.parseUnits(`${maxPrice}`, 8)), `Price more ${maxPrice}, = ${ethers.utils.formatUnits(`${price}`, 8)}`)
+      assert(price.gt(ethers.utils.parseUnits(`${minPrice}`, 8)), `Price low ${minPrice} = ${ethers.utils.formatUnits(`${price}`, 8)}`)
     })
 
     it(`Set expiry price in oracle`, async () => {
+      const pricerDeployment = await deployments.get(config.name)
+      let pricer: IPricer | ChainLinkPricer
+
       if (isChainLinkPricer(config.name)) {
-        const ChainLinkPricerDeployment = await deployments.get(config.name)
-        const chainLinkPricer = ChainLinkPricer__factory.connect(ChainLinkPricerDeployment.address, owner)
-        const agregator = IAggregator__factory.connect(await chainLinkPricer.aggregator(), owner)
+        const chainlinkPricer = ChainLinkPricer__factory.connect(pricerDeployment.address, owner)
+        const agregator = IAggregator__factory.connect(await chainlinkPricer.aggregator(), owner)
         const latestRound = await agregator.latestRound()
+        await chainlinkPricer.setExpiryPriceInOracle(minTimestamp, latestRound)
 
-        await chainLinkPricer.setExpiryPriceInOracle(minTimestamp, latestRound)
-
-        const asset = await chainLinkPricer.asset()
-        const oraclePrice = await oracle.getExpiryPrice(asset, minTimestamp)
-
-        console.log(`oraclePrice ${oraclePrice}`)
-        assert(oraclePrice[0].gt(0), `oraclePrice is zero. asset ${asset}`)
+        pricer = chainlinkPricer
       } else {
-        const pricerDeployment = await deployments.get(config.name)
-        const pricer = IPricer__factory.connect(pricerDeployment.address, owner)
+        const neuronPoolPricer = IPricer__factory.connect(pricerDeployment.address, owner)
+        await neuronPoolPricer.setExpiryPriceInOracle(minTimestamp)
 
-        await pricer.setExpiryPriceInOracle(minTimestamp)
-
-        const asset = await pricer.asset()
-        const [oraclePrice] = await oracle.getExpiryPrice(asset, minTimestamp)
-
-        console.log(`oraclePrice ${oraclePrice}`)
-        assert(oraclePrice.gt(0), `oraclePrice is zero. asset ${asset}`)
+        pricer = neuronPoolPricer
       }
+
+      const asset = await pricer.asset()
+      const [oraclePrice] = await oracle.getExpiryPrice(asset, minTimestamp)
+
+      console.log(`oraclePrice ${oraclePrice}`)
+      assert(oraclePrice.gt(0), `oraclePrice is zero. asset ${asset}`)
     })
   })
 }

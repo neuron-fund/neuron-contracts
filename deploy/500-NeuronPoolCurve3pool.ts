@@ -18,7 +18,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     StrategyConvexCurve3PoolDeployment.address
   )) as IStrategy
 
-  console.log(`HERE ${await strategyConvexCurve3pool.want()}`)
   const NeuronPoolDeployment = await deploy<DeployArgs<NeuronPoolCurve3pool__factory>>('NeuronPoolCurve3pool', {
     contract: 'NeuronPoolCurve3pool',
     from: deployer.address,
