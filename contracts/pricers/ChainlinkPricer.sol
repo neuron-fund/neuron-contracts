@@ -88,16 +88,6 @@ contract ChainLinkPricer  {
     }
 
     /**
-     * @notice get historical chainlink price
-     * @param _roundId chainlink round id
-     * @return round price and timestamp
-     */
-    function getHistoricalPrice(uint80 _roundId) external view returns (uint256, uint256) {
-        (, int256 price, , uint256 roundTimestamp, ) = aggregator.getRoundData(_roundId);
-        return (_scaleToBase(uint256(price)), roundTimestamp);
-    }
-
-    /**
      * @notice scale aggregator response to base decimals (1e8)
      * @param _price aggregator price
      * @return price scaled to 1e8

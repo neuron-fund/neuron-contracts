@@ -22,7 +22,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     CRV3PricerDeployment.address,
     FRAX3CRV,
     FRAX,
-    CHAINLINK_FRAXUSD,
     18,
     OracleDeployment.address
   ])

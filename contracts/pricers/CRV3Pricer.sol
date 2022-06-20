@@ -18,15 +18,6 @@ contract CRV3Pricer is IPricer {
 
     ICurvePool public constant CURVE_POOL = ICurvePool(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
 
-    AggregatorV3Interface public constant DAI_PRICER =
-        AggregatorV3Interface(0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9);
-
-    AggregatorV3Interface public constant USDC_PRICER =
-        AggregatorV3Interface(0x3E7d1eAB13ad0104d2750B8863b489D65364e32D);
-
-    AggregatorV3Interface public constant USDT_PRICER =
-        AggregatorV3Interface(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6);
-
     IOracle public oracle;
 
     constructor(address _oracle) {
@@ -34,10 +25,7 @@ contract CRV3Pricer is IPricer {
     }
 
     function getPrice() external view override returns (uint256) {
-        (, int256 daiPrice, , , ) = DAI_PRICER.latestRoundData();
-        (, int256 usdcPrice, , , ) = USDC_PRICER.latestRoundData();
-        (, int256 usdtPrice, , , ) = USDT_PRICER.latestRoundData();
-        return _getPrice(uint256(daiPrice), uint256(usdcPrice), uint256(usdtPrice));
+        return _getPrice(oracle.getPrice(DAI), oracle.getPrice(USDC), oracle.getPrice(USDT));
     }
 
     function _getPrice(

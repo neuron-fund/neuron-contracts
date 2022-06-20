@@ -52,6 +52,16 @@ const configs: IConfig[] = [
     slippage: 0.9,
   },
   {
+    name: 'ChainLinkPricerWBTC',
+    price: 20000,
+    slippage: 0.8,
+  },
+  {
+    name: 'ChainLinkPricerRen',
+    price: 20000,
+    slippage: 0.8,
+  },
+  {
     name: 'ChainLinkPricerMIM',
     price: 1,
     slippage: 0.05,
@@ -81,6 +91,21 @@ const configs: IConfig[] = [
     price: 1200,
     slippage: 0.9,
   },
+  {
+    name: 'NeuronPoolCurveLUSDPricer',
+    price: 1,
+    slippage: 0.05,
+  },
+  {
+    name: 'NeuronPoolCurveALETHPricer',
+    price: 1200,
+    slippage: 0.9,
+  },
+  {
+    name: 'NeuronPoolCurveRenPricer',
+    price: 20000,
+    slippage: 0.8,
+  },
 ]
 
 function isChainLinkPricer(pricer: string) {
@@ -94,6 +119,7 @@ function isNeuronPoolPricer(pricer: string) {
 describe('Pricers', () => {
   let minTimestamp: BigNumber
   before(async () => {
+    console.log('aw10');
     const allPricers = configs.map(pricer => pricer.name)
     await deployments.fixture(['Oracle', ...allPricers])
     const accounts = await ethers.getSigners()
@@ -109,6 +135,8 @@ describe('Pricers', () => {
         minTimestamp = latestTimestamp
       }
     }
+    
+    console.log('aw100');
   })
 
   it('', () => {
@@ -122,30 +150,31 @@ describe('Pricers', () => {
 
 function testPricers(config: IConfig, minTimestamp: BigNumber) {
   describe(`${config.name}`, () => {
-    // --------------------------------------------------------
-    // ----------------------  DEPLOY  ------------------------
-    // --------------------------------------------------------
 
     let oracle: Oracle
     let pricer: IPricer
     let owner: Signer
     let user: Signer
-    let initSnapshot: string
 
     before(async () => {
+      console.log('aw1');
       const accounts = await ethers.getSigners()
       owner = accounts[0]
       user = accounts[10]
 
+      console.log('aw12');
       const CRV3PricerDeployment = await deployments.get(config.name)
       const OracleDeployment = await deployments.get('Oracle')
       oracle = Oracle__factory.connect(OracleDeployment.address, owner)
 
+      console.log('aw13');
       pricer = (await ethers.getContractAt('IPricer', CRV3PricerDeployment.address)) as IPricer
 
+      console.log('aw14');
       if (isNeuronPoolPricer(config.name)) {
         const neuronPool = INeuronPool__factory.connect(await pricer.asset(), owner)
 
+        console.log('aw15');
         const tokenAddress = await neuronPool.token()
         await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('1000'), await user.getAddress())
         const token = await TokenHelper.getToken(tokenAddress)

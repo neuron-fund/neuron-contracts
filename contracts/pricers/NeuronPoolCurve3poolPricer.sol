@@ -6,9 +6,9 @@ import {INeuronPool} from "../interfaces/INeuronPool.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 
 contract NeuronPoolCurve3poolPricer is IPricer {
-    address public asset;
-
     address public constant CRV3 = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+
+    address public asset;
 
     INeuronPool public immutable NEURON_POOL;
 

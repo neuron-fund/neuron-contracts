@@ -9,4 +9,6 @@ interface IOracle {
     ) external;
 
     function getExpiryPrice(address _asset, uint256 _expiryTimestamp) external view returns (uint256, bool);
+
+    function getPrice(address _asset) external view returns (uint256);
 }

@@ -20,7 +20,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     NeuronPoolCurveSTETHDeployment.address,
     CURVE_STETH_POOL,
     STETH,
-    CHAINLINK_STETHUSD,
     18,
     OracleDeployment.address
   ])

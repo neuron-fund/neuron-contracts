@@ -21,7 +21,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     CRV3PricerDeployment.address,
     MIM3CRV,
     MIM,
-    CHAINLINK_MIMUSD,
     18,
     OracleDeployment.address,
   ])

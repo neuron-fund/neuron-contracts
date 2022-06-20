@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.9;
 
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import {IPricer} from "../interfaces/IPricer.sol";
@@ -22,8 +21,6 @@ contract NeuronPoolCurve3crvExtendsPricer is IPricer, Initializable {
 
     address public token;
 
-    AggregatorV3Interface public tokenPriceFeed;
-
     uint8 public pricePerShareDecimals;
 
     IOracle public oracle;
@@ -33,7 +30,6 @@ contract NeuronPoolCurve3crvExtendsPricer is IPricer, Initializable {
         address _crv3Pricer,
         address _curvePool,
         address _token,
-        address _tokenPriceFeed,
         uint8 _pricePerShareDecimals,
         address _oracle
     ) external initializer {
@@ -42,16 +38,12 @@ contract NeuronPoolCurve3crvExtendsPricer is IPricer, Initializable {
         crv3Pricer = IPricer(_crv3Pricer);
         curvePool = ICurvePool(_curvePool);
         token = _token;
-        tokenPriceFeed = AggregatorV3Interface(_tokenPriceFeed);
         pricePerShareDecimals = _pricePerShareDecimals;
         oracle = IOracle(_oracle);
     }
 
     function getPrice() external view override returns (uint256) {
-        uint256 crv3Price = crv3Pricer.getPrice();
-        (, int256 tokenPrice, , , ) = tokenPriceFeed.latestRoundData();
-
-        return _getPrice(crv3Price, uint256(tokenPrice));
+        return _getPrice(crv3Pricer.getPrice(), oracle.getPrice(token));
     }
 
     function _getPrice(uint256 _crv3Price, uint256 _tokenPrice) private view returns (uint256) {
