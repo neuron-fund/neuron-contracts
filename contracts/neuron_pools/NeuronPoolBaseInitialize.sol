@@ -35,11 +35,11 @@ abstract contract NeuronPoolBaseInitialize is
         min = 9500;
     }
 
-    function deposit(address _enterToken, uint256 _amount) public payable override nonReentrant returns (uint256) {
+    function deposit(address _enterToken, uint256 _amount) public payable virtual override nonReentrant returns (uint256) {
         return super.deposit(_enterToken, _amount);
     }
 
-    function withdraw(address _withdrawableToken, uint256 _shares) public override nonReentrant {
+    function withdraw(address _withdrawableToken, uint256 _shares) public virtual override nonReentrant {
         super.withdraw(_withdrawableToken, _shares);
     }
 

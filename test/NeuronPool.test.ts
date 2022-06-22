@@ -46,7 +46,7 @@ const configs: Config[] = [
   },
   {
     name: 'NeuronPoolCurveHBTC',
-    tokens: [HCRV, HBTC, WBTC],
+    tokens: [HCRV, HBTC, WBTC, USDC],
     errorToken: FRAX3CRV,
   },
   {
@@ -56,22 +56,22 @@ const configs: Config[] = [
   },
   {
     name: 'NeuronPoolCurveRen',
-    tokens: [REN_CRV, RENBTC, WBTC],
+    tokens: [REN_CRV, RENBTC, WBTC, USDC],
     errorToken: FRAX3CRV,
   },
   {
     name: 'NeuronPoolCurveALETH',
-    tokens: [ALETH_ETH, ETH, ALETH],
+    tokens: [ALETH_ETH, ETH, ALETH, USDC],
     errorToken: FRAX3CRV,
   },
   {
     name: 'NeuronPoolCurveSTETH',
-    tokens: [STE_CRV, ETH, STETH],
+    tokens: [STE_CRV, ETH, STETH, USDC],
     errorToken: FRAX3CRV,
   },
   {
     name: 'NeuronPoolStabilityPoolLUSD',
-    tokens: [LUSD],
+    tokens: [LUSD, USDC],
     errorToken: FRAX3CRV,
   },
 ]
@@ -126,6 +126,7 @@ function testNeuronPool(config: Config) {
         if(tokenAddress != ETH) {
           await token.connect(user).approve(neuronPool.address, tokenBalance)
         }
+        
         await neuronPool.connect(user).deposit(tokenAddress, tokenBalance, tokenAddress == ETH ? {value:  tokenBalance} : null)
         const resultNeuronTokensBalance = await neuronPool.balanceOf(await user.getAddress())
         const neuronTokensBalance = resultNeuronTokensBalance.sub(initialNeuronTokensBalance)
