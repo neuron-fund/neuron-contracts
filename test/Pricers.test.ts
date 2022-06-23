@@ -57,11 +57,6 @@ const configs: IConfig[] = [
     slippage: 0.8,
   },
   {
-    name: 'ChainLinkPricerRen',
-    price: 20000,
-    slippage: 0.8,
-  },
-  {
     name: 'ChainLinkPricerMIM',
     price: 1,
     slippage: 0.05,

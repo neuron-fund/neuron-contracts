@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { DeployArgs } from '../types'
-import { ChainLinkPricerWBTC__factory, Oracle__factory } from '../typechain-types'
-import { WBTC } from '../constants/addresses'
+import { ChainLinkPricer__factory, Oracle__factory } from '../typechain-types'
+import { CHAINLINK_BTCUSD, WBTC } from '../constants/addresses'
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
@@ -11,10 +11,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const OracleDeployment = await get('Oracle')
 
-  const PricerDeployment = await deploy<DeployArgs<ChainLinkPricerWBTC__factory>>('ChainLinkPricerWBTC', {
-    contract: 'ChainLinkPricerWBTC',
+  const PricerDeployment = await deploy<DeployArgs<ChainLinkPricer__factory>>('ChainLinkPricerWBTC', {
+    contract: 'ChainLinkPricer',
     from: deployer.address,
-    args: [await deployer.getAddress(), OracleDeployment.address],
+    args: [WBTC, CHAINLINK_BTCUSD, OracleDeployment.address],
   })
 
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)

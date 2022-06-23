@@ -36,27 +36,22 @@ contract NeuronPoolCurveRenPricer is IPricer {
     }
 
     function getPrice() external view override returns (uint256) {
-        uint256 renPrice = oracle.getPrice(REN);
-        uint256 wbtcPrice = oracle.getPrice(WBTC);
-
-        return _getPrice(renPrice, wbtcPrice);
+        return _getPrice(oracle.getPrice(WBTC));
     }
 
-    function _getPrice(uint256 _renPrice, uint256 _wbtcPrice) private view returns (uint256) {
+    function _getPrice(uint256 _wbtcPrice) private view returns (uint256) {
         return
             (neuronPool.pricePerShare() *
                 CURVE_POOL.get_virtual_price() *
-                (_renPrice < _wbtcPrice ? _renPrice : _wbtcPrice)) / (10**(pricePerShareDecimals + 18));
+                ((_wbtcPrice * 9985) / 10000)) / (10**(pricePerShareDecimals + 18));
     }
 
+
     function setExpiryPriceInOracle(uint256 _expiryTimestamp) external {
-        (uint256 renPriceExpiry, ) = oracle.getExpiryPrice(REN, _expiryTimestamp);
-        require(renPriceExpiry > 0, "REN price not set yet");
+        (uint256 wbtcPriceExpiry, ) = oracle.getExpiryPrice(WBTC, _expiryTimestamp);
+        require(wbtcPriceExpiry > 0, "WBTC price not set yet");
 
-        (uint256 wbtcnPriceExpiry, ) = oracle.getExpiryPrice(WBTC, _expiryTimestamp);
-        require(wbtcnPriceExpiry > 0, "WBTC price not set yet");
-
-        uint256 price = _getPrice(renPriceExpiry, wbtcnPriceExpiry);
+        uint256 price = _getPrice(wbtcPriceExpiry);
 
         oracle.setExpiryPrice(asset, _expiryTimestamp, price);
     }

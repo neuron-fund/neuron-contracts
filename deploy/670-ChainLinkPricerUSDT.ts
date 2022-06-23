@@ -15,7 +15,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     contract: 'ChainLinkPricer',
     from: deployer.address,
     args: [
-      await deployer.getAddress(),
       USDT,
       CHAINLINK_USDCUSD,
       OracleDeployment.address,
