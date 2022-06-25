@@ -14,15 +14,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PricerDeployment = await deploy<DeployArgs<ChainLinkPricer__factory>>('ChainLinkPricerFrax', {
     contract: 'ChainLinkPricer',
     from: deployer.address,
-    args: [
-      FRAX,
-      CHAINLINK_USDCUSD,
-      OracleDeployment.address,
-    ],
+    args: [FRAX, CHAINLINK_USDCUSD, OracleDeployment.address],
   })
-  
+
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)
-  await oracle.setAssetPricer(FRAX, PricerDeployment.address)
+  const oracleOwnerAddress = await oracle.owner()
+  const oracleOwner = await ethers.getSigner(oracleOwnerAddress)
+  // await oracle.connect(oracleOwner).setAssetPricer(FRAX, PricerDeployment.address)
+  await oracle.connect(oracleOwner).setStablePrice(FRAX, '100000000')
 }
 
 deploy.tags = ['ChainLinkPricerFrax']

@@ -8,11 +8,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy } = deployments
   const [deployer] = await ethers.getSigners()
 
-  await deploy<DeployArgs<Oracle__factory>>('Oracle', {
-    contract: 'Oracle',
-    from: deployer.address,
-    args: [],
-  })
+  // await deploy<DeployArgs<Oracle__factory>>('Oracle', {
+  //   contract: 'Oracle',
+  //   from: deployer.address,
+  //   args: [],
+  // })
 }
 
 deploy.tags = ['Oracle']

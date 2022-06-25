@@ -17,7 +17,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)
-  await oracle.setAssetPricer(NeuronPoolCurveRenDeployment.address, PricerDeployment.address)
+  const oracleOwnerAddress = await oracle.owner()
+  const oracleOwner = await ethers.getSigner(oracleOwnerAddress)
+  await oracle.connect(oracleOwner).setAssetPricer(NeuronPoolCurveRenDeployment.address, PricerDeployment.address)
 }
 
 deploy.tags = ['NeuronPoolCurveRenPricer']

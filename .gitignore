@@ -12,3 +12,4 @@ typechain-types
 .vscode
 .idea
 bin
+deployments/localhost

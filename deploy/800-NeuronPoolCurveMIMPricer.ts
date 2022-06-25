@@ -32,9 +32,17 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)
-  await oracle.setAssetPricer(NeuronPoolCurveMIMDeployment.address, PricerDeployment.address)
+  const oracleOwnerAddress = await oracle.owner()
+  const oracleOwner = await ethers.getSigner(oracleOwnerAddress)
+  await oracle.connect(oracleOwner).setAssetPricer(NeuronPoolCurveMIMDeployment.address, PricerDeployment.address)
 }
 
 deploy.tags = ['NeuronPoolCurveMIMPricer']
-deploy.dependencies = ['CRV3Pricer', 'Oracle', 'ChainLinkPricerMIM', 'NeuronPoolCurveMIM', 'NeuronPoolCurve3crvExtendsPricer']
+deploy.dependencies = [
+  'CRV3Pricer',
+  'Oracle',
+  'ChainLinkPricerMIM',
+  'NeuronPoolCurveMIM',
+  'NeuronPoolCurve3crvExtendsPricer',
+]
 export default deploy

@@ -1,7 +1,4 @@
-import { config as dontenvConfig } from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
-const env = dontenvConfig()
-dotenvExpand(env)
+import 'dotenv/config'
 import { testPrivateKeys } from './utils/testPrivateKeys'
 
 import { HardhatUserConfig } from 'hardhat/config'
@@ -15,6 +12,7 @@ import 'hardhat-abi-exporter'
 import '@typechain/hardhat'
 import 'hardhat-gas-reporter'
 import '@nomiclabs/hardhat-etherscan'
+import { getDeploymentsDirFromEnv } from './utils/importLocalNeuronDeployments'
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -80,6 +78,12 @@ const config: HardhatUserConfig = {
 
   //   }
   // }
+  external: {
+    deployments: {
+      hardhat: [getDeploymentsDirFromEnv('NEURON_OPTIONS_PATH')],
+      localhost: [getDeploymentsDirFromEnv('NEURON_OPTIONS_PATH')],
+    },
+  },
 }
 
 function getHardhatAccounts(accountsNumber: number) {

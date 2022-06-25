@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { DeployArgs } from '../types'
-import { CRV3Pricer__factory, Oracle__factory } from '../typechain-types'
-import { CRV3 } from '../constants/addresses'
+import { CRV3Pricer__factory, IERC20Metadata__factory, Oracle__factory } from '../typechain-types'
+import { CRV3, CURVE_3CRV_LP_TOKEN } from '../constants/addresses'
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
@@ -18,7 +18,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)
-  await oracle.setAssetPricer(CRV3, PricerDeployment.address)
+  const oracleOwnerAddress = await oracle.owner()
+  const oracleOwner = await ethers.getSigner(oracleOwnerAddress)
+  await oracle.connect(oracleOwner).setStablePrice(CRV3, '100000000')
 }
 
 deploy.tags = ['CRV3Pricer']

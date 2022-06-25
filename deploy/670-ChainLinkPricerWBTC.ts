@@ -18,7 +18,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)
-  await oracle.setAssetPricer(WBTC, PricerDeployment.address)
+  const oracleOwnerAddress = await oracle.owner()
+  const oracleOwner = await ethers.getSigner(oracleOwnerAddress)
+  await oracle.connect(oracleOwner).setAssetPricer(WBTC, PricerDeployment.address)
 }
 
 deploy.tags = ['ChainLinkPricerWBTC']

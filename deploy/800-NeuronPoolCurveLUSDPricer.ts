@@ -17,9 +17,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     from: deployer.address,
     args: [NeuronPoolStabilityPoolLUSDDeployment.address, CRV3PricerDeployment.address, 18, OracleDeployment.address],
   })
-  
+
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)
-  await oracle.setAssetPricer(NeuronPoolStabilityPoolLUSDDeployment.address, PricerDeployment.address)
+  const oracleOwnerAddress = await oracle.owner()
+  const oracleOwner = await ethers.getSigner(oracleOwnerAddress)
+  await oracle
+    .connect(oracleOwner)
+    .setAssetPricer(NeuronPoolStabilityPoolLUSDDeployment.address, PricerDeployment.address)
 }
 
 deploy.tags = ['NeuronPoolCurveLUSDPricer']

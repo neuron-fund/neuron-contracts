@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     FRAX3CRV,
     FRAX,
     18,
-    OracleDeployment.address
+    OracleDeployment.address,
   ])
 
   const PricerDeployment = await deploy('NeuronPoolCurveFraxPricer', {
@@ -33,9 +33,17 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const oracle = Oracle__factory.connect(OracleDeployment.address, deployer)
-  await oracle.setAssetPricer(NeuronPoolCurveFraxDeployment.address, PricerDeployment.address)
+  const oracleOwnerAddress = await oracle.owner()
+  const oracleOwner = await ethers.getSigner(oracleOwnerAddress)
+  await oracle.connect(oracleOwner).setAssetPricer(NeuronPoolCurveFraxDeployment.address, PricerDeployment.address)
 }
 
 deploy.tags = ['NeuronPoolCurveFraxPricer']
-deploy.dependencies = ['Oracle', 'CRV3Pricer', 'ChainLinkPricerFrax', 'NeuronPoolCurveFrax', 'NeuronPoolCurve3crvExtendsPricer']
+deploy.dependencies = [
+  'Oracle',
+  'CRV3Pricer',
+  'ChainLinkPricerFrax',
+  'NeuronPoolCurveFrax',
+  'NeuronPoolCurve3crvExtendsPricer',
+]
 export default deploy
