@@ -8,7 +8,9 @@
     "test": "npx hardhat test --deploy-fixture",
     "postinstall": "node npm-postinstall/index.js",
     "reset": "npx hardhat clean && npx hardhat compile && npx hardhat typechain",
-    "reset:test": "npm run reset && npx hardhat test"
+    "reset:test": "npm run reset && npx hardhat test",
+    "e2e": "node e2eNode.js",
+    "e2e:example": "node e2eNode.js -- 'npx hardhat test --network localhost ./test/NeuronThetaVaultWithdrawInstantly.test.ts'"
   },
   "author": "",
   "license": "ISC",
@@ -50,6 +52,7 @@
     "date-fns": "^2.23.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
+    "kill-port-process": "^3.0.1",
     "prettier-plugin-solidity": "*",
     "replace-in-file": "^6.2.0"
   }
