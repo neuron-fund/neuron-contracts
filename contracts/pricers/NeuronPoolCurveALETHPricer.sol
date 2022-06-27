@@ -12,7 +12,7 @@ import {IOracle} from "../interfaces/IOracle.sol";
 contract NeuronPoolCurveALETHPricer is IPricer {
     ICurvePool public constant CURVE_POOL = ICurvePool(0xC4C319E2D4d66CcA4464C0c2B32c9Bd23ebe784e);
 
-    address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     address public constant ALETH = 0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6;
 
@@ -36,7 +36,7 @@ contract NeuronPoolCurveALETHPricer is IPricer {
     }
 
     function getPrice() external view override returns (uint256) {
-        return _getPrice(oracle.getPrice(ETH));
+        return _getPrice(oracle.getPrice(WETH));
     }
 
     function _getPrice(uint256 _ethPrice) private view returns (uint256) {
@@ -46,7 +46,7 @@ contract NeuronPoolCurveALETHPricer is IPricer {
     }
 
     function setExpiryPriceInOracle(uint256 _expiryTimestamp) external {
-        (uint256 ethPriceExpiry, ) = oracle.getExpiryPrice(ETH, _expiryTimestamp);
+        (uint256 ethPriceExpiry, ) = oracle.getExpiryPrice(WETH, _expiryTimestamp);
 
         require(ethPriceExpiry > 0, "ETH price not set yet");
 
