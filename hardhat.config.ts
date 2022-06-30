@@ -33,10 +33,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: process.env.POLYGON ? 1339 : 1337,
-      forking: {
-        url: process.env.POLYGON ? process.env.ALCHEMY_POLYGON : process.env.ALCHEMY,
-      },
+      chainId: 1337,
       loggingEnabled: true,
       blockGasLimit: 0x1fffffffffffff,
       accounts: getHardhatAccounts(20),
