@@ -76,12 +76,6 @@ contract StrategyConvexCurveFrax is StrategyConvexFarmBase {
         _crv = crvIERC20.balanceOf(self);
 
         if (_crv > 0) {
-            _swapToNeurAndDistributePerformanceFees(crv, sushiRouter);
-        }
-
-        _crv = crvIERC20.balanceOf(self);
-
-        if (_crv > 0) {
             crvIERC20.safeApprove(univ2Router2, 0);
             crvIERC20.safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, FRAX, _crv);

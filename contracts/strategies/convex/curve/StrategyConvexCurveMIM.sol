@@ -73,12 +73,6 @@ contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
             _swapSushiswap(SPELL, crv, _spell);
         }
 
-        _crv = IERC20(crv).balanceOf(self);
-
-        if (_crv > 0) {
-            _swapToNeurAndDistributePerformanceFees(crv, sushiRouter);
-        }
-
         _crv = crvIERC20.balanceOf(self);
 
         if (_crv > 0) {

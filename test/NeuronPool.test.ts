@@ -1,9 +1,28 @@
 import { ethers, deployments } from 'hardhat'
-import { Signer } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { assert } from 'chai'
 import { INeuronPool } from '../typechain-types'
-import { CRV3, DAI, FRAX, FRAX3CRV, MIM, MIM3CRV, USDC, USDT } from '../constants/addresses'
-import NetworkHelper from './helpers/NetworkHelper'
+import {
+  ALETH,
+  ALETH_ETH,
+  CRV3,
+  DAI,
+  FRAX,
+  FRAX3CRV,
+  HBTC,
+  HCRV,
+  LUSD,
+  MIM,
+  MIM3CRV,
+  RENBTC,
+  REN_CRV,
+  STETH,
+  STE_CRV,
+  USDC,
+  USDT,
+  WBTC,
+  ETH,
+} from '../constants/addresses'
 import { expectRevert } from '@openzeppelin/test-helpers'
 import ERC20Minter from './helpers/ERC20Minter'
 import TokenHelper from './helpers/TokenHelper'
@@ -26,8 +45,33 @@ const configs: Config[] = [
     errorToken: MIM3CRV,
   },
   {
+    name: 'NeuronPoolCurveHBTC',
+    tokens: [HCRV, HBTC, WBTC, USDC],
+    errorToken: FRAX3CRV,
+  },
+  {
     name: 'NeuronPoolCurveMIM',
     tokens: [MIM3CRV, MIM, CRV3, DAI, USDC, USDT],
+    errorToken: FRAX3CRV,
+  },
+  {
+    name: 'NeuronPoolCurveRen',
+    tokens: [REN_CRV, RENBTC, WBTC, USDC],
+    errorToken: FRAX3CRV,
+  },
+  {
+    name: 'NeuronPoolCurveALETH',
+    tokens: [ALETH_ETH, ETH, ALETH, USDC],
+    errorToken: FRAX3CRV,
+  },
+  {
+    name: 'NeuronPoolCurveSTETH',
+    tokens: [STE_CRV, ETH, STETH, USDC],
+    errorToken: FRAX3CRV,
+  },
+  {
+    name: 'NeuronPoolStabilityPoolLUSD',
+    tokens: [LUSD, USDC],
     errorToken: FRAX3CRV,
   },
 ]
@@ -46,14 +90,19 @@ function testNeuronPool(config: Config) {
 
     let neuronPool: INeuronPool
     let user: Signer
+    let initSnapshot: string;
 
-    beforeEach(async () => {
-      await NetworkHelper.reset()
+    before(async () => {
       await deployments.fixture([config.name])
       const NeuronPoolDeployment = await deployments.get(config.name)
       const accounts = await ethers.getSigners()
       user = accounts[10]
       neuronPool = (await ethers.getContractAt('INeuronPool', NeuronPoolDeployment.address)) as INeuronPool
+      initSnapshot = await ethers.provider.send('evm_snapshot', [])
+    })
+
+    afterEach(async () => {
+      ethers.provider.send('evm_revert', [initSnapshot])
     })
 
     // --------------------------------------------------------
@@ -65,12 +114,20 @@ function testNeuronPool(config: Config) {
       const tokenAddress = config.tokens[i]
       it(`Regular test: deposit and withdraw tokens (index = ${i}; address = ${tokenAddress})`, async () => {
         const token = await TokenHelper.getToken(tokenAddress, user)
-        await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('10'), await user.getAddress());
-        const tokenBalance = await token.balanceOf(await user.getAddress())
+        let tokenBalance: BigNumber;
+        if(tokenAddress == ETH) {
+          tokenBalance = ethers.utils.parseEther('1');
+        } else {
+          await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('1'), await user.getAddress())
+          tokenBalance = await balanceOf(token, user)
+        }
 
         const initialNeuronTokensBalance = await neuronPool.balanceOf(await user.getAddress())
-        await token.connect(user).approve(neuronPool.address, tokenBalance)
-        await neuronPool.connect(user).deposit(tokenAddress, tokenBalance)
+        if(tokenAddress != ETH) {
+          await token.connect(user).approve(neuronPool.address, tokenBalance)
+        }
+        
+        await neuronPool.connect(user).deposit(tokenAddress, tokenBalance, tokenAddress == ETH ? {value:  tokenBalance} : null)
         const resultNeuronTokensBalance = await neuronPool.balanceOf(await user.getAddress())
         const neuronTokensBalance = resultNeuronTokensBalance.sub(initialNeuronTokensBalance)
 
@@ -79,15 +136,19 @@ function testNeuronPool(config: Config) {
           `Neuron tokens not minted. Token index = ${i}; Token address = ${tokenAddress}`
         )
 
-        const initialTokenBalance = await token.balanceOf(await user.getAddress())
+        const initialTokenBalance = await balanceOf(token, user)
         await neuronPool.connect(user).withdraw(tokenAddress, neuronTokensBalance)
-        const resultTokenBalance = await token.balanceOf(await user.getAddress())
+        const resultTokenBalance = await balanceOf(token, user)
 
         assert(
           resultTokenBalance.gt(initialTokenBalance),
           `Tokens not withdrawn. Token index = ${i}; Token address = ${tokenAddress}`
         )
       })
+    }
+
+    async function balanceOf(token, signer: Signer) {
+      return token.address == ETH ? await signer.getBalance() : await token.balanceOf(await user.getAddress());
     }
 
     it('Get supported tokens', async () => {
@@ -104,7 +165,7 @@ function testNeuronPool(config: Config) {
     it(`SAFETY test: deposit unregistred token (address = ${config.errorToken})`, async () => {
       const tokenAddress = config.errorToken
       const token = await TokenHelper.getToken(tokenAddress, user)
-      await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('10'), await user.getAddress());
+      await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('1'), await user.getAddress())
       const tokenBalance = await token.balanceOf(await user.getAddress())
 
       await token.connect(user).approve(neuronPool.address, tokenBalance)
@@ -115,7 +176,7 @@ function testNeuronPool(config: Config) {
       // deposit before test
       const depositTokenAddress = config.tokens[0]
       const token = await TokenHelper.getToken(depositTokenAddress, user)
-      await ERC20Minter.mint(depositTokenAddress, ethers.utils.parseEther('10'), await user.getAddress());
+      await ERC20Minter.mint(depositTokenAddress, ethers.utils.parseEther('1'), await user.getAddress())
       const tokenBalance = await token.balanceOf(await user.getAddress())
 
       const initialNeuronTokensBalance = await neuronPool.balanceOf(await user.getAddress())
