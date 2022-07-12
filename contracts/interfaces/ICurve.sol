@@ -102,6 +102,19 @@ interface ICurveFi_3 {
     ) external;
 }
 
+interface ICurveFi_3_int128 {
+    function add_liquidity(uint256[3] memory amounts, uint256 min_mint_amount) external;
+
+    function balances(int128) external view returns (uint256);
+    
+    function remove_liquidity_one_coin(
+        uint256,
+        int128,
+        uint256
+    ) external;
+
+}
+
 interface ICurveFi_4 {
     function get_virtual_price() external view returns (uint256);
 

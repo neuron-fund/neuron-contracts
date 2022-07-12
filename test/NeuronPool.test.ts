@@ -22,6 +22,8 @@ import {
   USDT,
   WBTC,
   ETH,
+  CURVE_REN_WBTC_SBTC,
+  SBTC,
 } from '../constants/addresses'
 import { expectRevert } from '@openzeppelin/test-helpers'
 import ERC20Minter from './helpers/ERC20Minter'
@@ -72,6 +74,11 @@ const configs: Config[] = [
   {
     name: 'NeuronPoolStabilityPoolLUSD',
     tokens: [LUSD, USDC],
+    errorToken: FRAX3CRV,
+  },
+  {
+    name: 'NeuronPoolCurveSBTC',
+    tokens: [CURVE_REN_WBTC_SBTC, RENBTC, WBTC, SBTC, USDC],
     errorToken: FRAX3CRV,
   },
 ]

@@ -62,6 +62,12 @@ const CONFIGS: IConfig[] = [
     rewardTokens: [CRV, CVX],
     claimConvexRewards: true,
   },
+  {
+    startegy: 'StrategyConvexCurveSBTC',
+    neuronPool: 'NeuronPoolCurveSBTC',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
 ]
 
 describe('Strategies tests', () => {

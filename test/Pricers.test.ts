@@ -101,6 +101,11 @@ const configs: IConfig[] = [
     price: 20000,
     slippage: 0.8,
   },
+  {
+    name: 'NeuronPoolCurveSBTCPricer',
+    price: 20000,
+    slippage: 0.8,
+  },
 ]
 
 function isChainLinkPricer(pricer: string) {
@@ -114,7 +119,6 @@ function isNeuronPoolPricer(pricer: string) {
 describe('Pricers', () => {
   let minTimestamp: BigNumber
   before(async () => {
-    console.log('aw10');
     const allPricers = configs.map(pricer => pricer.name)
     await deployments.fixture(['Oracle', ...allPricers])
     const accounts = await ethers.getSigners()
@@ -130,8 +134,6 @@ describe('Pricers', () => {
         minTimestamp = latestTimestamp
       }
     }
-    
-    console.log('aw100');
   })
 
   it('', () => {
@@ -145,31 +147,25 @@ describe('Pricers', () => {
 
 function testPricers(config: IConfig, minTimestamp: BigNumber) {
   describe(`${config.name}`, () => {
-
     let oracle: Oracle
     let pricer: IPricer
     let owner: Signer
     let user: Signer
 
     before(async () => {
-      console.log('aw1');
       const accounts = await ethers.getSigners()
       owner = accounts[0]
       user = accounts[10]
 
-      console.log('aw12');
       const CRV3PricerDeployment = await deployments.get(config.name)
       const OracleDeployment = await deployments.get('Oracle')
       oracle = Oracle__factory.connect(OracleDeployment.address, owner)
 
-      console.log('aw13');
       pricer = (await ethers.getContractAt('IPricer', CRV3PricerDeployment.address)) as IPricer
 
-      console.log('aw14');
       if (isNeuronPoolPricer(config.name)) {
         const neuronPool = INeuronPool__factory.connect(await pricer.asset(), owner)
 
-        console.log('aw15');
         const tokenAddress = await neuronPool.token()
         await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('1000'), await user.getAddress())
         const token = await TokenHelper.getToken(tokenAddress)
@@ -182,11 +178,17 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
     it(`Get price`, async () => {
       const price = await pricer.getPrice()
 
-      const minPrice = config.price - config.price * config.slippage;
-      const maxPrice = config.price + config.price * config.slippage;
-      
-      assert(price.lt(ethers.utils.parseUnits(`${maxPrice}`, 8)), `Price more ${maxPrice}, = ${ethers.utils.formatUnits(`${price}`, 8)}`)
-      assert(price.gt(ethers.utils.parseUnits(`${minPrice}`, 8)), `Price low ${minPrice} = ${ethers.utils.formatUnits(`${price}`, 8)}`)
+      const minPrice = config.price - config.price * config.slippage
+      const maxPrice = config.price + config.price * config.slippage
+
+      assert(
+        price.lt(ethers.utils.parseUnits(`${maxPrice}`, 8)),
+        `Price more ${maxPrice}, = ${ethers.utils.formatUnits(`${price}`, 8)}`
+      )
+      assert(
+        price.gt(ethers.utils.parseUnits(`${minPrice}`, 8)),
+        `Price low ${minPrice} = ${ethers.utils.formatUnits(`${price}`, 8)}`
+      )
     })
 
     it(`Set expiry price in oracle`, async () => {

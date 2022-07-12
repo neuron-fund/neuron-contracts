@@ -41,13 +41,13 @@ contract StrategyConvexCurveMIM is StrategyConvexFarmBase {
     }
 
     function harvest() public override onlyBenevolent {
-        IBaseRewardPool(getCrvRewardContract()).getReward(address(this), true);
-
         address self = address(this);
         IERC20 cvxIERC20 = IERC20(cvx);
         IERC20 crvIERC20 = IERC20(crv);
         IERC20 spellIERC20 = IERC20(SPELL);
         IERC20 mimIERC20 = IERC20(MIM);
+
+        IBaseRewardPool(getCrvRewardContract()).getReward(self, true);
 
         // Check rewards
         uint256 _cvx = cvxIERC20.balanceOf(self);
