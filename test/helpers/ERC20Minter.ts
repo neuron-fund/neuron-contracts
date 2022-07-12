@@ -1,9 +1,10 @@
 import { BigNumber } from 'ethers'
-import { ethers } from 'hardhat'
+import { ethers, network } from 'hardhat'
 import {
   ALETH,
   ALETH_ETH,
   CRV3,
+  CURVE_REN_WBTC_SBTC,
   DAI,
   ETH,
   FRAX,
@@ -15,6 +16,7 @@ import {
   MIM3CRV,
   RENBTC,
   REN_CRV,
+  SBTC,
   STETH,
   STE_CRV,
   UNISWAP_ROUTER_V2,
@@ -24,6 +26,7 @@ import {
   WETH,
 } from '../../constants/addresses'
 import { IERC20__factory, IUniswapRouterV2 } from '../../typechain-types'
+import TokenHelper from './TokenHelper'
 
 const SLOT_BY_TOKEN: { [key: string]: ((recipient: string) => [number, string] | [string, number]) | true } = {
   [LUSD]: recipient => [recipient, 2],
@@ -45,6 +48,9 @@ const SLOT_BY_TOKEN: { [key: string]: ((recipient: string) => [number, string] |
   [WETH]: recipient => [recipient, 3],
   [ALETH]: recipient => [recipient, 1],
   [STETH]: true,
+  [ALETH]: recipient => [recipient, 1],
+  [CURVE_REN_WBTC_SBTC]: recipient => [3, recipient],
+  [SBTC]: true,
 }
 
 export default class ERC20Minter {
@@ -54,7 +60,18 @@ export default class ERC20Minter {
 
     if (SLOT_BY_TOKEN[tokenAddress] === true) {
       // if token not have standart balanceOf field slot, use uniswap
-      await this.swapExactETHForTokens(tokenAddress, amount, recipient)
+      if(tokenAddress == SBTC) {
+        const holder = '0x70be8010b63ce50cf29450aec2c9881838234651'
+        await network.provider.request({
+          method: 'hardhat_impersonateAccount',
+          params: [holder],
+        })
+        const signer = await ethers.getSigner(holder);
+        const sbtc = IERC20__factory.connect(SBTC, signer);
+        await sbtc.transfer(recipient, await sbtc.balanceOf(holder))
+      } else {
+        await this.swapExactETHForTokens(tokenAddress, amount, recipient)
+      }
     } else {
       const index = ethers.utils
         .solidityKeccak256(['uint256', 'uint256'], (SLOT_BY_TOKEN[tokenAddress] as any)(recipient))
