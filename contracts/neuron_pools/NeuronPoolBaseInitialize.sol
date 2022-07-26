@@ -13,8 +13,6 @@ abstract contract NeuronPoolBaseInitialize is
     ReentrancyGuardUpgradeable
 {
     function __NeuronPoolBaseInitialize_init(
-        // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool
-        // Usually want/_want in strategies
         address _token,
         address _governance,
         address _timelock,
@@ -28,6 +26,7 @@ abstract contract NeuronPoolBaseInitialize is
         __ReentrancyGuard_init_unchained();
 
         token = IERC20Metadata(_token);
+        tokenDecimals = uint256(token.decimals());
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
