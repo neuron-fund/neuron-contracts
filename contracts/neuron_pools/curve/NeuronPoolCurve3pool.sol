@@ -50,7 +50,7 @@ contract NeuronPoolCurve3pool is NeuronPoolBase {
 
     function depositBaseToken(IERC20Metadata _enterToken, uint256 _amount) internal returns (uint256) {
         address self = address(this);
-        IERC20Metadata tokenMem = token;
+        IERC20Metadata _token = token;
         IERC20Metadata enterToken = IERC20Metadata(_enterToken);
 
         uint256[3] memory addLiquidityPayload;
@@ -68,11 +68,11 @@ contract NeuronPoolCurve3pool is NeuronPoolBase {
         enterToken.safeApprove(address(BASE_POOL), 0);
         enterToken.safeApprove(address(BASE_POOL), _amount);
 
-        uint256 initialLpTokenBalance = tokenMem.balanceOf(self);
+        uint256 initialLpTokenBalance = _token.balanceOf(self);
 
         BASE_POOL.add_liquidity(addLiquidityPayload, 0);
 
-        uint256 resultLpTokenBalance = tokenMem.balanceOf(self);
+        uint256 resultLpTokenBalance = _token.balanceOf(self);
 
         require(resultLpTokenBalance > initialLpTokenBalance, "Tokens were not received from the liquidity pool");
 
