@@ -1,7 +1,7 @@
 import { deployments, ethers } from "hardhat";
-import { neuron_pools_earn_bot } from "../../scripts/bots/neuron_pools_earn_bot";
+import { neuronPoolsEarnBot } from "../../scripts/bots/neuron_pools_earn_bot";
 
-describe('neuron_pools_earn_bot', () => {
+describe('neuronPoolsEarnBot', () => {
     it('call', async () => {
         const config = {
             provider: ethers.provider,
@@ -24,6 +24,6 @@ describe('neuron_pools_earn_bot', () => {
         for (const contract of contracts) {
             config.neuronPoolsAddresses.push((await deployments.get(contract)).address)
         }
-        await neuron_pools_earn_bot(config);
+        await neuronPoolsEarnBot(config);
     })
 })

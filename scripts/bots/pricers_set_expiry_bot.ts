@@ -1,5 +1,4 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { timeStamp } from 'console'
 import { BigNumber, ContractReceipt, Wallet } from 'ethers'
 import {
   ChainLinkPricer__factory,
@@ -14,12 +13,12 @@ interface ICONFIG {
   userPrivateKey: string
   expiryTimestamp: BigNumber
   chainLinkPricersAddresses: string[]
-  multiCallAddress: string
   pricersAddresses: string[]
+  multiCallAddress: string
 }
 
-export async function pricers_set_expiry_bot(config?: ICONFIG): Promise<ContractReceipt> {
-  console.log(`Start pricers_set_expiry_bot`)
+export async function pricersSetExpiryBot(config: ICONFIG): Promise<ContractReceipt> {
+  console.log(`Start pricersSetExpiryBot`)
 
   const provider = config.provider
   const user = new Wallet(config.userPrivateKey).connect(provider)
@@ -34,7 +33,9 @@ export async function pricers_set_expiry_bot(config?: ICONFIG): Promise<Contract
     let roundId: BigNumber = (await agregator.latestRound()).sub(1)
     while (true) {
       const [_, __, ___, previousRoundTimestamp, _____] = await agregator.getRoundData(roundId)
-      if (previousRoundTimestamp.lte(expiryTimestamp)) {
+      if(previousRoundTimestamp.eq(expiryTimestamp)) {
+        break;
+      } else if (previousRoundTimestamp.lt(expiryTimestamp)) {
         roundId = roundId.add(1)
         break
       }
@@ -61,6 +62,6 @@ export async function pricers_set_expiry_bot(config?: ICONFIG): Promise<Contract
   const multiCall = IMultiCall__factory.connect(config.multiCallAddress, user)
   const tx = await multiCall.aggregate(calls)
   const reciept = await tx.wait()
-  console.log(`Finish pricers_set_expiry_bot`)
+  console.log(`Finish pricersSetExpiryBot`)
   return reciept
 }

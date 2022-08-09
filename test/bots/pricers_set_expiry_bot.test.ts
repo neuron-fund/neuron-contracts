@@ -1,10 +1,9 @@
 import { BigNumber } from "ethers";
 import { deployments, ethers } from "hardhat";
-import { neuron_pools_earn_bot } from "../../scripts/bots/neuron_pools_earn_bot";
-import { pricers_set_expiry_bot } from "../../scripts/bots/pricers_set_expiry_bot";
+import { pricersSetExpiryBot } from "../../scripts/bots/pricers_set_expiry_bot";
 import { ChainLinkPricer__factory, IAggregator__factory } from "../../typechain-types";
 
-describe('pricers_set_expiry_bot', () => {
+describe('pricersSetExpiryBot', () => {
     it('call', async () => {
         const config = {
             provider: ethers.provider,
@@ -52,6 +51,6 @@ describe('pricers_set_expiry_bot', () => {
         for (const contract of pricers) {
             config.pricersAddresses.push((await deployments.get(contract)).address)
         }
-        await pricers_set_expiry_bot(config);
+        await pricersSetExpiryBot(config);
     })
 })

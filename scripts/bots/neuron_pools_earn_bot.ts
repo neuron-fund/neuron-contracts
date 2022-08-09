@@ -9,8 +9,8 @@ interface ICONFIG {
   neuronPoolsAddresses: string[]
 }
 
-export async function neuron_pools_earn_bot(config?: ICONFIG): Promise<ContractReceipt> {
-  console.log(`Start neuron_pools_earn_bot`)
+export async function neuronPoolsEarnBot(config: ICONFIG): Promise<ContractReceipt> {
+  console.log(`Start neuronPoolsEarnBot`)
 
   const provider = config.provider
   const user = new Wallet(config.userPrivateKey).connect(provider)
@@ -27,6 +27,6 @@ export async function neuron_pools_earn_bot(config?: ICONFIG): Promise<ContractR
   const multiCall = IMultiCall__factory.connect(config.multiCallAddress, user)
   const tx = await multiCall.aggregate(calls)
   const reciept = await tx.wait();
-  console.log(`Finish neuron_pools_earn_bot`)
+  console.log(`Finish neuronPoolsEarnBot`)
   return reciept;
 }
