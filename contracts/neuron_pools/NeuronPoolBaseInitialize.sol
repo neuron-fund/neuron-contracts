@@ -16,8 +16,7 @@ abstract contract NeuronPoolBaseInitialize is
         address _token,
         address _governance,
         address _timelock,
-        address _controller,
-        address _masterchef
+        address _controller
     ) internal initializer {
         __ERC20_init(
             string(abi.encodePacked("neuroned", IERC20Metadata(_token).name())),
@@ -30,7 +29,6 @@ abstract contract NeuronPoolBaseInitialize is
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
-        masterchef = _masterchef;
         min = 9500;
     }
 

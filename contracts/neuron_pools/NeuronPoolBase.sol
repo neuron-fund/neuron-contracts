@@ -9,8 +9,7 @@ abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
         address _token,
         address _governance,
         address _timelock,
-        address _controller,
-        address _masterchef
+        address _controller
     )
         ERC20(
             string(abi.encodePacked("neuroned", IERC20Metadata(_token).name())),
@@ -22,7 +21,6 @@ abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
-        masterchef = _masterchef;
     }
 
     function deposit(address _enterToken, uint256 _amount) public payable virtual override nonReentrant returns (uint256) {

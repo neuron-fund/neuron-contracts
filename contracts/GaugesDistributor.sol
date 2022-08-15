@@ -7,10 +7,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {GaugeImplementation} from "./GaugeImplementation.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-interface IMinter {
-    function collect() external;
-}
-
 contract GaugesDistributor {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -25,7 +21,6 @@ contract GaugesDistributor {
 
     uint256 public pid;
     uint256 public totalWeight;
-    IMinter public minter;
     bool public isManualWeights = true;
 
     address[] internal _tokens;
@@ -36,22 +31,15 @@ contract GaugesDistributor {
     mapping(address => uint256) public usedWeights; // msg.sender => total voting weight of user
 
     constructor(
-        address _minter,
         address _neuronToken,
         address _axon,
         address _governance,
         address _admin
     ) {
-        minter = IMinter(_minter);
         NEURON = IERC20(_neuronToken);
         AXON = IERC20(_axon);
         governance = _governance;
         admin = _admin;
-    }
-
-    function setMinter(address _minter) public {
-        require(msg.sender == governance, "!admin and !governance");
-        minter = IMinter(_minter);
     }
 
     function tokens() external view returns (address[] memory) {
@@ -184,11 +172,6 @@ contract GaugesDistributor {
             )
         );
         _tokens.push(_token);
-    }
-
-    // Fetches Neurons
-    function collect() internal {
-        minter.collect();
     }
 
     function length() external view returns (uint256) {
