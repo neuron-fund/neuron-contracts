@@ -9,7 +9,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy, get } = deployments
   const [deployer] = await ethers.getSigners()
 
-  const MasterChefDeployment = await get('MasterChef')
   const NeuronTokenDeployment = await get('NeuronToken')
   const AxonDeployment = await get('Axon')
 
@@ -17,7 +16,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     contract: 'GaugesDistributor',
     from: deployer.address,
     args: [
-      MasterChefDeployment.address,
       NeuronTokenDeployment.address,
       AxonDeployment.address,
       deployer.address,
@@ -27,5 +25,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 }
 
 deploy.tags = ['GaugesDistributor']
-deploy.dependencies = ['MasterChef', 'NeuronToken', 'Axon']
+deploy.dependencies = ['NeuronToken', 'Axon']
 export default deploy

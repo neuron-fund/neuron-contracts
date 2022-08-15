@@ -22,11 +22,10 @@ contract NeuronPoolCurve3crvExtends is NeuronPoolBaseInitialize {
         address _governance,
         address _timelock,
         address _controller,
-        address _masterchef,
         address _basePool,
         address _firstTokenInBasePool
     ) external initializer {
-        __NeuronPoolBaseInitialize_init(_token, _governance, _timelock, _controller, _masterchef);
+        __NeuronPoolBaseInitialize_init(_token, _governance, _timelock, _controller);
         BASE_POOL = ICurveFi_2(_basePool);
         FIRST_TOKEN_IN_BASE_POOL = IERC20Metadata(_firstTokenInBasePool);
     }

@@ -23,7 +23,6 @@ abstract contract NeuronPoolCommon {
     address public governance;
     address public timelock;
     address public controller;
-    address public masterchef;
 
     receive() external payable {}
 

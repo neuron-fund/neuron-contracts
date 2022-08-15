@@ -124,16 +124,20 @@ describe('Pricers', () => {
     const accounts = await ethers.getSigners()
     const owner = accounts[0]
 
+    // legacy: Set minTemestamp. now get only one timeStamp(first) and sub some number
     for (const chainLinkPricer of allPricers.filter(pricer => isChainLinkPricer(pricer))) {
       const chainLinkPricerDeployment = await deployments.get(chainLinkPricer)
       const subPricer = ChainLinkPricer__factory.connect(chainLinkPricerDeployment.address, owner)
       const agregator = IAggregator__factory.connect(await subPricer.aggregator(), owner)
       const latestTimestamp = await agregator.latestTimestamp()
-      minTimestamp ||= latestTimestamp
+      console.log(`latestTimestamp ${chainLinkPricer} ${latestTimestamp}`)
+      minTimestamp ||= latestTimestamp.sub(24 * 60 * 60)
+      break;
       if (latestTimestamp.lt(minTimestamp)) {
         minTimestamp = latestTimestamp
       }
     }
+    // :legacy
   })
 
   it('', () => {
@@ -190,7 +194,7 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
         `Price low ${minPrice} = ${ethers.utils.formatUnits(`${price}`, 8)}`
       )
     })
-
+    
     it(`Set expiry price in oracle`, async () => {
       const pricerDeployment = await deployments.get(config.name)
       let pricer: IPricer | ChainLinkPricer
@@ -198,8 +202,18 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
       if (isChainLinkPricer(config.name)) {
         const chainlinkPricer = ChainLinkPricer__factory.connect(pricerDeployment.address, owner)
         const agregator = IAggregator__factory.connect(await chainlinkPricer.aggregator(), owner)
-        const latestRound = await agregator.latestRound()
-        await chainlinkPricer.setExpiryPriceInOracle(minTimestamp, latestRound)
+
+        let roundId: BigNumber = (await agregator.latestRound()).sub(1)
+        while (true) {
+          const [_, __, ___, previousRoundTimestamp, _____] = await agregator.getRoundData(roundId)
+          if(previousRoundTimestamp.lte(minTimestamp)) {
+            roundId = roundId.add(1)
+            break
+          }
+          roundId = roundId.sub(1)
+        }
+        
+        await chainlinkPricer.setExpiryPriceInOracle(minTimestamp, roundId)
 
         pricer = chainlinkPricer
       } else {
@@ -217,3 +231,7 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
     })
   })
 }
+1659514938
+1659511345
+1659507679
+1659336339

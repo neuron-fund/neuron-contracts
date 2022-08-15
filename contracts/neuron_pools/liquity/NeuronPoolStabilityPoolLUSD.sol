@@ -17,9 +17,8 @@ contract NeuronPoolStabilityPoolLUSD is NeuronPoolBase {
         address _token,
         address _governance,
         address _timelock,
-        address _controller,
-        address _masterchef
-    ) NeuronPoolBase(_token, _governance, _timelock, _controller, _masterchef) {}
+        address _controller
+    ) NeuronPoolBase(_token, _governance, _timelock, _controller) {}
 
     function getSupportedTokens() external view override returns (address[] memory tokens) {
         tokens = new address[](2);

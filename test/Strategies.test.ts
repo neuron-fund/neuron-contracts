@@ -123,7 +123,8 @@ function startegyTests(CONFIG: IConfig) {
     })
 
     afterEach(async () => {
-      ethers.provider.send('evm_revert', [initSnapshot])
+      await ethers.provider.send('evm_revert', [initSnapshot])
+      initSnapshot = await ethers.provider.send('evm_snapshot', [])
     })
 
     for (const REWARD of CONFIG.rewardTokens) {
