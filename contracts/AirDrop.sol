@@ -3,10 +3,9 @@ pragma solidity 0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract AirDrop is Initializable, Ownable {
+contract AirDrop is OwnableUpgradeable {
 
     IERC20 public token;
 
@@ -22,37 +21,31 @@ contract AirDrop is Initializable, Ownable {
 
     event Claimed(address indexed claimer, uint256 amount);
 
-    modifier initialized() {
-        require(isInitialized, "Airdrop has not been initialized yet");
-        _;
-    }
-
-    modifier isExpired(bool _yes) {
-        require(block.timestamp > dateOfExpiry == _yes, "You cannot perform this action right now");
-        _;
-    }
-
     function initialize(
+        address _owner,
         IERC20 _token,
-        uint256 _totalAmount,
         bytes32 _merkleRoot,
-        uint256 _expiry
-    ) external initializer onlyOwner {
-        require(_totalAmount > 0, "An insufficient amount");
-        require(_expiry > 0, "expiry must be greater than zero");
-
+        uint256 _expiresIn
+    ) external initializer {
         address self = address(this);
 
-        _token.transferFrom(msg.sender, self, _totalAmount);
-        require(_token.balanceOf(self) == _totalAmount, "Failed to get tokens");
+        uint256 totalAmount = _token.balanceOf(self);
+
+        require(totalAmount > 0, "An insufficient amount");
+        require(_expiresIn > 0, "expiry must be greater than zero");
+
+        __Ownable_init_unchained();
+        if(_owner != msg.sender) {
+            transferOwnership(_owner);
+        }
 
         token = _token;
         merkleRoot = _merkleRoot;
-        uint256 _dateOfExpiry = block.timestamp + _expiry;
+        uint256 _dateOfExpiry = block.timestamp + _expiresIn;
         dateOfExpiry = _dateOfExpiry;
         isInitialized = true;
 
-        emit Initialized(address(_token), _totalAmount, _merkleRoot, _dateOfExpiry);
+        emit Initialized(address(_token), totalAmount, _merkleRoot, _dateOfExpiry);
     }
 
     function claimAirDrop(uint256 _amount, bytes32[] calldata _merkleProof) external {
@@ -69,7 +62,9 @@ contract AirDrop is Initializable, Ownable {
         address _claimer,
         uint256 _amount,
         bytes32[] calldata _merkleProof
-    ) public view initialized isExpired(false) returns (bool) {
+    ) public view returns (bool) {
+        require(isInitialized, "Airdrop has not been initialized yet");
+        require(!isExpired(), "Cannot be claimed after the end of the distribution");
         return
             _amount > 0 &&
             token.balanceOf(address(this)) >= _amount &&
@@ -77,9 +72,18 @@ contract AirDrop is Initializable, Ownable {
             MerkleProof.verify(_merkleProof, merkleRoot, keccak256(abi.encodePacked(_claimer, _amount)));
     }
 
-    function withdrawAfterExipired(address _recipient) external onlyOwner isExpired(true) {
-        uint256 balance = token.balanceOf(address(this));
-        require(balance > 0, "Insufficient funds to withdraw");
-        token.transfer(_recipient, balance);
+    function withdrawAfterExipired(address _recipient) external onlyOwner {
+        require(isExpired(), "Cannot be withdrawn until the end of the distribution");
+        uint256 _balance = balance();
+        require(_balance > 0, "Insufficient funds to withdraw");
+        token.transfer(_recipient, _balance);
+    }
+
+    function isExpired() public view returns(bool) {
+        return block.timestamp > dateOfExpiry;
+    }
+
+    function balance() public view returns(uint256) {
+        return token.balanceOf(address(this));
     }
 }

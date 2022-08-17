@@ -37,10 +37,6 @@ describe('AirDrop', () => {
 
     await neuronToken.connect(transferAllower).allowTranfers()
 
-    const totalBalance = await neuronToken.balanceOf(await user1.getAddress())
-    await neuronToken.connect(user1).transfer(await deployer.getAddress(), totalBalance)
-    await neuronToken.connect(deployer).approve(airDrop.address, totalBalance)
-
     leafs = []
     for (let i = 0; i < airDropClaimers.length; i++) {
       const airDropClaimer = airDropClaimers[i]
@@ -54,7 +50,7 @@ describe('AirDrop', () => {
 
     const week = 7 * 24 * 60 * 60
 
-    await airDrop.connect(deployer).initialize(neuronToken.address, totalBalance, getMerkleRoot(merkleTree), week)
+    await airDrop.connect(deployer).initialize(await deployer.getAddress(), neuronToken.address, getMerkleRoot(merkleTree), week)
 
     initSnapshot = await ethers.provider.send('evm_snapshot', [])
   })
@@ -91,6 +87,28 @@ describe('AirDrop', () => {
 
     await expectRevert(
       airDrop.connect(claimer).claimAirDrop(claimedAmout, getMerkleProof(merkleTree, claimerAddress, claimedAmout)),
+      'Access denied'
+    )
+  })
+
+  it('Claim with fail proof and true amount', async () => {
+    const claimer = airDropClaimers[0]
+    const claimerAddress = await claimer.getAddress()
+    const claimedAmout = leafs[0].amount
+
+    await expectRevert(
+      airDrop.connect(claimer).claimAirDrop(claimedAmout, getMerkleProof(merkleTree, claimerAddress, claimedAmout.div(2))),
+      'Access denied'
+    )
+  })
+
+  it('Claim with fail amount and true proof', async () => {
+    const claimer = airDropClaimers[0]
+    const claimerAddress = await claimer.getAddress()
+    const claimedAmout = leafs[0].amount
+
+    await expectRevert(
+      airDrop.connect(claimer).claimAirDrop(claimedAmout.mul(2), getMerkleProof(merkleTree, claimerAddress, claimedAmout)),
       'Access denied'
     )
   })
@@ -138,7 +156,7 @@ describe('AirDrop', () => {
 
     await expectRevert(
       airDrop.connect(claimer).claimAirDrop(claimedAmout, getMerkleProof(merkleTree, claimerAddress, claimedAmout)),
-      'You cannot perform this action right now'
+      'Cannot be claimed after the end of the distribution'
     )
   })
 
@@ -167,7 +185,7 @@ describe('AirDrop', () => {
 
     await expectRevert(
       airDrop.connect(deployer).withdrawAfterExipired(deployerAddress),
-      'You cannot perform this action right now'
+      'Cannot be withdrawn until the end of the distribution'
     )
   })
 })
