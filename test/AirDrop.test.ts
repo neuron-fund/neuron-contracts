@@ -50,7 +50,12 @@ describe('AirDrop', () => {
 
     const week = 7 * 24 * 60 * 60
 
-    await airDrop.connect(deployer).initialize(await deployer.getAddress(), neuronToken.address, getMerkleRoot(merkleTree), week)
+    await expectRevert(
+      airDrop.connect(user1).initialize(neuronToken.address, getMerkleRoot(merkleTree), week),
+      'Ownable: caller is not the owner'
+    )
+
+    await airDrop.connect(deployer).initialize(neuronToken.address, getMerkleRoot(merkleTree), week)
 
     initSnapshot = await ethers.provider.send('evm_snapshot', [])
   })
@@ -97,7 +102,9 @@ describe('AirDrop', () => {
     const claimedAmout = leafs[0].amount
 
     await expectRevert(
-      airDrop.connect(claimer).claimAirDrop(claimedAmout, getMerkleProof(merkleTree, claimerAddress, claimedAmout.div(2))),
+      airDrop
+        .connect(claimer)
+        .claimAirDrop(claimedAmout, getMerkleProof(merkleTree, claimerAddress, claimedAmout.div(2))),
       'Access denied'
     )
   })
@@ -108,7 +115,9 @@ describe('AirDrop', () => {
     const claimedAmout = leafs[0].amount
 
     await expectRevert(
-      airDrop.connect(claimer).claimAirDrop(claimedAmout.mul(2), getMerkleProof(merkleTree, claimerAddress, claimedAmout)),
+      airDrop
+        .connect(claimer)
+        .claimAirDrop(claimedAmout.mul(2), getMerkleProof(merkleTree, claimerAddress, claimedAmout)),
       'Access denied'
     )
   })

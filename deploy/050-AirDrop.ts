@@ -8,10 +8,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy } = deployments
   const signers = await ethers.getSigners()
   const deployer = signers[0]
- 
+
   await deploy<DeployArgs<AirDrop__factory>>('AirDrop', {
     from: deployer.address,
-    args: [],
+    args: [deployer.address],
   })
 }
 

@@ -3,14 +3,14 @@ pragma solidity 0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract AirDrop is OwnableUpgradeable {
-
+contract AirDrop is Initializable, Ownable {
     IERC20 public token;
 
     bytes32 public merkleRoot;
-    
+
     uint256 public dateOfExpiry;
 
     bool public isInitialized;
@@ -21,23 +21,23 @@ contract AirDrop is OwnableUpgradeable {
 
     event Claimed(address indexed claimer, uint256 amount);
 
+    constructor(address _owner) {
+        if (_owner != msg.sender) {
+            transferOwnership(_owner);
+        }
+    }
+
     function initialize(
-        address _owner,
         IERC20 _token,
         bytes32 _merkleRoot,
         uint256 _expiresIn
-    ) external initializer {
+    ) external initializer onlyOwner {
         address self = address(this);
 
         uint256 totalAmount = _token.balanceOf(self);
 
         require(totalAmount > 0, "An insufficient amount");
         require(_expiresIn > 0, "expiry must be greater than zero");
-
-        __Ownable_init_unchained();
-        if(_owner != msg.sender) {
-            transferOwnership(_owner);
-        }
 
         token = _token;
         merkleRoot = _merkleRoot;
@@ -67,7 +67,7 @@ contract AirDrop is OwnableUpgradeable {
         require(!isExpired(), "Cannot be claimed after the end of the distribution");
         return
             _amount > 0 &&
-            token.balanceOf(address(this)) >= _amount &&
+            balance() >= _amount &&
             !claimedAirDrop[_claimer] &&
             MerkleProof.verify(_merkleProof, merkleRoot, keccak256(abi.encodePacked(_claimer, _amount)));
     }
@@ -79,11 +79,11 @@ contract AirDrop is OwnableUpgradeable {
         token.transfer(_recipient, _balance);
     }
 
-    function isExpired() public view returns(bool) {
+    function isExpired() public view returns (bool) {
         return block.timestamp > dateOfExpiry;
     }
 
-    function balance() public view returns(uint256) {
+    function balance() public view returns (uint256) {
         return token.balanceOf(address(this));
     }
 }
