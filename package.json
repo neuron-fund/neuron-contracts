@@ -50,6 +50,8 @@
     "date-fns": "^2.23.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.2.32",
     "prettier-plugin-solidity": "*",
     "replace-in-file": "^6.2.0"
   }

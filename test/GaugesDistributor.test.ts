@@ -16,6 +16,7 @@ import { CRV3, UNISWAP_ROUTER_V2, WETH } from '../constants/addresses'
 describe('GaugesDistributor.sol', () => {
   let donor: Signer
   let users: Signer[]
+  let accounts: Signer[]
 
   let gaugesDistributor: GaugesDistributor
   let neuronToken: NeuronToken
@@ -27,7 +28,7 @@ describe('GaugesDistributor.sol', () => {
   beforeEach(async () => {
     await NetworkHelper.reset()
 
-    const accounts = await ethers.getSigners()
+    accounts = await ethers.getSigners()
     donor = accounts[9]
     users = [accounts[10], accounts[11], accounts[12]]
 
@@ -103,7 +104,7 @@ describe('GaugesDistributor.sol', () => {
     await firstGauge.connect(user).deposit(userNeuronPoolBalance)
 
     const totalBalance = ethers.utils.parseEther('100')
-    await neuronToken.mint(gaugesDistributor.address, totalBalance)
+    await neuronToken.connect(accounts[1]).transfer(gaugesDistributor.address, totalBalance);
 
     const week = 60 * 60 * 24 * 7
     await gaugesDistributor.distribute(week)
@@ -136,7 +137,7 @@ describe('GaugesDistributor.sol', () => {
     }
 
     const totalBalance = ethers.utils.parseEther('100')
-    await neuronToken.mint(gaugesDistributor.address, totalBalance)
+    await neuronToken.connect(accounts[1]).transfer(gaugesDistributor.address, totalBalance);
 
     const week = 60 * 60 * 24 * 7
     await gaugesDistributor.distribute(week)
@@ -169,7 +170,7 @@ describe('GaugesDistributor.sol', () => {
     await firstGauge.connect(user).deposit(userNeuronPoolBalance)
 
     const totalBalance = ethers.utils.parseEther('100')
-    await neuronToken.mint(gaugesDistributor.address, totalBalance)
+    await neuronToken.connect(accounts[1]).transfer(gaugesDistributor.address, totalBalance);
 
     const week = 60 * 60 * 24 * 7
     await gaugesDistributor.distribute(week)
@@ -194,7 +195,7 @@ describe('GaugesDistributor.sol', () => {
     await network.provider.send('evm_increaseTime', [week])
     await network.provider.send('evm_mine')
 
-    await neuronToken.mint(gaugesDistributor.address, totalBalance)
+    await neuronToken.connect(accounts[1]).transfer(gaugesDistributor.address, totalBalance);
     await gaugesDistributor.distribute(week)
 
     await network.provider.send('evm_increaseTime', [week])

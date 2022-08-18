@@ -12,9 +12,14 @@ contract NeuronToken is ERC20, AccessControl {
 
     event TransfersAllowed();
 
-    constructor(address[] memory _users, address _transferAllower) ERC20("NeuronToken", "NEUR") {
-        for(uint256 i; i < _users.length; i++) {
-            _mint(_users[i], 100 * 10 ** decimals());
+    struct InitialHolder {
+        address recipient;
+        uint256 amount;
+    }
+
+    constructor(InitialHolder[] memory _initialHolders, address _transferAllower) ERC20("NeuronToken", "NEUR") {
+        for(uint256 i; i < _initialHolders.length; i++) {
+            _mint(_initialHolders[i].recipient, _initialHolders[i].amount);
         }
         _setRoleAdmin(TRANSFERS_ALLOWER_ROLE, TRANSFERS_ALLOWER_ROLE);
         _setupRole(TRANSFERS_ALLOWER_ROLE, _transferAllower);
