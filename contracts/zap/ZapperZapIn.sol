@@ -15,14 +15,19 @@ import {IWETH} from "../interfaces/IWETH.sol";
 contract UniswapV2_ZapIn_General_V5 {
     using SafeERC20 for IERC20;
 
-    IUniswapV2Factory private constant UniSwapV2FactoryAddress =
-        IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
+    IUniswapV2Factory private immutable UniSwapV2FactoryAddress;
 
-    IUniswapRouterV2 private constant uniswapRouter = IUniswapRouterV2(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+    IUniswapRouterV2 private immutable uniswapRouter;
 
-    address private constant wethTokenAddress = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address private immutable wethTokenAddress;
 
     uint256 private constant deadline = 0xf000000000000000000000000000000000000000000000000000000000000000;
+
+    constructor(IUniswapV2Factory _UniSwapV2FactoryAddress, IUniswapRouterV2 _uniswapRouter, address _wethTokenAddress) {
+        UniSwapV2FactoryAddress = _UniSwapV2FactoryAddress;
+        uniswapRouter = _uniswapRouter;
+        wethTokenAddress = _wethTokenAddress;
+    }
 
     /**
       @notice This function is used to invest in given Uniswap V2 pair through ETH/ERC20 Tokens
