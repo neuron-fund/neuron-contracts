@@ -5,14 +5,30 @@ import { NeuronToken__factory } from '../typechain-types'
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre
-  const { deploy } = deployments
-  const deployer = (await ethers.getSigners())[0]
+  const { deploy, get } = deployments
+  const signers = await ethers.getSigners();
+  const deployer = signers[0]
+
+  const AirDropDeployment = await get('AirDrop')
+
+  const initialHoldres = [
+    {
+      recipient: signers[1].address,
+      amount: ethers.utils.parseEther('100'),
+    },
+    {
+      recipient: AirDropDeployment.address,
+      amount: ethers.utils.parseEther('100'),
+    },
+  ]
+  const transferAllower = signers[10];
 
   await deploy<DeployArgs<NeuronToken__factory>>('NeuronToken', {
     from: deployer.address,
-    args: [deployer.address],
+    args: [initialHoldres, transferAllower.address],
   })
 }
 
 deploy.tags = ['NeuronToken']
+deploy.dependencies = ['AirDrop']
 export default deploy

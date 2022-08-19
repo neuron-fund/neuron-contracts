@@ -101,6 +101,11 @@ const configs: IConfig[] = [
     price: 20000,
     slippage: 0.8,
   },
+  {
+    name: 'NeuronPoolCurveSBTCPricer',
+    price: 20000,
+    slippage: 0.8,
+  },
 ]
 
 function isChainLinkPricer(pricer: string) {
@@ -114,24 +119,25 @@ function isNeuronPoolPricer(pricer: string) {
 describe('Pricers', () => {
   let minTimestamp: BigNumber
   before(async () => {
-    console.log('aw10');
     const allPricers = configs.map(pricer => pricer.name)
     await deployments.fixture(['Oracle', ...allPricers])
     const accounts = await ethers.getSigners()
     const owner = accounts[0]
 
+    // legacy: Set minTemestamp. now get only one timeStamp(first) and sub some number
     for (const chainLinkPricer of allPricers.filter(pricer => isChainLinkPricer(pricer))) {
       const chainLinkPricerDeployment = await deployments.get(chainLinkPricer)
       const subPricer = ChainLinkPricer__factory.connect(chainLinkPricerDeployment.address, owner)
       const agregator = IAggregator__factory.connect(await subPricer.aggregator(), owner)
       const latestTimestamp = await agregator.latestTimestamp()
-      minTimestamp ||= latestTimestamp
+      console.log(`latestTimestamp ${chainLinkPricer} ${latestTimestamp}`)
+      minTimestamp ||= latestTimestamp.sub(24 * 60 * 60)
+      break;
       if (latestTimestamp.lt(minTimestamp)) {
         minTimestamp = latestTimestamp
       }
     }
-    
-    console.log('aw100');
+    // :legacy
   })
 
   it('', () => {
@@ -145,31 +151,25 @@ describe('Pricers', () => {
 
 function testPricers(config: IConfig, minTimestamp: BigNumber) {
   describe(`${config.name}`, () => {
-
     let oracle: Oracle
     let pricer: IPricer
     let owner: Signer
     let user: Signer
 
     before(async () => {
-      console.log('aw1');
       const accounts = await ethers.getSigners()
       owner = accounts[0]
       user = accounts[10]
 
-      console.log('aw12');
       const CRV3PricerDeployment = await deployments.get(config.name)
       const OracleDeployment = await deployments.get('Oracle')
       oracle = Oracle__factory.connect(OracleDeployment.address, owner)
 
-      console.log('aw13');
       pricer = (await ethers.getContractAt('IPricer', CRV3PricerDeployment.address)) as IPricer
 
-      console.log('aw14');
       if (isNeuronPoolPricer(config.name)) {
         const neuronPool = INeuronPool__factory.connect(await pricer.asset(), owner)
 
-        console.log('aw15');
         const tokenAddress = await neuronPool.token()
         await ERC20Minter.mint(tokenAddress, ethers.utils.parseEther('1000'), await user.getAddress())
         const token = await TokenHelper.getToken(tokenAddress)
@@ -182,13 +182,19 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
     it(`Get price`, async () => {
       const price = await pricer.getPrice()
 
-      const minPrice = config.price - config.price * config.slippage;
-      const maxPrice = config.price + config.price * config.slippage;
-      
-      assert(price.lt(ethers.utils.parseUnits(`${maxPrice}`, 8)), `Price more ${maxPrice}, = ${ethers.utils.formatUnits(`${price}`, 8)}`)
-      assert(price.gt(ethers.utils.parseUnits(`${minPrice}`, 8)), `Price low ${minPrice} = ${ethers.utils.formatUnits(`${price}`, 8)}`)
-    })
+      const minPrice = config.price - config.price * config.slippage
+      const maxPrice = config.price + config.price * config.slippage
 
+      assert(
+        price.lt(ethers.utils.parseUnits(`${maxPrice}`, 8)),
+        `Price more ${maxPrice}, = ${ethers.utils.formatUnits(`${price}`, 8)}`
+      )
+      assert(
+        price.gt(ethers.utils.parseUnits(`${minPrice}`, 8)),
+        `Price low ${minPrice} = ${ethers.utils.formatUnits(`${price}`, 8)}`
+      )
+    })
+    
     it(`Set expiry price in oracle`, async () => {
       const pricerDeployment = await deployments.get(config.name)
       let pricer: IPricer | ChainLinkPricer
@@ -196,8 +202,18 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
       if (isChainLinkPricer(config.name)) {
         const chainlinkPricer = ChainLinkPricer__factory.connect(pricerDeployment.address, owner)
         const agregator = IAggregator__factory.connect(await chainlinkPricer.aggregator(), owner)
-        const latestRound = await agregator.latestRound()
-        await chainlinkPricer.setExpiryPriceInOracle(minTimestamp, latestRound)
+
+        let roundId: BigNumber = (await agregator.latestRound()).sub(1)
+        while (true) {
+          const [_, __, ___, previousRoundTimestamp, _____] = await agregator.getRoundData(roundId)
+          if(previousRoundTimestamp.lte(minTimestamp)) {
+            roundId = roundId.add(1)
+            break
+          }
+          roundId = roundId.sub(1)
+        }
+        
+        await chainlinkPricer.setExpiryPriceInOracle(minTimestamp, roundId)
 
         pricer = chainlinkPricer
       } else {
@@ -215,3 +231,7 @@ function testPricers(config: IConfig, minTimestamp: BigNumber) {
     })
   })
 }
+1659514938
+1659511345
+1659507679
+1659336339

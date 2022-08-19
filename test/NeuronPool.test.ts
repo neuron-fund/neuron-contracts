@@ -24,6 +24,7 @@ import {
   ETH,
   CURVE_REN_WBTC_SBTC,
   SBTC,
+  WETH,
 } from '../constants/addresses'
 import { expectRevert } from '@openzeppelin/test-helpers'
 import ERC20Minter from './helpers/ERC20Minter'
@@ -63,12 +64,12 @@ const configs: Config[] = [
   },
   {
     name: 'NeuronPoolCurveALETH',
-    tokens: [ALETH_ETH, ETH, ALETH, USDC],
+    tokens: [ALETH_ETH, ETH, WETH, ALETH, USDC],
     errorToken: FRAX3CRV,
   },
   {
     name: 'NeuronPoolCurveSTETH',
-    tokens: [STE_CRV, ETH, STETH, USDC],
+    tokens: [STE_CRV, ETH, WETH, STETH, USDC],
     errorToken: FRAX3CRV,
   },
   {
@@ -109,7 +110,8 @@ function testNeuronPool(config: Config) {
     })
 
     afterEach(async () => {
-      ethers.provider.send('evm_revert', [initSnapshot])
+      await ethers.provider.send('evm_revert', [initSnapshot])
+      initSnapshot = await ethers.provider.send('evm_snapshot', [])
     })
 
     // --------------------------------------------------------

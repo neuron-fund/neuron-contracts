@@ -9,16 +9,13 @@ import {ICurvePool} from "../interfaces/ICurve.sol";
 import {INeuronPool} from "../interfaces/INeuronPool.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 
-contract NeuronPoolCurveRenPricer is IPricer {
-    ICurvePool public constant CURVE_POOL = ICurvePool(0x93054188d876f558f4a66B2EF1d97d16eDf0895B);
+contract NeuronPoolCurveSBTCPricer is IPricer {
+    ICurvePool public constant CURVE_POOL = ICurvePool(0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714);
     address public constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
     address public immutable asset;
-
     INeuronPool public immutable neuronPool;
-
     uint8 public immutable pricePerShareDecimals;
-
     IOracle public immutable oracle;
 
     constructor(
@@ -40,7 +37,7 @@ contract NeuronPoolCurveRenPricer is IPricer {
         return
             (neuronPool.pricePerShare() *
                 CURVE_POOL.get_virtual_price() *
-                ((_wbtcPrice * 9985) / 10000)) / (10**(pricePerShareDecimals + 18));
+                ((_wbtcPrice * 9940) / 10000)) / (10**(pricePerShareDecimals + 18));
     }
 
 

@@ -5,7 +5,6 @@ import {
   Controller,
   Controller__factory,
   ERC20,
-  MasterChef__factory,
   NeuronPool__factory,
   NeuronToken__factory,
   StrategyBase,

@@ -8,7 +8,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy, get } = deployments
   const [deployer] = await ethers.getSigners()
 
-  const MasterChefDeployment = await get('MasterChef')
   const ControllerDeployment = await get('Controller')
   const controller = (await ethers.getContractAt('Controller', ControllerDeployment.address)) as Controller
   const StrategyConvexCurveFraxDeployment = await get('StrategyConvexCurveFrax')
@@ -25,7 +24,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer.address,
     deployer.address,
     ControllerDeployment.address,
-    MasterChefDeployment.address,
     FRAX3CRV,
     FRAX,
   ])
@@ -42,5 +40,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 }
 
 deploy.tags = ['NeuronPoolCurveFrax']
-deploy.dependencies = ['MasterChef', 'Controller', 'StrategyConvexCurveFrax', 'NeuronPoolCurve3crvExtendsRealization']
+deploy.dependencies = ['Controller', 'StrategyConvexCurveFrax', 'NeuronPoolCurve3crvExtendsRealization']
 export default deploy

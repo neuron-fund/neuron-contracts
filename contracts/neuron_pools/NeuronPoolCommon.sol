@@ -14,9 +14,8 @@ abstract contract NeuronPoolCommon {
 
     IERC20Metadata internal constant USDC = IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
-    // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool
-    // Usually want/_want in strategies
     IERC20Metadata public token;
+    uint256 public tokenDecimals;
 
     uint256 public min = 9500;
     uint256 public constant max = 10000;
@@ -24,7 +23,6 @@ abstract contract NeuronPoolCommon {
     address public governance;
     address public timelock;
     address public controller;
-    address public masterchef;
 
     receive() external payable {}
 
@@ -42,38 +40,14 @@ abstract contract NeuronPoolCommon {
         return deposit(_enterToken, IERC20Metadata(_enterToken).balanceOf(msg.sender));
     }
 
-    // function depositBaseToken(address _token, uint256 _amount) internal virtual returns (uint256);
-
-    // function depositBeforeHook(address _enterToken, uint256 _amount) internal virtual returns (address, uint256) {
-    //     return (_enterToken, _amount);
-    // }
-
-    function deposit(address _enterToken, uint256 _amount) public payable virtual returns (uint256) {
-
-    }
-    // {
-    //     (_enterToken, _amount) = depositBeforeHook(_enterToken, _amount);
-
-    //     require(_amount > 0, "!amount");
-
-    //     address self = address(this);
-    //     IERC20Metadata _token = token;
-    //     IERC20Metadata enterToken = IERC20Metadata(_enterToken);
-
-    //     uint256 amount = _amount;
-    //     uint256 _balance = balance();
-
-    //     if (enterToken == _token) {
-    //         _token.safeTransferFrom(msg.sender, self, _amount);
-    //     } else {
-    //         amount = depositBaseToken(_enterToken, _amount);
-    //     }
-    // }
+    function deposit(address _enterToken, uint256 _amount) public payable virtual returns (uint256) {}
 
     function _mintShares(uint256 _amount, uint256 _balance) internal returns (uint256) {
         uint256 _totalSupply = totalSupply();
 
-        uint256 shares = _totalSupply == 0 ? _amount : (_amount * _totalSupply) / _balance;
+        uint256 shares = _totalSupply == 0
+            ? (_amount * 10**decimals()) / 10**tokenDecimals
+            : (_amount * _totalSupply) / _balance;
 
         _mint(msg.sender, shares);
 
@@ -83,8 +57,6 @@ abstract contract NeuronPoolCommon {
     function withdrawAll(address _withdrawableToken) external {
         withdraw(_withdrawableToken, balanceOf(msg.sender));
     }
-
-    // function withdrawAfterHook(IERC20Metadata _withdrawableToken, uint256 _amount) internal virtual;
 
     function _withdrawLpTokens(uint256 _shares) internal returns (uint256) {
         require(_shares > 0, "!shares");
@@ -111,29 +83,6 @@ abstract contract NeuronPoolCommon {
     }
 
     function withdraw(address _withdrawableToken, uint256 _shares) public virtual {}
-    // {
-    //     require(_shares > 0, "!shares");
-
-    //     address self = address(this);
-    //     IERC20Metadata _token = token;
-
-    //     uint256 userLpTokensAmount = (balance() * _shares) / totalSupply();
-    //     _burn(msg.sender, _shares);
-
-    //     uint256 neuronPoolBalance = _token.balanceOf(self);
-    //     // If pool balance's not enough, we're withdrawing the controller's tokens
-    //     if (userLpTokensAmount > neuronPoolBalance) {
-    //         uint256 _withdraw = userLpTokensAmount - neuronPoolBalance;
-    //         IController(controller).withdraw(address(_token), _withdraw);
-    //         uint256 _after = _token.balanceOf(self);
-    //         uint256 _diff = _after - neuronPoolBalance;
-    //         if (_diff < _withdraw) {
-    //             userLpTokensAmount = neuronPoolBalance + _diff;
-    //         }
-    //     }
-
-    //     withdrawAfterHook(IERC20Metadata(_withdrawableToken), userLpTokensAmount);
-    // }
 
     function decimals() public view virtual returns (uint8) {
         return 18;

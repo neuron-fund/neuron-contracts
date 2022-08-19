@@ -6,13 +6,10 @@ import {NeuronPoolCommon} from "./NeuronPoolCommon.sol";
 
 abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
     constructor(
-        // Token accepted by the contract. E.g. 3Crv for 3poolCrv pool
-        // Usually want/_want in strategies
         address _token,
         address _governance,
         address _timelock,
-        address _controller,
-        address _masterchef
+        address _controller
     )
         ERC20(
             string(abi.encodePacked("neuroned", IERC20Metadata(_token).name())),
@@ -20,10 +17,10 @@ abstract contract NeuronPoolBase is NeuronPoolCommon, ERC20, ReentrancyGuard {
         )
     {
         token = IERC20Metadata(_token);
+        tokenDecimals = uint256(token.decimals());
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
-        masterchef = _masterchef;
     }
 
     function deposit(address _enterToken, uint256 _amount) public payable virtual override nonReentrant returns (uint256) {

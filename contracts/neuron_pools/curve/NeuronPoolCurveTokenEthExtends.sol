@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ICurveFi_2} from "../../interfaces/ICurve.sol";
 import {NeuronPoolBaseInitialize} from "../NeuronPoolBaseInitialize.sol";
 import {IUniswapRouterV2} from "../../interfaces/IUniswapRouterV2.sol";
+import {IWETH} from "../../interfaces/IWETH.sol";
 
 contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
     using SafeERC20 for IERC20Metadata;
@@ -22,21 +23,21 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
         address _governance,
         address _timelock,
         address _controller,
-        address _masterchef,
         address _basePool,
         address _secondTokenInBasePool
     ) external initializer {
-        __NeuronPoolBaseInitialize_init(_token, _governance, _timelock, _controller, _masterchef);
+        __NeuronPoolBaseInitialize_init(_token, _governance, _timelock, _controller);
         basePool = ICurveFi_2(_basePool);
         secondTokenInBasePool = IERC20Metadata(_secondTokenInBasePool);
     }
 
     function getSupportedTokens() external view override returns (address[] memory tokens) {
-        tokens = new address[](4);
+        tokens = new address[](5);
         tokens[0] = address(token);
         tokens[1] = address(ETH);
-        tokens[2] = address(secondTokenInBasePool);
-        tokens[3] = address(USDC);
+        tokens[2] = WETH;
+        tokens[3] = address(secondTokenInBasePool);
+        tokens[4] = address(USDC);
     }
 
     function deposit(address _enterToken, uint256 _amount) public payable override returns (uint256) {
@@ -56,10 +57,20 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
         } else if (enterToken == USDC) {
             _amount = depositBaseToken(ETH, _swapUSDCtoETH(_amount));
         } else {
+            if (address(enterToken) == WETH) {
+                _unwrapWETH(_amount);
+                enterToken = ETH;
+            }
             _amount = depositBaseToken(enterToken, _amount);
         }
 
         return _mintShares(_amount, _balance);
+    }
+
+    function _unwrapWETH(uint256 _amount) internal {
+        IWETH weth = IWETH(WETH);
+        weth.transferFrom(msg.sender, address(this), _amount);
+        weth.withdraw(_amount);
     }
 
     function depositBaseToken(IERC20Metadata _enterToken, uint256 _amount) internal returns (uint256) {
@@ -98,6 +109,10 @@ contract NeuronPoolCurveTokenEthExtends is NeuronPoolBaseInitialize {
         if (withdrawableToken != token) {
             if (withdrawableToken == USDC) {
                 amount = _swapETHtoUSDC(withdrawBaseToken(address(ETH), amount));
+            } else if(_withdrawableToken == WETH) {
+                amount = withdrawBaseToken(address(ETH), amount);
+                IWETH(WETH).deposit{value: amount}();
+                withdrawableToken = IERC20Metadata(WETH);
             } else {
                 amount = withdrawBaseToken(address(_withdrawableToken), amount);
             }
