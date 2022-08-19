@@ -1,7 +1,7 @@
 import { ethers, deployments, network } from 'hardhat'
 import { assert } from 'chai'
 import { INeuronPool, IERC20, IConvexBooster, StrategyConvexFarmBase, IStrategy } from '../typechain-types'
-import { CONVEX_BOOSTER, CRV, CVX, FXS, LQTY, SPELL, WETH } from '../constants/addresses'
+import { CONVEX_BOOSTER, CRV, CVX, FXS, LQTY, SPELL, ETH } from '../constants/addresses'
 import { waitNDays } from '../utils/time'
 import ERC20Minter from './helpers/ERC20Minter'
 import { BigNumber, Signer } from 'ethers'
@@ -10,7 +10,7 @@ interface IConfig {
   startegy: string
   neuronPool: string
   rewardTokens: string[]
-  claimConvexRewards?: boolean
+  claimConvexRewards: boolean
 }
 
 const CONFIGS: IConfig[] = [
@@ -32,11 +32,42 @@ const CONFIGS: IConfig[] = [
     rewardTokens: [CRV, CVX, SPELL],
     claimConvexRewards: true,
   },
-//   {
-//     startegy: 'StrategyStabilityPoolLUSD',
-//     neuronPool: 'NeuronPoolCurveLUSD',
-//     rewardTokens: [WETH, LQTY],
-//   },
+  {
+    startegy: 'StrategyStabilityPoolLUSD',
+    neuronPool: 'NeuronPoolStabilityPoolLUSD',
+    rewardTokens: [ETH, LQTY],
+    claimConvexRewards: false,
+  },
+  {
+    startegy: 'StrategyConvexCurveHBTC',
+    neuronPool: 'NeuronPoolCurveHBTC',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
+  {
+    startegy: 'StrategyConvexCurveRen',
+    neuronPool: 'NeuronPoolCurveRen',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
+  {
+    startegy: 'StrategyConvexCurveALETH',
+    neuronPool: 'NeuronPoolCurveALETH',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
+  {
+    startegy: 'StrategyConvexCurveSTETH',
+    neuronPool: 'NeuronPoolCurveSTETH',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
+  {
+    startegy: 'StrategyConvexCurveSBTC',
+    neuronPool: 'NeuronPoolCurveSBTC',
+    rewardTokens: [CRV, CVX],
+    claimConvexRewards: true,
+  },
 ]
 
 describe('Strategies tests', () => {
@@ -69,9 +100,11 @@ function startegyTests(CONFIG: IConfig) {
         await strategy.want()
       )) as IERC20
 
-      await ERC20Minter.mint(wantToken.address, ethers.utils.parseEther('10'), await user.getAddress())
+      console.log(`wantToken.address ${wantToken.address}`)
+      await ERC20Minter.mint(wantToken.address, ethers.utils.parseEther('1000'), await user.getAddress())
 
       wantTokenBalance = await wantToken.balanceOf(await user.getAddress())
+      console.log(`wantTokenBalance ${wantTokenBalance}`)
       await wantToken.connect(user).approve(neuronPool.address, wantTokenBalance)
       await neuronPool.connect(user).deposit(wantToken.address, wantTokenBalance)
       const earnTransaction = await neuronPool.earn()

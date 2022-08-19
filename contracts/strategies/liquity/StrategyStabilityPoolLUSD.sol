@@ -15,6 +15,7 @@ import {ISortedTroves} from "../../interfaces/ISortedTroves.sol";
 contract StrategyStabilityPoolLUSD is StrategyBase {
     using SafeERC20 for IERC20;
 
+    address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address public constant LUSD = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
     address public constant LQTY = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
     address payable public constant STABILITY_POOL = payable(0x66017D22b0f8556afDd19FC67041899Eb65a21bb);
@@ -50,8 +51,8 @@ contract StrategyStabilityPoolLUSD is StrategyBase {
 
         uint256 ethBalance = self.balance;
         if (ethBalance > 0) {
-            _swapUniswapETHExactETHForTokens(LUSD, ethBalance);
-            emit RewardToken(weth, ethBalance);
+            _swapUniswapExactETHForTokens(LUSD, ethBalance);
+            emit RewardToken(ETH, ethBalance);
         }
 
         uint256 lqtyBalance = IERC20(LQTY).balanceOf(self);

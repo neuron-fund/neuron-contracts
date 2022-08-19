@@ -42,41 +42,39 @@ contract StrategyConvexCurveRen is StrategyConvexFarmBase {
     }
 
     function harvest() public override onlyBenevolent {
-        IBaseRewardPool(getCrvRewardContract()).getReward(address(this), true);
+        address self = address(this);
+        IERC20 cvxIERC20 = IERC20(cvx);
+        IERC20 crvIERC20 = IERC20(crv);
+
+        IBaseRewardPool(getCrvRewardContract()).getReward(self, true);
 
         // Check rewards
-        uint256 _cvx = IERC20(cvx).balanceOf(address(this));
+        uint256 _cvx = cvxIERC20.balanceOf(self);
         emit RewardToken(cvx, _cvx);
 
-        uint256 _crv = IERC20(crv).balanceOf(address(this));
+        uint256 _crv = crvIERC20.balanceOf(self);
         emit RewardToken(crv, _crv);
 
         // Swap cvx to crv
         if (_cvx > 0) {
-            IERC20(cvx).safeApprove(sushiRouter, 0);
-            IERC20(cvx).safeApprove(sushiRouter, _cvx);
+            cvxIERC20.safeApprove(sushiRouter, 0);
+            cvxIERC20.safeApprove(sushiRouter, _cvx);
             _swapSushiswap(cvx, crv, _cvx);
         }
 
         // Swap crv to stable coins
         (address to, uint256 toIndex) = getMostPremium();
 
-        _crv = IERC20(crv).balanceOf(address(this));
+        _crv = crvIERC20.balanceOf(self);
 
         if (_crv > 0) {
-            _swapToNeurAndDistributePerformanceFees(crv, sushiRouter);
-        }
-
-        _crv = IERC20(crv).balanceOf(address(this));
-
-        if (_crv > 0) {
-            IERC20(crv).safeApprove(univ2Router2, 0);
-            IERC20(crv).safeApprove(univ2Router2, _crv);
+            crvIERC20.safeApprove(univ2Router2, 0);
+            crvIERC20.safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, to, _crv);
         }
 
         // reinvestment
-        uint256 _to = IERC20(to).balanceOf(address(this));
+        uint256 _to = IERC20(to).balanceOf(self);
         if (_to > 0) {
             IERC20(to).safeApprove(curvePool, 0);
             IERC20(to).safeApprove(curvePool, _to);

@@ -20,7 +20,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const factory = (await ethers.getContractFactory('NeuronPoolCurve3crvExtends')) as NeuronPoolCurve3crvExtends__factory
 
-  console.log(`await strategyConvexCurveFrax.want() ${await strategyConvexCurveFrax.want()}`)
   const data = factory.interface.encodeFunctionData('initialize', [
     await strategyConvexCurveFrax.want(),
     deployer.address,
