@@ -12,8 +12,10 @@ import {IUniswapV2Factory} from "../interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Pair} from "../interfaces/IUniswapV2Pair.sol";
 import {IWETH} from "../interfaces/IWETH.sol";
 
-contract UniswapV2_ZapIn_General_V5 {
+contract NeuronLiquidityPoolZapIn {
     using SafeERC20 for IERC20;
+
+    address constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     IUniswapV2Factory private immutable UniSwapV2FactoryAddress;
 
@@ -31,7 +33,7 @@ contract UniswapV2_ZapIn_General_V5 {
 
     /**
       @notice This function is used to invest in given Uniswap V2 pair through ETH/ERC20 Tokens
-      @param _fromTokenContractAddress The ERC20 token used for investment (address(0x00) if ether)
+      @param _fromTokenContractAddress The ERC20 token used for investment (address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) if ether)
       @param _pairAddress The Uniswap pair address
       @param _amount The amount of fromToken to invest
       @param _minPoolTokens Reverts if less tokens received than this
@@ -66,7 +68,7 @@ contract UniswapV2_ZapIn_General_V5 {
     }
 
     function _pullTokens(address token, uint256 amount) internal returns (uint256 value) {
-        if (token == address(0)) {
+        if (token == ETH) {
             require(msg.value > 0, "No eth sent");
             return msg.value;
         }
@@ -181,7 +183,7 @@ contract UniswapV2_ZapIn_General_V5 {
         }
 
         uint256 valueToSend;
-        if (_fromTokenAddress == address(0)) {
+        if (_fromTokenAddress == ETH) {
             valueToSend = _amount;
         } else {
             _approveToken(_fromTokenAddress, _swapTarget, _amount);

@@ -26,7 +26,6 @@ import {
   WETH,
 } from '../../constants/addresses'
 import { IERC20__factory, IUniswapRouterV2 } from '../../typechain-types'
-import TokenHelper from './TokenHelper'
 
 const SLOT_BY_TOKEN: { [key: string]: ((recipient: string) => [number, string] | [string, number]) | true } = {
   [LUSD]: recipient => [recipient, 2],

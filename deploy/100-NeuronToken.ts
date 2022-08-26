@@ -13,6 +13,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initialHoldres = [
     {
+      recipient: signers[0].address,
+      amount: ethers.utils.parseEther('1000'),
+    },
+    {
       recipient: signers[1].address,
       amount: ethers.utils.parseEther('100'),
     },
