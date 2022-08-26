@@ -26,13 +26,14 @@ import {
   ERC20,
   ERC20__factory,
   IUniswapRouterV2__factory,
+  IUniswapV2Factory__factory,
   IWETH,
+  IWETH__factory,
   NeuronToken,
   NeuronToken__factory,
 } from '../typechain-types'
-import { NeuronLiquidityPoolZapIn } from '../typechain-types/contracts/zap/ZapperZapIn.sol/NeuronLiquidityPoolZapIn'
-import { IUniswapV2Factory__factory, IWETH__factory } from '../typechain-types/factories/contracts/interfaces'
-import { NeuronLiquidityPoolZapIn__factory } from '../typechain-types/factories/contracts/zap/ZapperZapIn.sol/NeuronLiquidityPoolZapIn__factory'
+import { NeuronLiquidityPoolZapIn } from '../typechain-types/contracts/zap/ZapperZapIn.sol'
+import { NeuronLiquidityPoolZapIn__factory } from '../typechain-types/factories/contracts/zap/ZapperZapIn.sol'
 import ERC20Minter from './helpers/ERC20Minter'
 
 interface ICONFIG {
@@ -43,42 +44,42 @@ const CONFIGS: ICONFIG[] = [
   {
     token: WBTC
   },
-  // {
-  //   token: DAI,
-  // },
-  // {
-  //   token: USDC,
-  // },
-  // {
-  //   token: USDT,
-  // },
-  // {
-  //   token: FRAX
-  // },
-  // {
-  //   token: MIM
-  // },
-  // {
-  //   token: RENBTC
-  // },
-  // {
-  //   token: ETH,
-  // },
-  // {
-  //   token: WETH,
-  // },
-  // {
-  //   token: ALETH
-  // },
-  // {
-  //   token: STETH
-  // },
-  // {
-  //   token: LUSD
-  // },
-  // {
-  //   token: SBTC
-  // },
+  {
+    token: DAI,
+  },
+  {
+    token: USDC,
+  },
+  {
+    token: USDT,
+  },
+  {
+    token: FRAX
+  },
+  {
+    token: MIM
+  },
+  {
+    token: RENBTC
+  },
+  {
+    token: ETH,
+  },
+  {
+    token: WETH,
+  },
+  {
+    token: ALETH
+  },
+  {
+    token: STETH
+  },
+  {
+    token: LUSD
+  },
+  {
+    token: SBTC
+  },
 ]
 
 type ZeroXQuoteParams = {
@@ -203,7 +204,6 @@ describe('Unizap', () => {
   for (const config of CONFIGS) {
     const testToken = config.token
     it(`token test ${testToken}`, async () => {
-      const initialTokenBalance = await token.balanceOf(signer.address)
       const zapInTokenAddress = testToken
       const zapInTokenContract = ERC20__factory.connect(zapInTokenAddress, signer)
 
@@ -236,6 +236,8 @@ describe('Unizap', () => {
         swapData = ethers.constants.HashZero
       }
 
+      const initialLpBalance = await lpPair.balanceOf(signer.address)
+
       if (zapInTokenAddress != ETH) {
         await zapInTokenContract.approve(zapper.address, zapInAmount)
         await zapper.ZapIn(zapInTokenAddress, pair, zapInAmount, 0, swapTarget, swapData, true)
@@ -243,15 +245,9 @@ describe('Unizap', () => {
         await zapper.ZapIn(zapInTokenAddress, pair, zapInAmount, 0, swapTarget, swapData, true, { value: zapInAmount })
       }
 
-      const lpBalance = await lpPair.balanceOf(signer.address)
-      const resultTokenBalance = await token.balanceOf(signer.address)
+      const resultLpBalance = await lpPair.balanceOf(signer.address)
 
-      assert(lpBalance.gt(0), 'LP pair balance is zero')
-
-      assert(
-        initialTokenBalance.sub(initDexTokenAmount).eq(resultTokenBalance),
-        `initialTokenBalance - initDexTokenAmount != resultTokenBalance | ${initialTokenBalance} - ${initDexTokenAmount} != ${resultTokenBalance}`
-      )
+      assert(resultLpBalance.gt(initialLpBalance), 'LP pair balance is zero')
     })
   }
 })
